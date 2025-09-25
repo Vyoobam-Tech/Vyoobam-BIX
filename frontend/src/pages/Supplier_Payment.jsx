@@ -5,10 +5,16 @@ import { GiTakeMyMoney } from "react-icons/gi";
 import { MdDeleteForever } from "react-icons/md";
 import { FaSearch } from "react-icons/fa";
 import axios from 'axios';
+import { useDispatch,useSelector } from 'react-redux';
+import { fetchsuppliers } from '../redux/supplierSlice';
+
+import { addpayment, deletepayment, fetchpayments } from '../redux/supplierpaymentSlice';
 
 const Supplier_Payment = () => {
-  const [suppliers, setSupplier] = useState([])
-  const [payments, setPayment] = useState([])
+  const dispatch=useDispatch()
+  const {items:sup_payments,status}=useSelector((state)=>state.sup_payments)
+ const {items:suppliers}=useSelector((state)=>state.suppliers)
+  
   const [form, setForm] = useState({
     supplier_id: "",
 
@@ -20,12 +26,9 @@ const Supplier_Payment = () => {
     notes: "",
   })
   useEffect(() => {
-    axios.get("http://localhost:5000/api/suppliers")
-      .then(res => setSupplier(res.data))
+    dispatch(fetchsuppliers())
 
-    axios.get("http://localhost:5000/api/sup_receipts")
-      .then(res => setPayment(res.data))
-      .catch(err => console.error(err))
+    dispatch(fetchpayments())
   }, [])
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -34,8 +37,7 @@ const Supplier_Payment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const res = await axios.post("http://localhost:5000/api/sup_receipts", form)
-      setPayment([...payments, res.data])
+    dispatch(addpayment(form))
       setForm({
         supplier_id: "",
 
@@ -53,7 +55,7 @@ const Supplier_Payment = () => {
   }
 
   const [search, setSearch] = useState("");
-  const filteredpayments = payments.filter((s) => {
+  const filteredpayments = sup_payments.filter((s) => {
     const supplierName = s.supplier_id?.name || s.supplier_id?.toString() || "";
     return (
       supplierName.toLowerCase().includes(search.toLowerCase()) ||
@@ -62,12 +64,7 @@ const Supplier_Payment = () => {
   });
 
   const handleDelete = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/sup_receipts/${id}`);
-      setPayment(payments.filter((p) => p._id !== id));
-    } catch (err) {
-      console.error(err);
-    }
+   dispatch(deletepayment(id))
   };
 
 
@@ -176,7 +173,7 @@ const Supplier_Payment = () => {
                   </td>
                 </tr>
               ) : (
-                payments.map(p => (
+                sup_payments.map(p => (
                   <tr key={p._id}>
                     <td>{p.supplier_id?.name}</td>
                     <td>{p.date}</td>
