@@ -1,49 +1,58 @@
 import axios from "axios";
-const API=axios.create({
-  baseURL: "http://localhost:5000/api"
-});
 
+// 🔹 Base URL of your backend API
+// change if your server runs on a different port
+const API_URL = "http://localhost:5000/api/users";
 
-
-export const login = async (email, password) => {
-  const res = await API.post("/users/login", { email, password });
-  return res.data;
+// 🔹 Adds/removes the user id header used by getMe
+export const setUserHeader = (id) => {
+  if (id) {
+    axios.defaults.headers.common["x-user-id"] = id;
+  } else {
+    delete axios.defaults.headers.common["x-user-id"];
+  }
 };
 
-export const register = async (payload) => {
-  const res = await API.post("/users/register", payload);
-  return res.data;
+// 🔹 Register a new user
+export const register = (name, email, password, phone, role, avatar, address) => {
+  return axios
+    .post(`${API_URL}/register`, {
+      name,
+      email,
+      password,
+      phone,
+      role,
+      avatar,
+      address,
+    })
+    .then((res) => res.data);
 };
 
-export const getMe = async (userId) => {
-
-  const res = await API.get("/users/me", { params: { userId }});
-  return res.data;
+// 🔹 Login
+export const login = (email, password) => {
+  return axios
+    .post(`${API_URL}/login`, { email, password })
+    .then((res) => res.data);
 };
 
-export const getUserById = async (id) => {
-  const res = await API.get(`/users/${id}`);
-  return res.data;
+// 🔹 Forgot Password
+export const Forgotpassword = (email) => {
+  return axios
+    .post(`${API_URL}/forgot-password`, { email })
+    .then((res) => res.data);
 };
 
-
-export const Forgotpassword = async (email) => {
-  const res = await API.post("/users/forgot-password", { email });
-  return res.data;
+// 🔹 Reset Password
+export const Resetpassword = (token, password) => {
+  return axios
+    .post(`${API_URL}/reset-password/${token}`, { password })
+    .then((res) => res.data);
 };
 
-
-
-export const Resetpassword = async (token, password) => {
-  const res = await API.post(`/users/reset-password/${token}`, { password });
-  return res.data;
+// 🔹 Get current user info (expects x-user-id header set)
+export const getMe = (userId) => {
+  // optional: pass as query string
+  return axios
+    .get(`${API_URL}/me`, { params: { userId } })
+    .then((res) => res.data);
 };
-
-
-
-export const setUserHeader = (userId) => {
-  if (userId) API.defaults.headers.common["x-user-id"] = userId;
-  else delete API.defaults.headers.common["x-user-id"];
-};
-
-export default API;

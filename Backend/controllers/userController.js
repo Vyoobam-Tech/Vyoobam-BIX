@@ -14,13 +14,11 @@ exports.register = async (req, res) => {
     const exists = await User.findOne({ email: emailNormalized });
     if (exists) return res.status(400).json({ error: "Email already in use" });
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
+    // plain password here; pre-save hook will hash
     const user = new User({
       name,
       email: emailNormalized,
-      password: hashedPassword,
+      password,
       phone,
       role,
       avatar,
@@ -35,6 +33,7 @@ exports.register = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // ---------------- LOGIN ----------------
 exports.login = async (req, res) => {
@@ -169,8 +168,8 @@ exports.resetPassword = async (req, res) => {
 
     if (!user) return res.status(400).json({ error: "Invalid or expired token" });
 
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
+    // Assign plain password; pre-save hook will hash
+    user.password = password;
 
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
