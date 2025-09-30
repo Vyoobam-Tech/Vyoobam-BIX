@@ -36,6 +36,7 @@ exports.register = async (req, res) => {
 
 
 // ---------------- LOGIN ----------------
+// ---------------- LOGIN ----------------
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -51,11 +52,22 @@ exports.login = async (req, res) => {
 
     const userObj = user.toObject();
     delete userObj.password;
-    res.json(userObj);
+
+    // 🔹 Create a JWT token
+    const jwt = require("jsonwebtoken");
+    const token = jwt.sign(
+      { id: user._id, email: user.email }, // payload
+      process.env.JWT_SECRET,              // secret key
+      { expiresIn: "1h" }                  // expiration
+    );
+
+    // send user info + token
+    res.json({ user: userObj, token });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // ---------------- GET USER BY ID ----------------
 exports.getUserById = async (req, res) => {

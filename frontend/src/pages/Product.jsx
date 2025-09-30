@@ -4,6 +4,7 @@ import { fetchProducts, addProduct, deleteProduct } from "../redux/productSlice"
 import { MdProductionQuantityLimits, MdDeleteForever } from "react-icons/md";
 import { FaCartPlus, FaSearch } from "react-icons/fa";
 import axios from "axios";
+import { fetchCategories } from "../redux/categorySlice";
 
 const Product = () => {
     const dispatch = useDispatch();
@@ -33,9 +34,7 @@ const Product = () => {
 
     // Load categories from API
     useEffect(() => {
-        axios.get("http://localhost:5000/api/categories")
-            .then((res) => setCategories(res.data))
-            .catch((err) => console.error("Error fetching categories:", err));
+       dispatch(fetchCategories())
     }, []);
 
     // Fetch products via Redux

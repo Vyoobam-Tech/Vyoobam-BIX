@@ -13,6 +13,14 @@ export const setUserHeader = (id) => {
   }
 };
 
+export const setAuthToken = (token) => {
+  if (token) {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete axios.defaults.headers.common["Authorization"];
+  }
+};
+
 // 🔹 Register a new user
 export const register = (name, email, password, phone, role, avatar, address) => {
   return axios

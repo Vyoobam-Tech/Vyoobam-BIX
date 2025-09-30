@@ -26,6 +26,10 @@ import Register from "./pages/Register"
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ProfitLossReport from "./pages/reports/ProfitLossReport";
+import { setAuthToken } from "./services/userService";
+
+const token = localStorage.getItem("token");
+if (token) setAuthToken(token);
 
 const ProtectedRoute = ({ children }) => {
   const user = localStorage.getItem("user"); 
