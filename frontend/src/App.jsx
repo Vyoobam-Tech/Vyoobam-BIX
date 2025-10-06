@@ -27,6 +27,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ProfitLossReport from "./pages/reports/ProfitLossReport";
 import StockLedger from "./pages/StockLedger";
+import Expenses from "./pages/Expenses";
 import { setAuthToken } from "./services/userService";
 
 const token = localStorage.getItem("token");
@@ -63,6 +64,7 @@ function App() {
            <Route path="/sub_receipts" element={<Supplier_Payment/>} />
              <Route path="/stocks" element={<StockAdjustment/>} />
              <Route path="/stockledger" element={<StockLedger/>} />
+             <Route path="/expenses" element={<Expenses />} />
              <Route path="/profile" element={<Profile/>}/>
               <Route path="/reports" element={<Reports />}>
               <Route index element={<SalesReport/>}/>

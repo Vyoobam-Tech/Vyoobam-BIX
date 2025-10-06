@@ -16,6 +16,7 @@ const customerpaymentRoutes=require('./routes/customerpaymentRoutes')
 const supplierpaymentRoutes=require("./routes/supplierpaymentRoutes")
 const stockadjustmentRoutes=require("./routes/stockadjRoutes")
 const stockledgerRoutes=require("./routes/stockledgerRoutes")
+const expenseRoutes=require("./routes/expenseRoutes")
 const reportRoutes=require("./routes/reportRoutes")
 const userRoutes=require('./routes/userRoutes')
 const app = express();
@@ -42,6 +43,7 @@ app.use("/api/cus_payments",customerpaymentRoutes)
 app.use("/api/sup_payments",supplierpaymentRoutes)
 app.use("/api/stocks",stockadjustmentRoutes)
 app.use("/api/stockledger",stockledgerRoutes)
+app.use("/api/expenses",expenseRoutes)
 app.use("/api/reports", reportRoutes);
 app.use("/api/users",userRoutes)
 
