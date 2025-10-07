@@ -35,7 +35,7 @@ const Customer = () => {
 
     // Function to update states based on country code
     const updateStates = (countryCode) => {
-        console.log("Updating states for country:", countryCode); // Debug log
+        console.log("Updating states for country:", countryCode); 
         if (countryCode) {
             try {
                 const stateList = State.getStatesOfCountry(countryCode.toUpperCase());
@@ -148,25 +148,12 @@ const Customer = () => {
             <form className="row g-3" onSubmit={handleSubmit}>
                 <div className="col-md-6">
                     <label className="form-label">Customer Name <span className="text-danger">*</span></label>
-                    <input
-                        type="text"
-                        className="form-control bg-light"
-                        placeholder="Enter full name"
-                        onChange={handleChange}
-                        name="name"
-                        value={form.name}
-                        required
-                        pattern="[A-Za-z\s]+"
-                    />
+                    <input type="text" className="form-control bg-light" placeholder="Enter full name" onChange={handleChange} name="name"  value={form.name} required pattern="[A-Za-z\s]+"/>
                 </div>
 
                 <div className="col-md-6">
                     <label className="form-label">Mobile Number <span className="text-danger">*</span></label>
-                    <PhoneInput
-                        country={'in'}
-                        value={form.phone}
-                        onChange={handlePhoneChange}
-                        onCountryChange={handleCountryChange} // Add this line
+                    <PhoneInput country={'in'} value={form.phone} onChange={handlePhoneChange} onCountryChange={handleCountryChange} // Add this line
                         inputProps={{
                             name: 'phone',
                             required: true,

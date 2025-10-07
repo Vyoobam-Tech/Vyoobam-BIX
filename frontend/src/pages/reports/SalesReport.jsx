@@ -92,23 +92,12 @@ const SalesReport = () => {
         </div>
         <div className="col-md-6">
           <label className="form-label">Invoice No</label>
-          <input
-            type="text"
-            className="form-control bg-light"
-            name="invoice_no"
-            value={form.invoice_no}
-            onChange={handleChange}
-          />
+          <input type="text" className="form-control bg-light"  name="invoice_no" value={form.invoice_no}  onChange={handleChange}/>
         </div>
 
         <div className="col-md-6">
           <label className="form-label">Payment Mode</label>
-          <select
-            className="form-select bg-light"
-            name="payment_mode"
-            value={form.payment_mode}
-            onChange={handleChange}
-          >
+          <select className="form-select bg-light" name="payment_mode" value={form.payment_mode} onChange={handleChange}  >
             <option>-- Select Payment Mode --</option>
             <option>Cash</option>
             <option>Card</option>

@@ -57,7 +57,6 @@ const Customer_Payment = () => {
     dispatch(deletepayment(id))
   }
 
-  // Filter payments by customer name or date
   const filteredpayments = cus_payments.filter((p) => {
     const customerName = p.customer_id?.name || (customers.find(c => c._id === p.customer_id)?.name) || ""
     return (
@@ -79,13 +78,7 @@ const Customer_Payment = () => {
       <form className="row g-3" onSubmit={handleSubmit}>
         <div className="col-md-6">
           <label className="form-label">Customer <span className="text-danger">*</span></label>
-          <select
-            className="form-select bg-light"
-            name="customer_id"
-            value={form.customer_id}
-            onChange={handleChange}
-            required
-          >
+          <select className="form-select bg-light" name="customer_id" value={form.customer_id} onChange={handleChange} required >
             <option value="">-- Select Customer --</option>
             {customers.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
