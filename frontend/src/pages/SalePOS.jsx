@@ -142,29 +142,31 @@ const SalePOS = () => {
   }, [form.items, form.paid_amount]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      dispatch(addSale(form));
-      setForm({
-        invoice_no: "INV" + Math.floor(1000 + Math.random() * 9000),
-        invoice_date_time: new Date().toISOString().slice(0, 10),
-        customer_id: "",
-        counter_id: "",
-        payment_mode: "Cash",
-        subtotal: 0,
-        discount_amount: 0,
-        tax_amount: 0,
-        grand_total: 0,
-        paid_amount: 0,
-        due_amount: 0,
-        notes: "",
-        items: [],
-      });
-    } catch (err) {
-      console.error(err);
-      alert("Error saving sale.");
-    }
-  };
+  e.preventDefault();
+  try {
+    await dispatch(addSale(form));
+    await dispatch(fetchsales()); // ✅ refresh table
+    setForm({
+      invoice_no: "INV" + Math.floor(1000 + Math.random() * 9000),
+      invoice_date_time: new Date().toISOString().slice(0, 10),
+      customer_id: "",
+      counter_id: "",
+      payment_mode: "Cash",
+      subtotal: 0,
+      discount_amount: 0,
+      tax_amount: 0,
+      grand_total: 0,
+      paid_amount: 0,
+      due_amount: 0,
+      notes: "",
+      items: [],
+    });
+  } catch (err) {
+    console.error(err);
+    alert("Error saving sale.");
+  }
+};
+
 
   const [search, setSearch] = useState("");
   const filteredsales = sales.filter((s) => {

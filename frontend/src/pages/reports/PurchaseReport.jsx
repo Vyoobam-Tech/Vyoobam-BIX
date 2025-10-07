@@ -1,37 +1,37 @@
-import axios from "axios";
+
 import React, { useEffect, useState } from "react";
 import { FaRegSave } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
 import { FaSearch } from "react-icons/fa";
-import { useDispatch,useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchsuppliers } from "../../redux/supplierSlice";
 import { addpurchasereport, deletepurchasereport, fetchpurchasereports } from "../../redux/purchasereportSlice";
 
 const PurchaseReport = () => {
-  const dispatch=useDispatch()
-  const {items:purchasereports,status}=useSelector((state)=>state.purchasereports)
-  const {items:suppliers}=useSelector((state)=>state.suppliers)
-  
- 
-  const [form,setForm]=useState({
+  const dispatch = useDispatch()
+  const { items: purchasereports, status } = useSelector((state) => state.purchasereports)
+  const { items: suppliers } = useSelector((state) => state.suppliers)
+
+
+  const [form, setForm] = useState({
     from_date: "",
     to_date: "",
     supplier_id: "",
   })
 
   useEffect(() => {
-  dispatch(fetchsuppliers())
+    dispatch(fetchsuppliers())
 
     dispatch(fetchpurchasereports())
   }, [])
-  const handleChange=(e)=>{
-    const {name,value}=e.target
-    setForm({ ...form,[name]:value})
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setForm({ ...form, [name]: value })
   }
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-     dispatch(addpurchasereport(form))
+      dispatch(addpurchasereport(form))
       setForm({
         from_date: "",
         to_date: "",
@@ -42,9 +42,9 @@ const PurchaseReport = () => {
       console.error(err.response?.data || err.message)
     }
   }
-  const [search,setSearch]=useState("");
-  const filteredreports=purchasereports.filter((p) => {
-    const supplierName=p.supplier_id?.name || p.supplier_id?.toString() || "";
+  const [search, setSearch] = useState("");
+  const filteredreports = purchasereports.filter((p) => {
+    const supplierName = p.supplier_id?.name || p.supplier_id?.toString() || "";
     return (
       supplierName.toLowerCase().includes(search.toLowerCase()) ||
       p.from_date.toString().toLowerCase().includes(search.toLowerCase())

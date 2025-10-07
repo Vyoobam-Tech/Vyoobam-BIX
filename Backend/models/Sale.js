@@ -7,7 +7,7 @@ const SaleItemSchema = new mongoose.Schema({
   qty:{type:Number,required:true},
   unit_price:{type:Number,required:true},
   discount_percent:{type:Number,default:0},
-  tax_rate_id:{type:mongoose.Schema.Types.ObjectId,ref:'Tax',required:true},
+  tax_rate_id:{type:mongoose.Schema.Types.ObjectId,ref:'Tax'},
   cgst_amount:{type:Number,default:0},
   sgst_amount:{type:Number,default:0},
   igst_amount:{type:Number,default:0},

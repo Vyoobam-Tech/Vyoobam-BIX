@@ -1,22 +1,29 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { MdPictureAsPdf } from "react-icons/md";
 import { FaFileExcel } from "react-icons/fa6";
+import { useDispatch,useSelector } from "react-redux";
+import { fetchProfitLoss } from "../../redux/profitlossSlice";
+import { fetchwarehouses } from "../../redux/warehouseSlice";
 
 const ProfitLossReport = () => {
+  const dispatch=useDispatch()
+  const {items:profitloss,status,report}=useSelector((state)=>state.profitloss)
+  const {items:warehouses}=useSelector((state)=>state.warehouses)
   const [form, setForm] = useState({
     from_date: "",
     to_date: "",
     warehouse_id: "",
   });
 
-  const [report, setReport] = useState(null); 
+  useEffect(()=>{
+    dispatch(fetchwarehouses())
+
+  },[dispatch])
+  
   const [search, setSearch] = useState("");
 
-  const warehouses = [
-    { _id: "1", name: "Main Warehouse" },
-    { _id: "2", name: "Branch Warehouse" },
-  ];
+  
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -24,24 +31,8 @@ const ProfitLossReport = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const query = new URLSearchParams({
-        fromDate: form.from_date,
-        toDate: form.to_date,
-        warehouseId: form.warehouse_id,
-      });
-      const res = await fetch(`http://localhost:5000/api/reports/profitloss?${query}`);
-      const data = await res.json();
-
+    dispatch(fetchProfitLoss(form))
       
-      setReport({
-        ...data,
-        details: data.details || [],
-      });
-    } catch (err) {
-      console.error(err);
-      alert("Error loading report");
-    }
   };
 
   return (
@@ -49,38 +40,17 @@ const ProfitLossReport = () => {
       <form className="row g-3" onSubmit={handleSubmit}>
         <div className="col-md-4">
           <label className="form-label">From Date</label>
-          <input
-            type="date"
-            className="form-control bg-light"
-            name="from_date"
-            value={form.from_date}
-            onChange={handleChange}
-          />
+          <input type="date" className="form-control bg-light" name="from_date" value={form.from_date}onChange={handleChange}/>
         </div>
         <div className="col-md-4">
           <label className="form-label">To Date</label>
-          <input
-            type="date"
-            className="form-control bg-light"
-            name="to_date"
-            value={form.to_date}
-            onChange={handleChange}
-          />
+          <input type="date" className="form-control bg-light" name="to_date" value={form.to_date} onChange={handleChange}/>
         </div>
         <div className="col-md-4">
           <label className="form-label">Warehouse</label>
-          <select
-            className="form-select bg-light"
-            name="warehouse_id"
-            value={form.warehouse_id}
-            onChange={handleChange}
-          >
+          <select className="form-select bg-light" name="warehouse_id" value={form.warehouse_id} onChange={handleChange} >
             <option value="">All Warehouses</option>
-            {warehouses.map((w) => (
-              <option key={w._id} value={w._id}>
-                {w.name}
-              </option>
-            ))}
+            {warehouses.map((w) => (<option key={w._id} value={w._id}>{w.store_name}</option> ))}
           </select>
         </div>
         <div className="col-12">
@@ -135,13 +105,7 @@ const ProfitLossReport = () => {
             <h5 className="mb-3">Profit & Loss Breakdown</h5>
 
             <div className="mt-2 mb-2 input-group">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search category..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <input type="text" className="form-control" placeholder="Search category..." value={search} onChange={(e) => setSearch(e.target.value)}/>
               <span className="input-group-text">
                 <FaSearch />
               </span>
@@ -171,12 +135,8 @@ const ProfitLossReport = () => {
             </table>
 
             <div className="mt-3">
-              <button className="btn btn-danger me-2">
-                <MdPictureAsPdf /> Export PDF
-              </button>
-              <button className="btn btn-success">
-                <FaFileExcel /> Export Excel
-              </button>
+              <button className="btn btn-danger me-2"><MdPictureAsPdf /> Export PDF</button>
+              <button className="btn btn-success"><FaFileExcel /> Export Excel</button>
             </div>
           </div>
         </div>

@@ -6,7 +6,12 @@ const Stockledger = require("../models/Stockledger");
 
 exports.getStockledger=async (req, res) => {
   try {
-    const ledgers = await Stockledger.find().populate("productId").populate("warehouseId");
+   const ledgers = await Stockledger.find()
+  .limit(500)
+  .populate("productId", "product_name")
+  .populate("warehouseId", "warehouse_name")
+  .lean();
+
     res.json(ledgers);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -1,20 +1,20 @@
-import axios from "axios";
+
 import React, { useEffect, useState } from "react";
 import { FaRegSave } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
 import { FaSearch } from "react-icons/fa";
-import { useDispatch,useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchcustomers } from "../../redux/customerSlice";
 import { fetchsuppliers } from "../../redux/supplierSlice";
 import { addgstreport, deletegstreport, fetchgstreports } from "../../redux/gstreportSlice";
 
 const GstReport = () => {
-  const dispatch=useDispatch()
-  const {items:gstreports,status}=useSelector((state)=>state.gstreports)
-  const {items:customers}=useSelector((state)=>state.customers)
-  const {items:suppliers}=useSelector((state)=>state.suppliers)
-  
-  const [form,setForm]=useState({
+  const dispatch = useDispatch()
+  const { items: gstreports, status } = useSelector((state) => state.gstreports)
+  const { items: customers } = useSelector((state) => state.customers)
+  const { items: suppliers } = useSelector((state) => state.suppliers)
+
+  const [form, setForm] = useState({
     report_type: "",
     from_date: "",
     to_date: "",
@@ -24,49 +24,49 @@ const GstReport = () => {
     state: "",
   })
   useEffect(() => {
-   dispatch(fetchcustomers())
+    dispatch(fetchcustomers())
 
- dispatch(fetchsuppliers())
+    dispatch(fetchsuppliers())
 
 
-   dispatch(fetchgstreports())
+    dispatch(fetchgstreports())
   }, [])
- const handleChange = (e) => {
-  const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-  if (name === "customer_id" && form.report_type === "Sales") {
-    const selectedCustomer = customers.find(c => c._id === value);
-    setForm({
-      ...form,
-      customer_id: value,
-      supplier_id: "",
-      state: selectedCustomer ? selectedCustomer.state_code : ""
-    });
-  } 
-  else if (name === "supplier_id" && form.report_type === "Purchase") {
-    const selectedSupplier = suppliers.find(s => s._id === value);
-    setForm({
-      ...form,
-      supplier_id: value,
-      customer_id: "",
-      state: selectedSupplier ? selectedSupplier.state_code : ""
-    });
-  } 
-  else {
-    setForm({ ...form, [name]: value });
-  }
-};
+    if (name === "customer_id" && form.report_type === "Sales") {
+      const selectedCustomer = customers.find(c => c._id === value);
+      setForm({
+        ...form,
+        customer_id: value,
+        supplier_id: "",
+        state: selectedCustomer ? selectedCustomer.state_code : ""
+      });
+    }
+    else if (name === "supplier_id" && form.report_type === "Purchase") {
+      const selectedSupplier = suppliers.find(s => s._id === value);
+      setForm({
+        ...form,
+        supplier_id: value,
+        customer_id: "",
+        state: selectedSupplier ? selectedSupplier.state_code : ""
+      });
+    }
+    else {
+      setForm({ ...form, [name]: value });
+    }
+  };
 
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const payload={ ...form };
+      const payload = { ...form };
       if (!payload.customer_id)
         delete payload.customer_id;
       if (!payload.supplier_id)
         delete payload.supplier_id;
-    dispatch(addgstreport(payload))
+      dispatch(addgstreport(payload))
       setForm({
         report_type: "",
         from_date: "",
@@ -81,15 +81,15 @@ const GstReport = () => {
       console.error(err.response?.data || err.message)
     }
   }
-  const isSales=form.report_type === "Sales";
-  const dropdownLabel=isSales ? "Customer" : "Supplier";
-  const dropdownData=isSales ? customers : suppliers;
+  const isSales = form.report_type === "Sales";
+  const dropdownLabel = isSales ? "Customer" : "Supplier";
+  const dropdownData = isSales ? customers : suppliers;
 
-  const [search,setSearch]=useState("");
-  const filteredreports=gstreports.filter((s) => {
+  const [search, setSearch] = useState("");
+  const filteredreports = gstreports.filter((s) => {
 
-    const supplierName=s.supplier_id?.name || s.supplier_id?.toString() || "";
-    const customerName=s.customer_id?.name || s.customer_id?.toString() || "";
+    const supplierName = s.supplier_id?.name || s.supplier_id?.toString() || "";
+    const customerName = s.customer_id?.name || s.customer_id?.toString() || "";
     return (
       s.report_type.toLowerCase().includes(search.toLowerCase()) ||
       supplierName.toLowerCase().includes(search.toLowerCase()) ||
@@ -167,45 +167,45 @@ const GstReport = () => {
               </tr>
             </thead>
             <tbody>
-  {filteredreports.length === 0 ? (
-    <tr>
-      <td colSpan="11" className="text-center">
-        No reports found.
-      </td>
-    </tr>
-  ) : (
-    filteredreports.map((g) => (
-      <tr key={g._id}>
-    
-        <td>{g.report_type}</td>
+              {filteredreports.length === 0 ? (
+                <tr>
+                  <td colSpan="11" className="text-center">
+                    No reports found.
+                  </td>
+                </tr>
+              ) : (
+                filteredreports.map((g) => (
+                  <tr key={g._id}>
 
-        <td>{new Date(g.from_date).toLocaleDateString()}</td>
-        <td>{new Date(g.to_date).toLocaleDateString()}</td>
+                    <td>{g.report_type}</td>
 
-        
-        <td>{g.report_type === "Sales" ? g.customer_id?.name : g.supplier_id?.name}</td>
+                    <td>{new Date(g.from_date).toLocaleDateString()}</td>
+                    <td>{new Date(g.to_date).toLocaleDateString()}</td>
 
-        <td>{g.hsn}</td>
-        <td>
-  {g.report_type === "Sales" 
-    ? g.customer_id?.state_code 
-    : g.supplier_id?.state_code}
-</td>
-        <td>
-          <button
-            className="btn btn-danger btn-sm"
-            onClick={() => handleDelete(g._id)}
-          >
-            <span className="text-warning">
-              <MdDeleteForever />
-            </span>
-            Delete
-          </button>
-        </td>
-      </tr>
-    ))
-  )}
-</tbody>
+
+                    <td>{g.report_type === "Sales" ? g.customer_id?.name : g.supplier_id?.name}</td>
+
+                    <td>{g.hsn}</td>
+                    <td>
+                      {g.report_type === "Sales"
+                        ? g.customer_id?.state_code
+                        : g.supplier_id?.state_code}
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleDelete(g._id)}
+                      >
+                        <span className="text-warning">
+                          <MdDeleteForever />
+                        </span>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
 
           </table>
         </div>
