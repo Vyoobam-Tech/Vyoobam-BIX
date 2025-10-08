@@ -193,10 +193,10 @@ const GstReport = () => {
                     </td>
                     <td>
                       <button
-                        className="btn btn-danger btn-sm"
+                        className="btn btn-danger btn-sm px-4 d-flex align-items-center justify-content-center"
                         onClick={() => handleDelete(g._id)}
                       >
-                        <span className="text-warning">
+                        <span className="text-warning me-2 d-flex align-items-center">
                           <MdDeleteForever />
                         </span>
                         Delete

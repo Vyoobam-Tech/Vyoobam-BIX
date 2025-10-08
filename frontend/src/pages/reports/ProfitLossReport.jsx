@@ -5,6 +5,11 @@ import { FaFileExcel } from "react-icons/fa6";
 import { useDispatch,useSelector } from "react-redux";
 import { fetchProfitLoss } from "../../redux/profitlossSlice";
 import { fetchwarehouses } from "../../redux/warehouseSlice";
+import ExportButtons from "../../components/ExportButtons"; // adjust path if needed
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const ProfitLossReport = () => {
   const dispatch=useDispatch()
@@ -34,6 +39,65 @@ const ProfitLossReport = () => {
     dispatch(fetchProfitLoss(form))
       
   };
+  // ✅ Excel Export
+const handleExportExcel = () => {
+  const worksheetData = filteredreports.map((g) => ({
+    "Report Type": g.report_type,
+    "From Date": new Date(g.from_date).toLocaleDateString(),
+    "To Date": new Date(g.to_date).toLocaleDateString(),
+    [g.report_type === "Sales" ? "Customer" : "Supplier"]:
+      g.report_type === "Sales"
+        ? g.customer_id?.name
+        : g.supplier_id?.name,
+    HSN: g.hsn,
+    State:
+      g.report_type === "Sales"
+        ? g.customer_id?.state_code
+        : g.supplier_id?.state_code,
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "GST Report");
+  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  saveAs(blob, "GST_Report.xlsx");
+};
+
+// ✅ PDF Export
+const handleExportPdf = () => {
+  const doc = new jsPDF();
+  doc.text("GST Report", 14, 15);
+
+  const tableData = filteredreports.map((g) => [
+    g.report_type,
+    new Date(g.from_date).toLocaleDateString(),
+    new Date(g.to_date).toLocaleDateString(),
+    g.report_type === "Sales"
+      ? g.customer_id?.name
+      : g.supplier_id?.name,
+    g.hsn,
+    g.report_type === "Sales"
+      ? g.customer_id?.state_code
+      : g.supplier_id?.state_code,
+  ]);
+
+  doc.autoTable({
+    startY: 25,
+    head: [["Report Type", "From Date", "To Date", "Customer/Supplier", "HSN", "State"]],
+    body: tableData,
+  });
+
+  doc.save("GST_Report.pdf");
+};
+
+// ✅ Print
+const handlePrint = () => {
+  window.print();
+};
+
 
   return (
     <div className="container mt-4">
@@ -103,7 +167,11 @@ const ProfitLossReport = () => {
         <div className="card shadow-sm mt-4">
           <div className="card-body">
             <h5 className="mb-3">Profit & Loss Breakdown</h5>
-
+ <ExportButtons
+    onExcel={handleExportExcel}
+    onPdf={handleExportPdf}
+    onPrint={handlePrint}
+  />
             <div className="mt-2 mb-2 input-group">
               <input type="text" className="form-control" placeholder="Search category..." value={search} onChange={(e) => setSearch(e.target.value)}/>
               <span className="input-group-text">
