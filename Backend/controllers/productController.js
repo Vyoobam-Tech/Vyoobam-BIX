@@ -27,3 +27,13 @@ exports.deleteProduct = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+exports.checkProductExists = async (req, res) => {
+  const { name } = req.query;
+  try {
+    const product = await Product.findOne({ name: name.trim() });
+    res.json({ exists: !!product }); // returns { exists: true } if found
+  } catch (err) {
+    res.status(500).json({ exists: false });
+  }
+};

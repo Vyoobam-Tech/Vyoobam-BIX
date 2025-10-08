@@ -231,8 +231,8 @@ const Warehouse = () => {
         </div>
 
         <div className="col-12">
-          <button type="submit" className="btn btn-primary px-5">
-            <span className="text-warning"><FaRegSave /></span>
+          <button type="submit" className="btn btn-primary px-4 d-flex align-items-center justify-content-center">
+            <span className="text-warning me-2 d-flex align-items-center"><FaRegSave /></span>
             Save Warehouse
           </button>
         </div>

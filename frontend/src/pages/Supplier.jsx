@@ -212,8 +212,8 @@ const Supplier = () => {
         </div>
         
         <div className="col-12">
-          <button type="submit" className="btn btn-primary">
-            <span className="text-warning"><FaRegSave /></span> Save Supplier
+          <button type="submit" className="btn btn-primary px-4 d-flex align-items-center justify-content-center">
+            <span className="text-warning me-2 d-flex align-items-center"><FaRegSave /></span> Save Supplier
           </button>
         </div>
       </form>

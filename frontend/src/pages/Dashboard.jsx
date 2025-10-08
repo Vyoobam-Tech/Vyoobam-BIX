@@ -19,7 +19,7 @@ export default function Dashboard() {
     { name: "Dashboard", path: "/", icon: <AiOutlineDashboard /> },
     { name: "Products", path: "/products", icon: <MdProductionQuantityLimits /> },
     { name: "Categories", path: "/categories", icon: <MdOutlineCategory /> },
-    { name: "Units", path: "/units", icon: <LiaWeightSolid /> },
+    // { name: "Units", path: "/units", icon: <LiaWeightSolid /> },
     { name: "Tax Rates", path: "/taxes", icon: <MdOutlineAttachMoney /> },
     { name: "Customers", path: "/customers", icon: <IoIosContact /> },
     { name: "Suppliers", path: "/suppliers", icon: <IoIosContact /> },
@@ -89,7 +89,7 @@ export default function Dashboard() {
           <div
             className="p-3"
             style={{
-              width: "80px",
+              width: "280px",
               background: "linear-gradient(180deg, #1e293b, #0f172a)",
               color: "white",
               transition: "width 0.3s ease",
@@ -98,12 +98,16 @@ export default function Dashboard() {
             <div className="list-group list-group-flush text-center">
               {modules.map((m) => (
                 <div
-                  key={m.path}
-                  onClick={() => handleMenuClick(m.path)}
-                  className="list-group-item border-0 list-group-item-action bg-transparent text-light hover-bg-light d-flex justify-content-center"
-                  style={{ cursor: "pointer" }}
-                >
-                  <span className="fs-5">{m.icon}</span>
+  key={m.path}
+  onClick={() => handleMenuClick(m.path)}
+  className="list-group-item border-0 list-group-item-action bg-transparent text-light hover-bg-light d-flex align-items-center gap-2"
+  style={{ cursor: "pointer", padding: "0.75rem 1rem" }}
+>
+                  <div className="d-flex align-items-center gap-2">
+  <span style={{ width: "24px" }}>{m.icon}</span>
+  <span>{m.name}</span>
+</div>
+
                 </div>
               ))}
             </div>

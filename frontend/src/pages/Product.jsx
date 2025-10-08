@@ -5,10 +5,13 @@ import { MdProductionQuantityLimits, MdDeleteForever } from "react-icons/md";
 import { FaCartPlus, FaSearch } from "react-icons/fa";
 import axios from "axios";
 import { fetchCategories } from "../redux/categorySlice";
+import { variants } from "../data/variants";
+
 
 const Product = () => {
     const dispatch = useDispatch();
     const { items: products, status } = useSelector((state) => state.products);
+    const{items:categories}=useSelector((state)=>state.categories)
 
     const [form, setForm] = useState({
         name: "",
@@ -28,7 +31,7 @@ const Product = () => {
         status: false,
     });
 
-    const [categories, setCategories] = useState([]);
+    
     const [brands, setBrands] = useState([]);
     const [search, setSearch] = useState("");
 
@@ -41,17 +44,36 @@ const Product = () => {
     useEffect(() => {
         dispatch(fetchProducts());
     }, [dispatch]);
+    useEffect(() => {
+        const checkProduct = async () => {
+            if (form.name.trim() === "") return;
+            try {
+                const res = await axios.get(`/api/products/check-exists?name=${form.name.trim()}`);
+                setForm((prev) => ({ ...prev, status: res.data.exists }));
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        checkProduct();
+    }, [form.name]);
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+ const handleChange = async (e) => {
+    const { name, value, type, checked } = e.target;
+    let updatedForm = { ...form, [name]: type === "checkbox" ? checked : value };
 
-        if (name === "category_id") {
-            const selectedCat = categories.find((c) => c._id === value);
-            setBrands(selectedCat ? selectedCat.brands : []);
-            setForm({ ...form, category_id: value, brand_name: "" });
-        }
-    };
+    if (name === "category_id") {
+        const selectedCat = categories.find((c) => c._id === value);
+        setBrands(selectedCat ? selectedCat.brands : []);
+        updatedForm.brand_name = "";
+    }
+
+    
+
+    setForm(updatedForm);
+};
+
+
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -95,7 +117,7 @@ const Product = () => {
                 <b>PRODUCT MASTER</b>
             </h2>
 
-            {/* Form */}
+            
             <form className="row g-3" onSubmit={handleSubmit}>
                 <div className="col-md-6">
                     <label className="form-label ">Product Name <span className="text-danger">*</span></label>
@@ -114,15 +136,23 @@ const Product = () => {
                 <div className="col-md-6">
                     <label className="form-label">Brand (Optional)</label>
                     <select className="form-select bg-light" name="brand_name" value={form.brand_name} onChange={handleChange}>
-                        <option value="">Select Brand</option>
-                        {brands.map((b, idx) => (<option key={idx} value={b.name}>{b.name}</option>))} </select> </div>
+                      <option value="">Select Brand</option>
+                           {brands.map((b, idx) => ( <option key={idx} value={b}>{b}</option> ))}
+</select>
+</div>
                 <div className="col-md-6">
-                    <label className="form-label">Unit of Measure <span className="text-danger">*</span></label>
-                    <select className="form-select bg-light" name="unit_id" value={form.unit_id} onChange={handleChange} required >
-                        <option>Kg</option>
-                        <option>Litre</option>
-                        <option>Piece</option>
-                    </select> </div>
+                    <label className="form-label">Variant <span className="text-danger">*</span></label>
+                     <select className="form-select bg-light" name="variant" value={form.variant} onChange={handleChange}>
+  <option value="">Select Variant</option>
+  {Object.keys(variants).map((group) => (
+    <optgroup key={group} label={group.replace(/([A-Z])/g, " $1")}>
+      {variants[group].map((v) => (
+        <option key={v.value} value={v.value}>{v.label}</option>
+      ))}
+    </optgroup>
+  ))}
+</select>
+</div>
                 <div className="col-md-6">
                     <label className="form-label">HSN Code (Optional)</label>
                     <input type="number" className="form-control bg-light" name="hsn_code" value={form.hsn_code} onChange={handleChange} /> </div>

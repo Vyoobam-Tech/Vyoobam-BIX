@@ -5,7 +5,7 @@ import { Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Product from "./pages/Product";
 import Category from "./pages/Category";
-import Units from "./pages/Units";
+// import Units from "./pages/Units";
 import Tax from "./pages/Tax";
 import Customer from "./pages/Customer";
 import Supplier from "./pages/Supplier";
@@ -53,7 +53,7 @@ function App() {
           
           <Route path="/products" element={<Product />} />
           <Route path="/categories" element={<Category />} />
-          <Route path="/units" element={<Units/>} />
+          {/* <Route path="/units" element={<Units/>} /> */}
           <Route path="/taxes" element={<Tax/>} />
           <Route path="/customers" element={<Customer/>} />
           <Route path="/suppliers" element={<Supplier/>} />

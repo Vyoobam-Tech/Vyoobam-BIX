@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import productReducer from "./productSlice";
 import categoryReducer from "./categorySlice"
-import unitReducer from "./unitSlice"
+// import unitReducer from "./unitSlice"
 import taxReducer from "./taxSlice"
 import customerReducer from "./customerSlice"
 import supplierReducer from "./supplierSlice"
@@ -23,7 +23,7 @@ export const store = configureStore({
   reducer: {
     products: productReducer,
     categories: categoryReducer,
-    units:unitReducer,
+    // units:unitReducer,
     taxes:taxReducer,
     customers:customerReducer,
     suppliers:supplierReducer,

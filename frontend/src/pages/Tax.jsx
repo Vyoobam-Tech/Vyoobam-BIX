@@ -6,7 +6,7 @@ import axios from 'axios';
 import { MdDeleteForever } from "react-icons/md";
 import { FaSearch } from "react-icons/fa";
 import { useDispatch,useSelector } from 'react-redux';
-import { fetchUnits } from '../redux/unitSlice';
+// import { fetchUnits } from '../redux/unitSlice';
 import { addtax, deletetax, fetchtaxes } from '../redux/taxSlice';
 
 
@@ -103,8 +103,8 @@ const Tax = () => {
                     <label className="form-check-label">Inclusive Tax</label>
                 </div>
                 <div className="col-12 d-flex gap-2">
-                    <button type="submit" className="btn btn-primary"><span className="text-warning"><FaRegSave /></span>Save</button>
-                    <button type="submit" className="btn btn-secondary"> <span ><FcCancel /></span>Cancel</button>
+                    <button type="submit" className="btn btn-primary px-4 d-flex align-items-center justify-content-center"><span className="text-warning me-2 d-flex align-items-center"><FaRegSave /></span>Save</button>
+                    <button type="submit" className="btn btn-secondary btn btn-primary px-4 d-flex align-items-center justify-content-center"> <span className='me-2 d-flex align-items-center' ><FcCancel /></span>Cancel</button>
                 </div>
             </form>
 

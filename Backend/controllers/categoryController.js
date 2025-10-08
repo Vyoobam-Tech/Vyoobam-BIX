@@ -9,15 +9,39 @@ exports.getCategories = async (req, res) => {
   }
 };
 
-exports.addCategory = async (req, res) => {
+
+exports.addCategory=async(req,res)=>{
   try {
-    const category = new Category(req.body);
+    const {parental_id,name,code,subcategory,brands = [],status}=req.body;
+
+    let existing=await Category.findOne({name});
+
+    if (existing) {
+      
+      const mergedBrands = Array.from(new Set([...existing.brands, ...brands]));
+      existing.brands = mergedBrands;
+      await existing.save();
+      return res.status(400).json(existing);
+    }
+
+    const category = new Category({
+      parental_id,
+      name,
+      code,
+      subcategory,
+      brands,
+      status,
+    });
+
     await category.save();
-    res.json(category);
+    res.status(201).json(category);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error("Error saving category:", err);
+    res.status(400).json({ message: err.message });
   }
 };
+
+
 
 exports.deleteCategory = async (req, res) => {
   try {

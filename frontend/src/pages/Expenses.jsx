@@ -1,6 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { MdAttachMoney } from "react-icons/md";
-import { PiShippingContainer } from 'react-icons/pi';
+import { MdDeleteForever } from 'react-icons/md';
 import { GiMoneyStack } from "react-icons/gi";
 import { MdOutlineInventory2 } from "react-icons/md";
 import { FaSearch } from 'react-icons/fa';
@@ -155,9 +154,11 @@ const Expenses = () => {
                                         
                                         <td>
                                             <button
-                                                className="btn btn-danger btn-sm"
+                                                className="btn btn-danger btn-sm px-4 d-flex align-items-center justify-content-center"
                                                 onClick={() => handleDelete(e._id)}
-                                            >
+                                            ><span className="text-warning me-2 d-flex align-items-center">
+                                                                                                                                            <MdDeleteForever />
+                                                                                                                                          </span>
                                                 Delete
                                             </button>
                                         </td>

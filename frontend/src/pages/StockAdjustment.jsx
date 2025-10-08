@@ -172,8 +172,8 @@ dispatch(fetchstocks())
                 </table>
                 <button type="button" className="btn btn-secondary mb-3" onClick={addItem}>+ Add Row</button>
                 <br />
-                <button type="submit" className="btn btn-primary">
-                    <FaSave /> Save Adjustment
+                <button type="submit" className="btn btn-primary px-4 d-flex align-items-center justify-content-center">
+                    <span className="text-warning me-2 d-flex align-items-center"><FaSave /> </span>Save Adjustment
                 </button>
             </form><br />
 
@@ -223,10 +223,10 @@ dispatch(fetchstocks())
                                         </td>
                                         <td>
                                             <button
-                                                className="btn btn-danger btn-sm"
+                                                className="btn btn-danger btn-sm px-4 d-flex align-items-center justify-content-center"
                                                 onClick={() => handleDelete(s._id)}
                                             >
-                                                <span className="text-warning">
+                                                <span className="text-warning me-2 d-flex align-items-center">
                                                     <MdDeleteForever />
                                                 </span>
                                                 Delete

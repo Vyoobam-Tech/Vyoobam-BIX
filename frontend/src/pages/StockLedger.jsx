@@ -1,11 +1,10 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { MdAttachMoney } from "react-icons/md";
-import { PiShippingContainer } from 'react-icons/pi';
+import { MdDeleteForever } from 'react-icons/md';
 import { MdOutlineInventory2 } from "react-icons/md";
 import { FaSearch } from 'react-icons/fa';
 import { FaRegSave } from "react-icons/fa";
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from '../redux/productSlice';
 import { fetchwarehouses } from '../redux/warehouseSlice';
@@ -196,9 +195,11 @@ const StockLedger = () => {
                                         <td>{s.balanceQty}</td>
                                         <td>
                                             <button
-                                                className="btn btn-danger btn-sm"
+                                                className="btn btn-danger btn-sm px-4 d-flex align-items-center justify-content-center"
                                                 onClick={() => handleDelete(s._id)}
-                                            >
+                                            ><span className="text-warning me-2 d-flex align-items-center">
+                                                                                                <MdDeleteForever />
+                                                                                              </span>
                                                 Delete
                                             </button>
                                         </td>

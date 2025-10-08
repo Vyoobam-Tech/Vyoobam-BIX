@@ -354,9 +354,9 @@ const SalePOS = () => {
         </div>
 
         <div className="d-flex flex-wrap gap-2 mt-4">
-          <button type="submit" className="btn btn-primary"><FaRegSave /> Save & Print</button>
-          <button type="button" className="btn btn-success"><FaWhatsapp /> Save & WhatsApp</button>
-          <button type="button" className="btn btn-warning text-white"><TfiHandStop /> Hold Bill</button>
+          <button type="submit" className="btn btn-primary px-4 d-flex align-items-center justify-content-center "><span className='me-2 d-flex align-items-center' ><FaRegSave /></span> Save & Print</button>
+          <button type="button" className="btn btn-success px-4 d-flex align-items-center justify-content-center"><span className='me-2 d-flex align-items-center'><FaWhatsapp /></span> Save & WhatsApp</button>
+          <button type="button" className="btn btn-warning px-4 d-flex align-items-center justify-content-center text-white"><span className='me-2 d-flex align-items-center'><TfiHandStop /></span> Hold Bill</button>
         </div>
       </form>
       <br />

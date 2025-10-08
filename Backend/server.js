@@ -5,7 +5,7 @@ require("dotenv").config();
 
 const productRoutes = require("./routes/productRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
-const unitRoutes=require("./routes/unitRoutes")
+// const unitRoutes=require("./routes/unitRoutes")
 const taxRoutes=require("./routes/taxRoutes")
 const customerRoutes=require("./routes/customerRoutes")
 const supplierRoutes=require("./routes/supplierRoutes")
@@ -29,7 +29,7 @@ mongoose.connect("mongodb://127.0.0.1:27017/inventory")
 
 app.use("/api/products", productRoutes)
 app.use("/api/categories", categoryRoutes)
-app.use("/api/units",unitRoutes)
+// app.use("/api/units",unitRoutes)
 app.use("/api/taxes",taxRoutes)
 app.use("/api/customers",customerRoutes)
 app.use("/api/suppliers",supplierRoutes)

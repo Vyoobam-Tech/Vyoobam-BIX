@@ -10,7 +10,7 @@ function Navbar() {
         <ul className="navbar-nav me-auto gap-2">
           <li className="nav-item"><Link className="nav-link" to="/products">Products</Link></li>
           <li className="nav-item"><Link className="nav-link" to="/categories">Categories</Link></li>
-          <li className="nav-item"><Link className="nav-link" to="/units">Units</Link></li>
+          {/* <li className="nav-item"><Link className="nav-link" to="/units">Units</Link></li> */}
           <li className="nav-item"><Link className="nav-link" to="/taxes">Taxes</Link></li>
           <li className="nav-item"><Link className="nav-link" to="/customers">Customers</Link></li>
           <li className="nav-item"><Link className="nav-link" to="/suppliers">Suppliers</Link></li>

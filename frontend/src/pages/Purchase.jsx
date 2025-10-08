@@ -318,8 +318,8 @@ const Purchase = () => {
                     <textarea name="notes" className="form-control bg-light" rows="2" value={purchase.notes} onChange={handleChange}></textarea>
                 </div>
                 <div className="col-12 ">
-                    <button type="submit" className="btn btn-primary">
-                        <span className="text-warning"><FaRegSave /></span> Save Purchase
+                    <button type="submit" className="btn btn-primary px-4 d-flex align-items-center justify-content-center">
+                        <span className="text-warning me-2 d-flex align-items-center"><FaRegSave /></span> Save Purchase
                     </button>
                 </div>
             </form><br />

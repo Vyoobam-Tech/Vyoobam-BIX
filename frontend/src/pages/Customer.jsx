@@ -230,9 +230,9 @@ const Customer = () => {
                     <input type="number" className="form-control bg-light" placeholder="e.g. 1000" onChange={handleChange} value={form.opening_balance} name="opening_balance" />
                 </div>
 
-                <div className="col-12 mt-3">
-                    <button type="button" className="btn btn-secondary me-2"><FcCancel /> Cancel</button>
-                    <button type="submit" className="btn btn-primary"><FaRegSave /> Save Customer</button>
+                <div className="col-12 d-flex gap-2">
+                    <button type="button" className=" btn btn-secondary px-4 d-flex align-items-center justify-content-center"><span className='me-2 d-flex align-items-center'><FcCancel /></span> Cancel</button>
+                    <button type="submit" className="btn btn-primary px-4 d-flex align-items-center justify-content-center"><span className='text-warning me-2 d-flex align-items-center'><FaRegSave /> </span>Save Customer</button>
                 </div>
             </form><br />
 

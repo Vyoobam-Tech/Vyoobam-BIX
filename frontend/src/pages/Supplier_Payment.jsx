@@ -139,7 +139,7 @@ const Supplier_Payment = () => {
             Save Payment
           </button>
           <button type="reset" className="btn btn-secondary px-4 d-flex align-items-center justify-content-center">
-            <span className="text-light me-2 d-flex align-items-center"><GrPowerReset /></span>Reset
+            <span className="text-danger me-2 d-flex align-items-center"><GrPowerReset /></span>Reset
           </button>
         </div>
       </form>
@@ -184,10 +184,10 @@ const Supplier_Payment = () => {
                     <td>{p.notes}</td>
                     <td>
                                                 <button
-                                                  className="btn btn-danger btn-sm"
+                                                  className="btn btn-danger btn-sm px-4 d-flex align-items-center justify-content-center"
                                                   onClick={() => handleDelete(p._id)}
                                                 >
-                                                  <span className="text-warning">
+                                                  <span className="text-warning me-2 d-flex align-items-center">
                                                     <MdDeleteForever />
                                                   </span>
                                                   Delete
