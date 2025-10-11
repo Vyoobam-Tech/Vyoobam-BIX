@@ -9,10 +9,15 @@ import PhoneInput from 'react-phone-input-2';
 import { State, Country } from 'country-state-city';
 import { useDispatch, useSelector } from 'react-redux';
 import { addSupplier, deleteSupplier, fetchsuppliers } from '../redux/supplierSlice';
+import { setAuthToken } from '../services/userService';
 
 const Supplier = () => {
   const dispatch=useDispatch()
   const {items:suppliers,status}=useSelector((state)=>state.suppliers)
+
+  const user=JSON.parse(localStorage.getItem("user"))
+  const role=user?.role || "user"
+  const token=user?.token
   
   const [form, setForm] = useState({
     name: "",
@@ -27,8 +32,13 @@ const Supplier = () => {
   const [states, setStates] = useState([]);
 
   useEffect(() => {
-   dispatch(fetchsuppliers())
-  }, [])
+    const user=JSON.parse(localStorage.getItem("user"))
+    if(!user || !user.token)
+      console.error("Token missing")
+    const token=user?.token
+    setAuthToken(token)
+    dispatch(fetchsuppliers())
+  }, [dispatch])
 
   // Function to update states based on country code
   const updateStates = (countryCode) => {
@@ -91,7 +101,7 @@ const Supplier = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-  dispatch(addSupplier(form))
+  await dispatch(addSupplier(form)).unwrap()
       setForm({
         name: "",
         phone: "",
@@ -102,6 +112,8 @@ const Supplier = () => {
         state_code: "",
         opening_balance: "",
       })
+
+      dispatch(fetchsuppliers())
       setStates([]);
     }
     catch (err) {
@@ -130,6 +142,7 @@ const Supplier = () => {
         <b>SUPPLIER MASTER</b>
       </h2>
       
+      {["super_admin","admin"].includes(role) && (
       <form className="row g-3" onSubmit={handleSubmit}>
         <div className="col-md-6">
           <label className="form-label">Supplier Name <span className="text-danger">*</span></label>
@@ -216,7 +229,7 @@ const Supplier = () => {
             <span className="text-warning me-2 d-flex align-items-center"><FaRegSave /></span> Save Supplier
           </button>
         </div>
-      </form>
+      </form>)}
       
       <br />
       
@@ -259,12 +272,17 @@ const Supplier = () => {
                     <td>{s.state_code}</td>
                     <td>{s.opening_balance}</td>
                     <td>
+                      {["super_admin","admin"].includes(role) ? (
                       <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s._id)}>
                         <span className="text-warning">
                           <MdDeleteForever />
                         </span>
                         Delete
-                      </button>
+                      </button>):(
+                            <button className="btn btn-secondary btn-sm" disabled>
+                                                        View Only
+                                                    </button>
+                      )}
                     </td>
                   </tr>
                 ))

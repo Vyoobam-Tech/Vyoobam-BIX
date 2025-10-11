@@ -2,7 +2,13 @@ const CustomerPayment = require("../models/CustomerPayment")
 
 exports.getCustomerPayments = async (req, res) => {
   try {
-    const receipts = await CustomerPayment.find().populate('customer_id', 'name')
+    let receipts
+    if(req.user.role === "user"){
+       receipts=await CustomerPayment.find({created_by_role:{$in:["super_admin","admin","user"]}}).populate('customer_id', 'name')
+    }else{
+       receipts = await CustomerPayment.find().populate('customer_id', 'name')
+    }
+    
     res.json(receipts)
   }
   catch (err) {
@@ -12,7 +18,7 @@ exports.getCustomerPayments = async (req, res) => {
 
 exports.addCustomerPayment = async (req, res) => {
   try {
-    const receipt = new CustomerPayment(req.body)
+    const receipt = new CustomerPayment({...req.body,created_by_role:req.user.role})
     await receipt.save()
     await receipt.populate('customer_id', 'name')
     res.json(receipt)

@@ -1,10 +1,10 @@
 const express = require('express')
 const {getSuppliers,addSupplier, deleteSupplier} = require("../controllers/supplierController")
-const { route } = require('./unitRoutes')
+const {protect,authorize}=require("../middleware/auth")
 const router =express.Router()
 
-router.get("/",getSuppliers)
-router.post("/",addSupplier)
-router.delete("/:id",deleteSupplier)
+router.get("/",protect,authorize("super_admin","admin","user"),getSuppliers)
+router.post("/",protect,authorize("super_admin","admin"),addSupplier)
+router.delete("/:id",protect,authorize("super_admin","admin"),deleteSupplier)
 
 module.exports = router

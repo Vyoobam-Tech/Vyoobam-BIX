@@ -2,7 +2,12 @@ const Supplier = require("../models/Supplier")
 
 exports.getSuppliers = async (req, res) => {
   try {
-    const suppliers = await Supplier.find()
+    let suppliers
+    if(req.user.role === "user"){
+            suppliers=await Supplier.find({created_by_role:{$in:["super_admin","admin"]}})
+    }else{
+         suppliers = await Supplier.find()
+    }
     res.json(suppliers)
   }
   catch (err) {
@@ -12,7 +17,8 @@ exports.getSuppliers = async (req, res) => {
 
 exports.addSupplier = async (req, res) => {
   try {
-    const supplier = new Supplier(req.body)
+  
+    const supplier = new Supplier({...req.body,created_by_role:req.user.role})
     await supplier.save()
     res.json(supplier)
   }

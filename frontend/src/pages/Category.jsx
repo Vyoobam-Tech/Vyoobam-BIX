@@ -6,11 +6,16 @@ import { MdDeleteForever } from "react-icons/md";
 import { FaSearch } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCategories,addCategory,deleteCategory } from "../redux/categorySlice";
+import { setAuthToken } from "../services/userService";
 
 
 const Category = () => {
   const dispatch=useDispatch()
   const {items:categories,status}=useSelector((state)=>state.categories)
+
+const user = JSON.parse(localStorage.getItem("user"))
+const role = user?.role || "user"
+const token = user?.token
 
    const [form, setForm] = useState({
     parental_id: "",
@@ -41,8 +46,15 @@ const [subcategories, setSubcategories] = useState([]);
 const [brands, setBrands] = useState([]);
 
  useEffect(()=>{
-  dispatch(fetchCategories())
- },[])
+ const user=JSON.parse(localStorage.getItem("user"))
+ if(!user || !user.token ){
+  console.error("No user found Please Login")
+ }
+
+ const token = user.token
+ setAuthToken(token)
+ dispatch(fetchCategories())
+ },[dispatch])
 
  const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -60,7 +72,7 @@ if (name === "name") {
 const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      dispatch(addCategory(form))
+      await dispatch(addCategory(form)).unwrap()
       setForm({
         parental_id: "",
         name: "",
@@ -69,6 +81,7 @@ const handleSubmit = async (e) => {
         brand: "",
         status: false,
       });
+      dispatch(fetchCategories())
       setSubcategories([]);
       setBrands([]);
     } catch (err) {
@@ -76,6 +89,7 @@ const handleSubmit = async (e) => {
     }
   };
   const [search, setSearch] = useState("");
+
   const filteredCategories = categories.filter(
         (c) =>
             c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -90,6 +104,8 @@ const handleDelete = async (id) => {
  return (
     <div className="container mt-4 bg-gradient-warning">
       <h2 className="mb-4 d-flex align-items-center fs-5"><span className="  me-2 d-flex align-items-center" style={{color:"#4d6f99ff"}}><MdOutlineCategory size={24} /></span>{" "}<b >CATEGORY MASTER</b></h2>
+      
+      {["super_admin","admin"].includes(role) && (
       <form className="row g-3" onSubmit={handleSubmit}>
         <div className="col-md-6">
           <label className="form-label text-dark">Category ID<span className="text-danger">*</span></label>
@@ -145,7 +161,7 @@ const handleDelete = async (id) => {
             Add Category
           </button>
         </div>
-      </form>
+      </form>)}
       <br />
       <div className=" card shadow-sm">
         <div className="card-body">
@@ -184,6 +200,7 @@ const handleDelete = async (id) => {
                     {c.status ? "Active" : "Inactive"}
                   </td>
                   <td>
+                    {["super_admin","admin"].includes(role) ? (
                     <button
                       className="btn btn-danger btn-sm"
                       onClick={() => handleDelete(c._id)}
@@ -192,7 +209,11 @@ const handleDelete = async (id) => {
                         <MdDeleteForever />
                       </span>
                       Delete
-                    </button>
+                    </button>):(
+                       <button className="btn btn-secondary btn-sm" disabled>
+                                                        View Only
+                                                    </button>
+                    )}
                   </td>
                 </tr>)
               ))

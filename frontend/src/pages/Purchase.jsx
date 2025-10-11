@@ -9,6 +9,7 @@ import { addpurchase, deletepurchase, fetchpurchases } from "../redux/purchaseSl
 import { fetchProducts } from "../redux/productSlice";
 import { fetchwarehouses } from "../redux/warehouseSlice";
 import { fetchsuppliers } from "../redux/supplierSlice";
+import { setAuthToken } from "../services/userService";
 
 
 const Purchase = () => {
@@ -18,6 +19,10 @@ const Purchase = () => {
     const { items: suppliers } = useSelector((state) => state.suppliers)
     const {items:warehouses}=useSelector((state)=>state.warehouses)
     const {items:products}=useSelector((state)=>state.products)
+
+    const user=JSON.parse(localStorage.getItem("user"))
+    const role=user?.role || "user"
+    const token=user?.token
     const [purchase, setPurchase] = useState({
         supplier_id: "",
         invoice_no: "",
@@ -37,11 +42,17 @@ const Purchase = () => {
   
 
     useEffect(() => {
+      const user=JSON.parse(localStorage.getItem("user"))
+      if(!user || !user.token)
+        console.error("No user found Please Login")
+      const token=user?.token
+      setAuthToken(token)
+
        dispatch(fetchsuppliers())
        dispatch(fetchwarehouses())
        dispatch(fetchProducts())
         dispatch(fetchpurchases())
-    }, []);
+    }, [dispatch]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -101,7 +112,7 @@ const Purchase = () => {
  const handleSubmit = async (e) => {
   e.preventDefault();
 
-  // manually compute totals first
+ 
   let subtotal = 0;
   purchase.items.forEach(item => {
     const lineTotal =
@@ -145,6 +156,7 @@ const Purchase = () => {
       payment_mode: "",
       notes: ""
     });
+    dispatch(fetchpurchases())
   } catch (err) {
     console.error(err.response?.data || err.message);
   }
@@ -171,22 +183,14 @@ const Purchase = () => {
     return (
         <div className="container mt-4 bg-gradient-warning">
             <h2 className="mb-4 d-flex align-items-center fs-5"><span className="  me-2 d-flex align-items-center" style={{color:"#4d6f99ff"}}><BiPurchaseTag size={24} /></span>{" "}<b >PURCHASE MASTER</b></h2>
+            
+            {["super_admin","admin"].includes(role) && (
             <form className="row g-3" onSubmit={handleSubmit}>
              <div className="col-md-6">
   <label className="form-label">Supplier<span className="text-danger">*</span></label>
-  <select 
-    name="supplier_id" 
-    className="form-select bg-light" 
-    value={purchase.supplier_id} 
-    onChange={handleChange} 
-    required
-  >
+  <select name="supplier_id" className="form-select bg-light" value={purchase.supplier_id} onChange={handleChange} required>
     <option value="">Select Supplier</option>
-    {suppliers.map((s) => (
-      <option key={s._id} value={s._id}>
-        {s.name}
-      </option>
-    ))}
+    {suppliers.map((s) => (<option key={s._id} value={s._id}>{s.name}</option>))}
   </select>
 </div>
 
@@ -227,19 +231,9 @@ const Purchase = () => {
   {purchase.items.map((item, index) => (
     <tr key={index}>
       <td>
-        <select
-          name="product_id"
-          value={item.product_id}
-          className="form-select"
-          onChange={(e) => handleItemChange(index, e)}
-          required
-        >
+        <select name="product_id" value={item.product_id} className="form-select" onChange={(e) => handleItemChange(index, e)} required>
           <option value="">Select Product</option>
-          {products.map((p) => (
-            <option key={p._id} value={p._id}>
-              {p.name}
-            </option>
-          ))}
+          {products.map((p) => (<option key={p._id} value={p._id}>{p.name}</option>))}
         </select>
       </td>
       <td><input name="batch_no" value={item.batch_no} onChange={(e) => handleItemChange(index, e)} className="form-control" /></td>
@@ -250,17 +244,7 @@ const Purchase = () => {
       <td><input type="number" name="discount" value={item.discount} onChange={(e) => handleItemChange(index, e)} className="form-control" /></td>
       <td><input type="number" name="tax" value={item.tax} onChange={(e) => handleItemChange(index, e)} className="form-control" /></td>
       <td>
-        <input
-          type="number"
-          name="line_total"
-          value={(
-            (Number(item.qty) || 0) * (Number(item.unit_price) || 0) -
-            (Number(item.discount) || 0) +
-            (Number(item.tax) || 0)
-          ).toFixed(2)}
-          className="form-control"
-          disabled
-        />
+        <input type="number" name="line_total" value={((Number(item.qty) || 0) * (Number(item.unit_price) || 0) -(Number(item.discount) || 0) +(Number(item.tax) || 0)  ).toFixed(2)} className="form-control" disabled />
       </td>
       <td>
         <button type="button" className="btn btn-danger btn-sm" onClick={() => removeItem(index)}>
@@ -322,7 +306,7 @@ const Purchase = () => {
                         <span className="text-warning me-2 d-flex align-items-center"><FaRegSave /></span> Save Purchase
                     </button>
                 </div>
-            </form><br />
+            </form>)}<br />
 
             <div className=" card shadow-sm">
                 <div className="card-body">
@@ -387,12 +371,17 @@ const Purchase = () => {
       <td>{p.due_amount ?? 0}</td>
       <td>{p.payment_mode}</td>
       <td>
+        {["super_admin","admin"].includes(role) ? (
         <button
           className="btn btn-danger btn-sm"
           onClick={() => handleDelete(p._id)}
         >
           <span className="text-warning"><MdDeleteForever /></span> Delete
-        </button>
+        </button>) :(
+          <button className="btn btn-secondary btn-sm" disabled>
+                                                        View Only
+                                                    </button>
+        )}
       </td>
     </tr>
   ))}

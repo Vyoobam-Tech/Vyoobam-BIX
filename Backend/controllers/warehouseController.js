@@ -2,7 +2,13 @@ const Warehouse = require("../models/Warehouse")
 
 exports.getWarehouses = async (req, res) => {
   try {
-    const warehouses = await Warehouse.find()
+    let warehouses
+    if(req.user.role){
+      warehouses=await Warehouse.find({created_by_role:{$in:["super_admin","admin"]}})
+    }else{
+        warehouses = await Warehouse.find()
+    }
+
     res.json(warehouses)
   }
   catch (err) {
@@ -12,7 +18,7 @@ exports.getWarehouses = async (req, res) => {
 
 exports.addWarehouse = async (req, res) => {
   try {
-    const warehouse = new Warehouse(req.body)
+    const warehouse = new Warehouse({...req.body,created_by_role:req.user.role})
     await warehouse.save()
     res.json(warehouse)
   }

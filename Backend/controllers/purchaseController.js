@@ -2,7 +2,14 @@ const Purchase = require("../models/Purchase")
 
 exports.getPurchases = async (req, res) => {
   try {
-    const purchases = await Purchase.find().populate('supplier_id warehouse_id items.product_id');
+    let purchases
+    if(req.user.role){
+      purchases=await Purchase.find({created_by_role:{$in:["super_admin","admin"]}}).populate('supplier_id warehouse_id items.product_id')
+    }
+    else{
+     purchases = await Purchase.find().populate('supplier_id warehouse_id items.product_id');
+    }
+   
     res.json(purchases);
   }
   catch {
@@ -12,7 +19,7 @@ exports.getPurchases = async (req, res) => {
 
 exports.addPurchase = async (req, res) => {
   try {
-    const purchase = new Purchase(req.body);
+    const purchase = new Purchase({...req.body,created_by_role:req.user.role});
     await purchase.save();
     res.json(purchase);
   } catch (err) {

@@ -2,8 +2,15 @@ const Category = require("../models/Category");
 
 exports.getCategories = async (req, res) => {
   try {
-    const categories = await Category.find();
-    res.json(categories);
+    let categories
+    if(req.user.role ===  "user"){
+     categories=await Category.find({created_by_role: {$in:["super_admin","admin"]}})
+    }
+    else{
+      categories=await Category.find()
+    }
+      
+   res.json(categories);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -31,6 +38,7 @@ exports.addCategory=async(req,res)=>{
       subcategory,
       brands,
       status,
+      created_by_role:req.user.role
     });
 
     await category.save();

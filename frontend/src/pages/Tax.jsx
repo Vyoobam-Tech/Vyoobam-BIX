@@ -8,12 +8,16 @@ import { FaSearch } from "react-icons/fa";
 import { useDispatch,useSelector } from 'react-redux';
 // import { fetchUnits } from '../redux/unitSlice';
 import { addtax, deletetax, fetchtaxes } from '../redux/taxSlice';
-
+import { setAuthToken } from '../services/userService';
 
 const Tax = () => {
     const dispatch=useDispatch()
     const  {items:taxes,status} = useSelector((state)=>state.taxes)
-   
+
+    const user=JSON.parse(localStorage.getItem("user"))
+    const role=user?.role  || "user"
+    const token=user?.token
+
     const [form, setForm] = useState({
         name: "",
         cgst_percent: "",
@@ -23,8 +27,13 @@ const Tax = () => {
         is_inclusive: false,
     })
     useEffect(() => {
-        dispatch(fetchtaxes())
-    }, [])
+       const user=JSON.parse(localStorage.getItem("user"))
+       if(!user || !user.token)
+        console.error("No user found Please Login")
+       const token=user.token
+       setAuthToken(token)
+       dispatch(fetchtaxes())
+    }, [dispatch])
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target
         let val = value;
@@ -35,7 +44,7 @@ const Tax = () => {
     const handleSubmit = async (e) => {
         e.preventDefault()
         try {
-           dispatch(addtax(form))
+           await dispatch(addtax(form)).unwrap()
             setForm({
                 name: "",
                 cgst_percent: "",
@@ -44,6 +53,7 @@ const Tax = () => {
                 cess_percent: "",
                 is_inclusive: false,
             })
+            dispatch(fetchtaxes())
 
         }
         catch (err) {
@@ -65,6 +75,8 @@ const Tax = () => {
     return (
         <div className="container mt-4 bg-gradient-warning">
             <h2 className="mb-4 d-flex align-items-center fs-5"><span className="  me-2 d-flex align-items-center" style={{color:"#4d6f99ff"}}><MdOutlineAttachMoney size={24} /></span>{" "}<b >TAX MASTER</b></h2>
+            
+            {["super_admin","admin"].includes(role) && (
             <form className="row g-3" onSubmit={handleSubmit}>
 
                 <div className="col-md-6">
@@ -106,7 +118,8 @@ const Tax = () => {
                     <button type="submit" className="btn btn-primary px-4 d-flex align-items-center justify-content-center"><span className="text-warning me-2 d-flex align-items-center"><FaRegSave /></span>Save</button>
                     <button type="submit" className="btn btn-secondary btn btn-primary px-4 d-flex align-items-center justify-content-center"> <span className='me-2 d-flex align-items-center' ><FcCancel /></span>Cancel</button>
                 </div>
-            </form>
+            </form>)}
+            <br />
 
 
             <div className="card shadow-sm my-4">
@@ -149,12 +162,18 @@ const Tax = () => {
                                             {t.is_inclusive ? "Active" : "Inactive"}
                                         </td>
                                         <td>
+                                            {["super_admin","admin"].includes(role) ? (
                                             <button className="btn btn-danger btn-sm" onClick={()=>handleDelete(t._id)}>
                                                 <span className="text-warning">
                                                     <MdDeleteForever />
                                                 </span>
                                                 Delete
-                                            </button></td>
+                                            </button>
+                                            ):(
+                                              <button className="btn btn-secondary btn-sm" disabled>
+                                                        View Only
+                                                    </button>    
+                                            )}</td>
                                     </tr>
                                 </>
                             )

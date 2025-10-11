@@ -4,11 +4,16 @@ import { FaRegSave, FaSearch } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchcustomers } from '../redux/customerSlice';
 import { addpayment, deletepayment, fetchpayments } from '../redux/customerpaymentSlice';
+import { setAuthToken } from '../services/userService';
 
 const Customer_Payment = () => {
   const dispatch = useDispatch()
   const { items: cus_payments } = useSelector((state) => state.cus_payments)
   const { items: customers } = useSelector((state) => state.customers)
+
+  const user=JSON.parse(localStorage.getItem("user"))
+  const role=user?.role || "user"
+  const token=user?.token
 
   const [form, setForm] = useState({
     customer_id: "",
@@ -23,6 +28,11 @@ const Customer_Payment = () => {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
+    const user=JSON.parse(localStorage.getItem("user"))
+    if(!user || !user.token)
+      console.error("No user found Please Login")
+    const token=user?.token
+    setAuthToken(token)
     dispatch(fetchcustomers())
     dispatch(fetchpayments())
   }, [dispatch])
@@ -35,7 +45,7 @@ const Customer_Payment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const resultAction = await dispatch(addpayment(form))
+      const resultAction = await dispatch(addpayment(form)).unwrap()
       if (addpayment.fulfilled.match(resultAction)) {
         // Reset form only after successful addition
         setForm({
@@ -47,6 +57,7 @@ const Customer_Payment = () => {
           applied_invoice_id: "",
           notes: "",
         })
+        dispatch(fetchpayments())
       }
     } catch (err) {
       console.error(err.response?.data || err.message)
@@ -172,9 +183,14 @@ const Customer_Payment = () => {
                       <td>{p.applied_invoice_id}</td>
                       <td>{p.notes}</td>
                       <td>
+                        {["super_admin","admin"].includes(role) ? (
                         <button className="btn btn-danger btn-sm" onClick={() => handleDelete(p._id)}>
                           <MdDeleteForever className="text-warning" /> Delete
-                        </button>
+                        </button>):(
+                          <button className="btn btn-secondary btn-sm" disabled>
+                                                        View Only
+                                                    </button>
+                        )}
                       </td>
                     </tr>
                   )

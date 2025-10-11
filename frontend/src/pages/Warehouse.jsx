@@ -9,10 +9,15 @@ import PhoneInput from 'react-phone-input-2';
 import { State, Country } from 'country-state-city';
 import { useDispatch,useSelector } from 'react-redux';
 import { addwarehouse, deletewarehouse, fetchwarehouses } from '../redux/warehouseSlice';
+import { setAuthToken } from '../services/userService';
 
 const Warehouse = () => {
   const dispatch=useDispatch()
   const {items:warehouses,status}=useSelector((state)=>state.warehouses)
+
+  const user=JSON.parse(localStorage.getItem("user"))
+  const role=user?.role || "user"
+  const token=user?.token
   
   const [form, setForm] = useState({
     store_name: "",
@@ -28,8 +33,13 @@ const Warehouse = () => {
   const [states, setStates] = useState([]);
 
   useEffect(() => {
-   dispatch(fetchwarehouses())
-  }, [])
+  const user=JSON.parse(localStorage.getItem("user"))
+  if(!user || !user.token)
+    console.error("No user found Please Login")
+  const token=user?.token
+  setAuthToken(token)
+  dispatch(fetchwarehouses())
+  }, [dispatch])
 
   // Function to update states based on country code
   const updateStates = (countryCode) => {
@@ -92,7 +102,7 @@ const Warehouse = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-     dispatch(addwarehouse(form))
+     await dispatch(addwarehouse(form)).unwrap()
       setForm({
         store_name: "",
         code: "",
@@ -104,6 +114,7 @@ const Warehouse = () => {
         email: "",
         status: false
       })
+      dispatch(fetchwarehouses())
       setStates([]);
     }
     catch (err) {
@@ -132,6 +143,7 @@ const Warehouse = () => {
         <b>WAREHOUSE MASTER</b>
       </h2>
       
+      {["super_admin","admin"].includes(role) && (
       <form className="row g-3" onSubmit={handleSubmit}>
         <div className="col-md-6">
           <label className="form-label">Warehouse / Store Name <span className="text-danger">*</span></label>
@@ -236,7 +248,7 @@ const Warehouse = () => {
             Save Warehouse
           </button>
         </div>
-      </form>
+      </form>)}
       
       <br />
 
@@ -283,12 +295,17 @@ const Warehouse = () => {
                       {w.status ? "Active" : "Inactive"}
                     </td>
                     <td>
+                      {["super_admin","admin"].includes(role) ? (
                       <button className="btn btn-danger btn-sm" onClick={() => handleDelete(w._id)}>
                         <span className="text-warning">
                           <MdDeleteForever />
                         </span>
                         Delete
-                      </button>
+                      </button>):(
+                        <button className="btn btn-secondary btn-sm" disabled>
+                                                        View Only
+                                                    </button>
+                      )}
                     </td>
                   </tr>
                 ))

@@ -16,6 +16,7 @@ const purchaseItemSchema = new mongoose.Schema({
 
 const purchaseSchema = new mongoose.Schema({
   supplier_id:{type: mongoose.Schema.Types.ObjectId,ref: "Supplier",required: true},
+  created_by_role:{type:String,required:true},
   invoice_no:{type:String,required:true},
   invoice_date:{type:Date,required:true},
   warehouse_id:{type:mongoose.Schema.Types.ObjectId,ref: "Warehouse",required: true},

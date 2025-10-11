@@ -1,19 +1,31 @@
+
 const Tax = require("../models/Tax");
 
+
+
 exports.getTaxes = async (req, res) => {
-  try {
-    const taxes = await Tax.find()
+  try{
+    let taxes
+      if(req.user.role){
+        taxes=await Tax.find({created_by_role:{$in:["super_admin","admin"]}})
+      }
+      else{
+        taxes =await Tax.find()
+      }
     res.json(taxes)
-  }
-  catch (err) {
+    }
+    catch (err) {
     res.status(500).json({ error: err.message })
   }
-
+    
 }
+  
+
+
 
 exports.addTax = async (req, res) => {
   try {
-    const tax = new Tax(req.body)
+    const tax = new Tax({...req.body,created_by_role:req.user.role})
     await tax.save()
     res.json(tax)
   }

@@ -4,17 +4,29 @@ import axios from "axios";
 const API_URL = "http://localhost:5000/api/taxes"
 
 export const fetchtaxes = createAsyncThunk("taxes/fetchAll",async () => {
-    const res = await axios.get(API_URL)
+    const user=JSON.parse(localStorage.getItem("user"))
+    const token=user?.token
+    if(!token)
+        throw new error("Token missing")
+    const res = await axios.get(API_URL,{headers:{Authorization:`Bearer ${token}`},})
     return res.data
 })
 
 export const addtax=createAsyncThunk("taxes/add",async (tax) => {
-    const res = await axios.post(API_URL,tax)
+    const user=JSON.parse(localStorage.getItem("user"))
+    const token=user?.token
+    if(!token)
+        throw new error("Token missing")
+    const res = await axios.post(API_URL,tax,{headers:{Authorization:`Bearer ${token}`},})
     return res.data
 })
 
 export const deletetax=createAsyncThunk("tax/delete",async (id) => {
-    await axios.delete(`${API_URL}/${id}`)
+    const user=JSON.parse(localStorage.getItem("user"))
+    const token=user?.token
+    if(!token)
+        throw new error("Token missing")
+    await axios.delete(`${API_URL}/${id}`,{headers:{Authorization:`Bearer ${token}`},})
     return id
 })
 
