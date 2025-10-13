@@ -33,11 +33,11 @@ export default function Dashboard() {
     { name: "Purchases", path: "/purchases", icon: <BiPurchaseTag />, roles: ["super_admin", "admin","user"] },
     { name: "Sales", path: "/sales", icon: <TbFileInvoice />, roles: ["super_admin", "admin", "user"] },
     { name: "Customer Receipts", path: "/cus_receipts", icon: <MdAttachMoney />, roles: ["super_admin", "admin", "user"] },
-    { name: "Supplier Payments", path: "/sub_receipts", icon: <GiTakeMyMoney />, roles: ["super_admin", "admin"] },
-    { name: "Stock Adjustments", path: "/stocks", icon: <PiShippingContainer />, roles: ["super_admin", "admin"] },
-    { name: "Stock Ledger", path: "/stockledger", icon: <MdOutlineInventory2 />, roles: ["super_admin", "admin"] },
-    { name: "Expense", path: "/expenses", icon: <GiMoneyStack />, roles: ["super_admin", "admin"] },
-    { name: "Reports", path: "/reports", icon: <TbReportSearch />, roles: ["super_admin", "admin"] },
+    { name: "Supplier Payments", path: "/sub_receipts", icon: <GiTakeMyMoney />, roles: ["super_admin", "admin","user"] },
+    { name: "Stock Adjustments", path: "/stocks", icon: <PiShippingContainer />, roles: ["super_admin", "admin","user"] },
+    { name: "Stock Ledger", path: "/stockledger", icon: <MdOutlineInventory2 />, roles: ["super_admin", "admin","user"] },
+    { name: "Expense", path: "/expenses", icon: <GiMoneyStack />, roles: ["super_admin", "admin","user"] },
+    { name: "Reports", path: "/reports", icon: <TbReportSearch />, roles: ["super_admin", "admin","user"] },
   ];
 
   const toggleSidebar = () => {

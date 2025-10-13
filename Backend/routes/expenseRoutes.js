@@ -1,10 +1,10 @@
 const express=require("express")
 const{getexpenses,addexpense,deleteexpense}=require("../controllers/expenseController")
-
+const {protect,authorize}=require("../middleware/auth")
 const router=express.Router()
 
-router.get("/",getexpenses)
-router.post("/",addexpense)
-router.delete("/:id",deleteexpense)
+router.get("/",protect,authorize("super_admin","admin","user"),getexpenses)
+router.post("/",protect,authorize("super_admin","admin"),addexpense)
+router.delete("/:id",protect,authorize("super_admin"),deleteexpense)
 
 module.exports=router

@@ -9,12 +9,17 @@ import { useDispatch,useSelector } from "react-redux";
 import { fetchwarehouses } from "../redux/warehouseSlice";
 import { fetchProducts } from "../redux/productSlice";
 import { addstock, deletestock, fetchstocks } from "../redux/stockadjSlice";
+import { setAuthToken } from "../services/userService";
 
 const StockAdjustment = () => {
     const dispatch=useDispatch()
     const {items:stocks,status}= useSelector((state)=>state.stocks)
     const {items:warehouses}=useSelector((state)=>state.warehouses)
     const {items:products}=useSelector((state)=>state.products)
+
+    const user=JSON.parse(localStorage.getItem("user"))
+    const role=user?.role ||"user"
+    const token=user?.token
     
     const [form, setForm] = useState({
         warehouse_id: "",
@@ -25,11 +30,17 @@ const StockAdjustment = () => {
     });
 
     useEffect(() => {
+        const user=JSON.parse(localStorage.getItem("user"))
+        if(!user || !user.token)
+            console.error("No user found Please Login")
+
+        const token=user?.token
+        setAuthToken(token)
        dispatch(fetchwarehouses())
 
        dispatch(fetchProducts())
-dispatch(fetchstocks())
-    }, []);
+        dispatch(fetchstocks())
+    }, [dispatch]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -63,7 +74,7 @@ dispatch(fetchstocks())
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            dispatch(addstock(form))
+            await dispatch(addstock(form)).unwrap()
             setForm({
                 warehouse_id: "",
                 reason: "",
@@ -71,6 +82,7 @@ dispatch(fetchstocks())
                 notes: "",
                 items: [{ product_id: "", batch: "", qty: "", remarks: "" }]
             });
+            dispatch(fetchstocks())
         } catch (err) {
             console.error(err.response?.data || err.message);
         }
@@ -222,6 +234,7 @@ dispatch(fetchstocks())
                                             ))}
                                         </td>
                                         <td>
+                                            {["super_admin","admin"].includes(role) ? (
                                             <button
                                                 className="btn btn-danger btn-sm px-4 d-flex align-items-center justify-content-center"
                                                 onClick={() => handleDelete(s._id)}
@@ -230,7 +243,11 @@ dispatch(fetchstocks())
                                                     <MdDeleteForever />
                                                 </span>
                                                 Delete
-                                            </button>
+                                            </button>):(
+                                                      <button className="btn btn-secondary btn-sm" disabled>
+                                                        View Only
+                                                    </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))

@@ -9,11 +9,16 @@ import { useDispatch,useSelector } from 'react-redux';
 import { fetchsuppliers } from '../redux/supplierSlice';
 
 import { addpayment, deletepayment, fetchpayments } from '../redux/supplierpaymentSlice';
+import { setAuthToken } from '../services/userService';
 
 const Supplier_Payment = () => {
   const dispatch=useDispatch()
   const {items:sup_payments,status}=useSelector((state)=>state.sup_payments)
  const {items:suppliers}=useSelector((state)=>state.suppliers)
+
+ const user=JSON.parse(localStorage.getItem("user"))
+ const role=user?.role
+ const token=user?.token
   
   const [form, setForm] = useState({
     supplier_id: "",
@@ -26,10 +31,16 @@ const Supplier_Payment = () => {
     notes: "",
   })
   useEffect(() => {
+
+    const user=JSON.parse(localStorage.getItem("user"))
+    if(!user || !user.token)
+      console.error("No user found Please Login")
+    const token=user?.token
+    setAuthToken(token)
     dispatch(fetchsuppliers())
 
     dispatch(fetchpayments())
-  }, [])
+  }, [dispatch])
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm({ ...form, [name]: value })
@@ -37,7 +48,7 @@ const Supplier_Payment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-    dispatch(addpayment(form))
+   await dispatch(addpayment(form)).unwrap()
       setForm({
         supplier_id: "",
 
@@ -48,6 +59,7 @@ const Supplier_Payment = () => {
         applied_purchase_id: "",
         notes: "",
       })
+      dispatch(fetchpayments())
     }
     catch (err) {
       console.error(err.response?.data || err.message)
@@ -183,6 +195,7 @@ const Supplier_Payment = () => {
                     <td>{p.applied_purchase_id}</td>
                     <td>{p.notes}</td>
                     <td>
+                      {["super_admin"].includes(role) ? (
                                                 <button
                                                   className="btn btn-danger btn-sm px-4 d-flex align-items-center justify-content-center"
                                                   onClick={() => handleDelete(p._id)}
@@ -191,7 +204,11 @@ const Supplier_Payment = () => {
                                                     <MdDeleteForever />
                                                   </span>
                                                   Delete
-                                                </button>
+                                                </button>) : (
+                                                     <button className="btn btn-secondary btn-sm" disabled>
+                                                        View Only
+                                                    </button>
+                                                )}
                                               </td>
                   </tr>
                 )))}

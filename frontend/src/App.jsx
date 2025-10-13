@@ -69,13 +69,13 @@ function App() {
           <Route path="purchases" element={<PrivateRoute roles={["super_admin", "admin","user"]}><Purchase /></PrivateRoute>} />
           <Route path="sales" element={<PrivateRoute roles={["super_admin", "admin", "user"]}><SalePOS /></PrivateRoute>} />
           <Route path="cus_receipts" element={<PrivateRoute roles={["super_admin", "admin", "user"]}><Customer_Payment /></PrivateRoute>} />
-          <Route path="sub_receipts" element={<PrivateRoute roles={["super_admin", "admin"]}><Supplier_Payment /></PrivateRoute>} />
-          <Route path="stocks" element={<PrivateRoute roles={["super_admin", "admin"]}><StockAdjustment /></PrivateRoute>} />
-          <Route path="stockledger" element={<PrivateRoute roles={["super_admin", "admin"]}><StockLedger /></PrivateRoute>} />
-          <Route path="expenses" element={<PrivateRoute roles={["super_admin", "admin"]}><Expenses /></PrivateRoute>} />
+          <Route path="sub_receipts" element={<PrivateRoute roles={["super_admin", "admin","user"]}><Supplier_Payment /></PrivateRoute>} />
+          <Route path="stocks" element={<PrivateRoute roles={["super_admin", "admin","user"]}><StockAdjustment /></PrivateRoute>} />
+          <Route path="stockledger" element={<PrivateRoute roles={["super_admin", "admin","user"]}><StockLedger /></PrivateRoute>} />
+          <Route path="expenses" element={<PrivateRoute roles={["super_admin", "admin","user"]}><Expenses /></PrivateRoute>} />
           <Route path="profile" element={<PrivateRoute roles={["super_admin", "admin", "entry_user"]}><Profile /></PrivateRoute>} />
 
-          <Route path="reports" element={<PrivateRoute roles={["super_admin", "admin"]}><Reports /></PrivateRoute>}>
+          <Route path="reports" element={<PrivateRoute roles={["super_admin", "admin","user"]}><Reports /></PrivateRoute>}>
             <Route index element={<SalesReport />} />
             <Route path="sales" element={<SalesReport />} />
             <Route path="purchase" element={<PurchaseReport />} />

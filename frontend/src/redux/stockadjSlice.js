@@ -4,17 +4,30 @@ import axios from "axios";
 const API_URL = "http://localhost:5000/api/stocks"
 
 export const fetchstocks= createAsyncThunk("stocks/fetchAll",async () => {
-    const res=await axios.get(API_URL)
+    const user=JSON.parse(localStorage.getItem("user"))
+    const token=user?.token
+    if(!token)
+        throw new Error("Token Missing")
+    const res=await axios.get(API_URL,{headers:{Authorization:`Bearer ${token}`},})
+    
     return res.data
 })
 
 export const addstock=createAsyncThunk("stocks/add",async (stock) => {
-    const res=await axios.post(API_URL,stock)
+    const user=JSON.parse(localStorage.getItem("user"))
+    const token=user?.token
+    if(!token)
+        throw new Error("Token Missing")
+    const res=await axios.post(API_URL,stock,{headers:{Authorization:`Bearer ${token}`},})
     return res.data
 })
 
 export const deletestock=createAsyncThunk("stocks/delete",async (id) => {
-    await axios.delete(`${API_URL}/${id}`)
+    const user=JSON.parse(localStorage.getItem("user"))
+     const token=user?.token
+     if(!token)
+        throw new Error("Token Missing")
+    await axios.delete(`${API_URL}/${id}`,{headers:{Authorization:`Bearer ${token}`},})
     return id
 })
 

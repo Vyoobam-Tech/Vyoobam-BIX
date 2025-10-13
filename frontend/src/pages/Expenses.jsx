@@ -11,11 +11,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchwarehouses } from '../redux/warehouseSlice';
 import { addstock, deletestock, fetchstocks } from '../redux/stockledgerSlice';
 import { addexpense, deleteexpense, fetchexpenses } from '../redux/expenseSlice';
+import { setAuthToken } from '../services/userService';
 const Expenses = () => {
     const dispatch = useDispatch()
     const { items: expenses, status } = useSelector((state) => state.expenses)
 
     const { items: warehouses } = useSelector((state) => state.warehouses)
+
+    const user=JSON.parse(localStorage.getItem("user"))
+    const role=user?.role
+    const token=user?.token
     const [form, setForm] = useState({
         expenseDate:"",
         warehouseId:"",
@@ -25,10 +30,14 @@ const Expenses = () => {
 
     })
     useEffect(() => {
-    
+        const user=JSON.parse(localStorage.getItem("user"))
+        if(!user || !user.token)
+            console.error("No user found Please Login")
+        const token=user?.token
+        setAuthToken(token)
         dispatch(fetchwarehouses())
         dispatch(fetchexpenses())
-    }, [])
+    }, [dispatch])
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setForm({ ...form, [name]: type === "checkbox" ? checked : value });
@@ -37,7 +46,7 @@ const Expenses = () => {
     const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        await dispatch(addexpense(form));
+        await dispatch(addexpense(form)).unwrap()
         dispatch(fetchexpenses()); 
         setForm({
             expenseDate: "",
@@ -46,6 +55,7 @@ const Expenses = () => {
             amount: "",
             notes: "",
         });
+        dispatch(fetchexpenses())
     } catch (err) {
         console.error(err.response?.data || err.message);
     }
@@ -73,6 +83,8 @@ const Expenses = () => {
     return (
         <div className="container mt-4">
             <h2 className="mb-4 d-flex align-items-center fs-5"><span className="  me-2 d-flex align-items-center" style={{ color: "#4d6f99ff" }}><GiMoneyStack size={24} /></span>{" "}<b >EXPENSES</b></h2>
+            
+            {["super_admin","admin"].includes(role) && (
             <form className="row g-3" onSubmit={handleSubmit}>
 
                 <div className="col-md-6">
@@ -116,7 +128,7 @@ const Expenses = () => {
                         <span className="text-warning me-2 d-flex align-items-center"><FaRegSave />
                         </span>Save</button>
                 </div>
-            </form><br />
+            </form>)}<br />
 
             <div className=" card shadow-sm">
                 <div className="card-body">
@@ -153,6 +165,7 @@ const Expenses = () => {
                                         <td>{e.notes}</td>
                                         
                                         <td>
+                                            {["super_admin"].includes(role) ? (
                                             <button
                                                 className="btn btn-danger btn-sm px-4 d-flex align-items-center justify-content-center"
                                                 onClick={() => handleDelete(e._id)}
@@ -160,7 +173,11 @@ const Expenses = () => {
                                                                                                                                             <MdDeleteForever />
                                                                                                                                           </span>
                                                 Delete
-                                            </button>
+                                            </button>):(
+                                                    <button className="btn btn-secondary btn-sm" disabled>
+                                                        View Only
+                                                    </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))

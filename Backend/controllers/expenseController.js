@@ -2,7 +2,14 @@ const Expense=require("../models/Expense")
 
 exports.getexpenses=async (req,res) => {
     try{
-        const expenses= await Expense.find().populate("warehouseId")
+        let expenses
+        if(req.user.role === "user"){
+            expenses=await Expense.find({created_by_role:{$in:["super_admin","admin","user"]}}).populate("warehouseId")
+        }
+        else{
+           expenses= await Expense.find().populate("warehouseId")
+        }
+          
         res.json(expenses)
     }
     catch(err){
@@ -12,7 +19,7 @@ exports.getexpenses=async (req,res) => {
 
 exports.addexpense=async (req,res) => {
     try{
-        const expense=new Expense(req.body)
+        const expense=new Expense({...req.body,created_by_role:req.user.role})
         await expense.save()
         res.json(expense)
     }

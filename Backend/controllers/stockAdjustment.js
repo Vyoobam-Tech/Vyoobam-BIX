@@ -2,7 +2,14 @@ const StockAdj = require("../models/StockAdj")
 
 exports.getStockAdjustment = async (req, res) => {
   try {
-    const stocks = await StockAdj.find().populate('warehouse_id').populate('items.product_id')
+    let stocks
+    if(req.user.role === "user"){
+      stocks=(await StockAdj.find({created_by_role:{$in:["super_admin","admin","user"]}})).populate('items.product_id')
+    }
+    else{
+         stocks = await StockAdj.find().populate('warehouse_id').populate('items.product_id')
+    }
+    
     res.json(stocks)
   }
   catch (err) {
@@ -12,7 +19,7 @@ exports.getStockAdjustment = async (req, res) => {
 
 exports.addStockAdjustment = async (req, res) => {
   try {
-    const stock = new StockAdj(req.body)
+    const stock = new StockAdj({...req.body,created_by_role:req.user.role})
     await stock.save()
     res.json(stock)
   }
