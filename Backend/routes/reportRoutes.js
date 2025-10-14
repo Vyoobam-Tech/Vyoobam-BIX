@@ -4,19 +4,20 @@ const {getPurchaseReports,addPurchaseReport, deletePurchaseReport} = require("..
 const {getStockReports,addStockReport, deleteStockReport}=require("../controllers/stockReportController")
 const {getGSTReports,addGSTReport, deletegstReport}=require("../controllers/gstReportController");
 const { getProfitLoss } = require("../controllers/profitlossController");
+const {protect,authorize}=require("../middleware/auth")
 const router = express.Router();  
 
-router.get("/sales", getSaleReports);
-router.post("/sales", addSaleReport);
-router.delete("/sales/:id",deleteSaleReport)
+router.get("/sales",protect,authorize("super_admin","admin","user"), getSaleReports);
+router.post("/sales",protect,authorize("super_admin","admin","user"), addSaleReport);
+router.delete("/sales/:id",protect,authorize("super_admin"),deleteSaleReport)
 
 router.get("/purchase", getPurchaseReports);
 router.post("/purchase", addPurchaseReport);
 router.delete("/purchase/:id",deletePurchaseReport)
 
-router.get("/stock",getStockReports)
-router.post("/stock",addStockReport)
-router.delete("/stock/:id",deleteStockReport)
+router.get("/stock",protect,authorize("super_admin","admin"),getStockReports)
+router.post("/stock",protect,authorize("super_admin","admin"),addStockReport)
+router.delete("/stock/:id",protect,authorize("super_admin"),deleteStockReport)
 
 router.get("/gst",getGSTReports)
 router.post("/gst",addGSTReport)

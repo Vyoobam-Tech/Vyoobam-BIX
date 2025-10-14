@@ -224,15 +224,15 @@ const StockAdjustment = () => {
                                         <td>{new Date(s.date).toLocaleString()}</td>
                                         <td>{s.notes}</td>
                                         <td>
-                                            {s.items.map((item, idx) => (
-                                                <div key={idx}>
-                                                    {products.find((p) => p._id === item.product_id)?.name ||
-                                                        "Unknown"}{" "}
-                                                    — Qty: {item.qty}
-                                                </div>
+  <td>
+  {s.items.map((item, idx) => (
+    <div key={idx}>
+      {item.product_id ? item.product_id.name : "Unknown"} — Qty: {item.qty}
+    </div>
+  ))}
+</td>
+</td>
 
-                                            ))}
-                                        </td>
                                         <td>
                                             {["super_admin","admin"].includes(role) ? (
                                             <button

@@ -2,22 +2,23 @@ import React, { useState, useEffect, useRef } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { getMe, setUserHeader } from "../services/userService";
 import { useNavigate } from "react-router-dom";
+import Profile from "../pages/Profile";
 
 const UserProfile = () => {
-  const [user, setUser] = useState(null);
-  const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
-  const ref = useRef();
+  const [user,setUser]=useState(null);
+  const [open,setOpen]=useState(false);
+  const navigate=useNavigate();
+  const ref=useRef();
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    const userId = localStorage.getItem("userId");
-    const token = localStorage.getItem("token");
+    const stored=localStorage.getItem("user");
+    const userId=localStorage.getItem("userId");
+    const token=localStorage.getItem("token");
 if (stored && token) {
   setUser(JSON.parse(stored));
-  setUserHeader(token);  // ✅ send token, not userId
+  setUserHeader(token);  
 } else if (token) {
-  (async () => {
+  (async()=>{
     try {
       const fetched = await getMe();
       setUser(fetched);
@@ -29,8 +30,9 @@ if (stored && token) {
   })();
 }
 
-    const onDoc = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    const onDoc=(e)=> {
+      if (ref.current && !ref.current.contains(e.target)) 
+        setOpen(false);
     };
     document.addEventListener("click", onDoc);
     return () => document.removeEventListener("click", onDoc);
@@ -44,34 +46,20 @@ if (stored && token) {
     navigate("/login");
   };
 
-  const handleProfile = () => {
-    setOpen(false);
-    navigate("/profile");
-  };
+  // const handleProfile = () => {
+  //   setOpen(false);
+  //   navigate("/profile");
+  // };
+
+  const [showProfile, setShowProfile] = useState(false);
+
 
   return (
     <div ref={ref} className="position-relative">
-      <button
-        className="btn d-flex align-items-center gap-2"
-        onClick={() => setOpen((o) => !o)}
-        style={{
-          background: "transparent",
-          border: "none",
-          color: "#072141",
-          cursor: "pointer",
-        }}
-      >
+      <button className="btn d-flex align-items-center gap-2" onClick={() => setOpen((o) => !o)}
+        style={{background: "transparent",border: "none",color: "#072141",cursor: "pointer", }}>
         {user?.avatar ? (
-          <img
-            src={user.avatar}
-            alt="avatar"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: "50%",
-              objectFit: "cover",
-            }}
-          />
+          <img src={user.avatar} alt="avatar" style={{width: 36,height: 36,borderRadius: "50%",objectFit: "cover",}}/>
         ) : (
           <FaUserCircle size={28} />
         )}
@@ -81,34 +69,13 @@ if (stored && token) {
       {open && (
         <div
           className="card shadow border-0"
-          style={{
-            position: "absolute",
-            right: 0,
-            top: "calc(100% + 8px)",
-            zIndex: 999,
-            width: "230px", // ✅ fixed width
-            borderRadius: "12px",
-            overflow: "hidden",
-          }}
+          style={{position: "absolute",right: 0,top: "calc(100% + 8px)",zIndex: 999,width: "230px", borderRadius: "12px", overflow: "hidden",}}
         >
           <div
-            className="card-body p-3"
-            style={{
-              backgroundColor: "#ffffff",
-            }}
-          >
+            className="card-body p-3" style={{ backgroundColor: "#ffffff",}}>
             <div className="d-flex gap-2 align-items-center mb-2">
               {user?.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt="avatar"
-                  style={{
-                    width: 46,
-                    height: 46,
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                  }}
-                />
+                <img src={user.avatar} alt="avatar" style={{ width: 46, height: 46,borderRadius: "50%",objectFit: "cover", }}/>
               ) : (
                 <FaUserCircle size={46} />
               )}
@@ -120,18 +87,15 @@ if (stored && token) {
               </div>
             </div>
             <hr />
-            <button
-              className="btn btn-sm btn-outline-primary w-100 mb-2"
-              onClick={handleProfile}
-            >
-              View Profile
-            </button>
-            <button
-              className="btn btn-sm btn-outline-danger w-100"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
+           <div className="d-flex flex-column gap-2" style={{ width: "200px" }}>
+  <button className="btn btn-info w-100" onClick={() => setShowProfile(true)}>View Profile</button>
+  <button className="btn btn-sm btn-outline-danger w-100" onClick={handleLogout}>Logout
+  </button>
+
+  
+  <Profile show={showProfile} onClose={() => setShowProfile(false)} />
+</div>
+
           </div>
         </div>
       )}

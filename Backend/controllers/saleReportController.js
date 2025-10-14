@@ -2,7 +2,14 @@ const Salereport = require("../models/Salereport")
 
 exports.getSaleReports = async (req, res) => {
   try {
-    const salereports = await Salereport.find().populate('customer_id', 'name')
+    let salereports
+    if(req.user.role === "user"){
+      salereports=await Salereport.find({created_by_role:{$in:["super_admin","admin","user"]}}).populate('customer_id', 'name')
+    }
+    else{
+          salereports = await Salereport.find().populate('customer_id', 'name')
+    }
+     
     res.json(salereports)
   }
   catch (err) {
@@ -12,7 +19,7 @@ exports.getSaleReports = async (req, res) => {
 
 exports.addSaleReport = async (req, res) => {
   try {
-    const salereport = new Salereport(req.body)
+    const salereport = new Salereport({...req.body,created_by_role:req.user.role})
     await salereport.save()
     await salereport.populate('customer_id', 'name')
     res.json(salereport)

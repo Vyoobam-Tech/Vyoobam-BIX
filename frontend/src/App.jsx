@@ -32,6 +32,9 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 
 import { setAuthToken } from "./services/userService";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { isTokenExpired } from "./utils/Tokenexp";
 
 const token = localStorage.getItem("token");
 if (token) setAuthToken(token);
@@ -47,6 +50,27 @@ const PrivateRoute=({children,roles }) => {
 };
 
 function App() {
+   const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = user?.token;
+
+    if (!token || isTokenExpired(token)) {
+      // token missing or expired
+      localStorage.removeItem("user");
+      navigate("/login");
+    } else {
+      // token valid → auto logout after remaining time
+      const decoded = JSON.parse(atob(token.split(".")[1]));
+      const remainingTime = decoded.exp * 1000 - Date.now();
+
+      setTimeout(() => {
+        localStorage.removeItem("user");
+        navigate("/login");
+      }, remainingTime);
+    }
+  }, [navigate]);
   return (
 
     <div className="container-fluid w-100 p-0">

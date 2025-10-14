@@ -2,7 +2,13 @@ const Stockreport = require('../models/Stockreport')
 
 exports.getStockReports = async (req, res) => {
   try {
-    const stockreports = await Stockreport.find().populate('product_id', 'name').populate('warehouse_id', 'name  warehouse_name store_name').populate('category_id', 'name')
+    let stockreports
+    if(req.user.role ===  "user"){
+      stockreports=await Stockreport.find({created_by_role:{$in :["super_admin","admin","user"]}}).populate('product_id', 'name').populate('warehouse_id', 'name  warehouse_name store_name').populate('category_id', 'name')
+    }
+    else{
+      stockreports = await Stockreport.find().populate('product_id', 'name').populate('warehouse_id', 'name  warehouse_name store_name').populate('category_id', 'name')
+    }
     res.json(stockreports)
   }
   catch {
@@ -12,7 +18,7 @@ exports.getStockReports = async (req, res) => {
 
 exports.addStockReport = async (req, res) => {
   try {
-    const stockreport = new Stockreport(req.body)
+    const stockreport = new Stockreport({...req.body,created_by_role:req.user.role})
     await stockreport.save()
     await stockreport.populate('product_id', 'name')
     await stockreport.populate('warehouse_id', 'name store_name warehouse_name')

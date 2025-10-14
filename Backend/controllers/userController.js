@@ -11,7 +11,8 @@ const generateToken = (user) => {
   return jwt.sign(
     { id: user._id, email: user.email, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "1h" },
+   
   );
 };
 
@@ -66,10 +67,10 @@ exports.login = async (req, res) => {
     if (!ok) return res.status(400).json({ error: "Invalid credentials" });
 
     const userObj = user.toObject();
-    delete userObj.password; // keep all other fields
-
+    delete userObj.password; 
     // Generate JWT token
     const token = generateToken(user);
+     res.cookie("token",generateToken, {httpOnly:true, maxAge:300000,samesite:"lax",secure:false})
 
     // ✅ Return both user object and token
     res.json({

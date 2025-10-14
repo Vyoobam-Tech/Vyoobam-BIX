@@ -8,9 +8,9 @@ exports.getStockledger=async (req, res) => {
   try {
     let ledgers
     if(req.user.role === "user"){
-        ledgers = await Stockledger.find({created_by_role:{$in:["super_admin","admin","user"]}}).limit(500).populate("productId", "product_name").populate("warehouseId", "warehouse_name").lean();
+        ledgers = await Stockledger.find({created_by_role:{$in:["super_admin","admin","user"]}}).limit(500).populate("productId", "name").populate("warehouseId", "store_name").lean();
     }
-   ledgers = await Stockledger.find().limit(500).populate("productId", "product_name").populate("warehouseId", "warehouse_name").lean();
+   ledgers = await Stockledger.find().limit(500).populate("productId", "name").populate("warehouseId", "store_name").lean();
    res.json(ledgers);
   } catch (err) {
     res.status(500).json({ error: err.message });

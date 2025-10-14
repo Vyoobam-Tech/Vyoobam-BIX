@@ -6,6 +6,7 @@ import { FaSearch } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { addsalereport, deletesalereport, fetchsalereports } from "../../redux/salereportSlice";
 import { fetchcustomers } from "../../redux/customerSlice";
+import { setAuthToken } from "../../services/userService";
 
 
 const SalesReport = () => {
@@ -13,6 +14,9 @@ const SalesReport = () => {
   const {items:salereports,status}=useSelector((state)=>state.salereports)
   const {items:customers}=useSelector((state)=>state.customers)
  
+  const user=JSON.parse(localStorage.getItem("user"))
+  const role=user?.role || "user"
+  const token=user?.token
   
   const [form, setForm] = useState({
     from_date: "",
@@ -24,11 +28,16 @@ const SalesReport = () => {
   })
 
   useEffect(() => {
+    const user=JSON.parse(localStorage.getItem("user"))
+    if(!user || !user.token)
+      console.error("No user found Please Login")
+    const token=user?.token
+    setAuthToken(token)
     dispatch(fetchcustomers())
     dispatch(fetchsalereports())
 
 
-  }, [])
+  }, [dispatch])
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm({ ...form, [name]: value })
@@ -36,7 +45,7 @@ const SalesReport = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-     dispatch(addsalereport(form))
+     await dispatch(addsalereport(form)).unwrap()
       setForm({
         from_date: "",
         to_date: "",
@@ -45,6 +54,7 @@ const SalesReport = () => {
         payment_mode: "",
         invoice_no: ""
       });
+      dispatch(fetchsalereports())
     } catch (err) {
       console.error(err.response?.data || err.message);
     }
@@ -142,11 +152,13 @@ const SalesReport = () => {
   ) : (
     filteredreports.map((s) => (
       <tr key={s._id}>
-        <td>{s.from_date}</td>
-        <td>{s.to_date}</td>
+        <td>{s.from_date ? new Date(s.from_date).toISOString().split('T')[0] : "-"}</td>
+<td>{s.to_date ? new Date(s.to_date).toISOString().split('T')[0] : "-"}</td>
+        
         <td>{s.customer_id && typeof s.customer_id === "object" ? s.customer_id.name : s.customer_id}</td>
         <td>{s.invoice_type}</td>
         <td>
+          {["super_admin"].includes(role) ? (
           <button
             className="btn btn-danger btn-sm  px-4 d-flex align-items-center justify-content-center"
             onClick={() => handleDelete(s._id)}
@@ -155,7 +167,11 @@ const SalesReport = () => {
               <MdDeleteForever />
             </span>
             Delete
-          </button>
+          </button>) : (
+             <button className="btn btn-secondary btn-sm" disabled>
+                                                        View Only
+                                                    </button>
+          )}
         </td>
       </tr>
     ))

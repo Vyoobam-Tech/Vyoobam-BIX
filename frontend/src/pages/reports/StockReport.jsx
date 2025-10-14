@@ -8,6 +8,7 @@ import { fetchProducts } from "../../redux/productSlice";
 import { fetchwarehouses } from "../../redux/warehouseSlice";
 import { fetchCategories } from "../../redux/categorySlice";
 import { addstockreport, deletestockreport, fetchstockreports } from "../../redux/stockreportSlice";
+import { setAuthToken } from "../../services/userService";
 
 
 const StockReport = () => {
@@ -17,21 +18,28 @@ const StockReport = () => {
   const { items: warehouses } = useSelector((state) => state.warehouses)
   const { items: categories } = useSelector((state) => state.categories)
 
-
-  const [form, setForm] = useState({
+  const user=JSON.parse(localStorage.getItem("user"))
+  const role=user?.role || "user"
+  const token=user?.token
+    const [form, setForm] = useState({
     product_id: "",
     warehouse_id: "",
     category_id: "",
   })
 
   useEffect(() => {
+    const user=JSON.parse(localStorage.getItem("user"))
+    if(!user || !user.token)
+      console.error("No user found Please Login")
+    const token=user?.token
+    setAuthToken(token)
     dispatch(fetchProducts())
 
     dispatch(fetchwarehouses())
 
     dispatch(fetchCategories())
     dispatch(fetchstockreports())
-  }, [])
+  }, [dispatch])
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm({ ...form, [name]: value })
@@ -39,12 +47,13 @@ const StockReport = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      dispatch(addstockreport(form))
+      await dispatch(addstockreport(form)).unwrap()
       setForm({
         product_id: "",
         warehouse_id: "",
         category_id: "",
       })
+      dispatch(fetchstockreports())
     }
     catch (err) {
       console.error(err.response?.data || err.message)
@@ -140,6 +149,7 @@ const StockReport = () => {
 
                     <td>{s.category_id?.name}</td>
                     <td>
+                      {["super_admin"].includes(role) ? (
                       <button
                         className="btn btn-danger btn-sm px-4 d-flex align-items-center justify-content-center"
                         onClick={() => handleDelete(s._id)}
@@ -148,7 +158,11 @@ const StockReport = () => {
                           <MdDeleteForever />
                         </span>
                         Delete
-                      </button>
+                      </button>) :( 
+                          <button className="btn btn-secondary btn-sm" disabled>
+                                                        View Only
+                                                    </button>
+                      )}
                     </td>
 
 

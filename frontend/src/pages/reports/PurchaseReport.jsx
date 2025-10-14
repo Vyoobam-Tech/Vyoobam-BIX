@@ -112,8 +112,8 @@ const PurchaseReport = () => {
                 purchasereports.map((p) => (
                   <tr key={p._id}>
 
-                    <td>{p.from_date}</td>
-                    <td>{p.to_date}</td>
+                    <td>{p.from_date ? new Date(p.from_date).toISOString().split('T')[0]:"-"}</td>
+                    <td>{p.to_date ? new Date(p.to_date).toISOString().split("T")[0]:"-"}</td>
                     <td>{p.supplier_id.name}</td>
                     <td>
                       <button
