@@ -7,6 +7,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchcustomers } from "../../redux/customerSlice";
 import { fetchsuppliers } from "../../redux/supplierSlice";
 import { addgstreport, deletegstreport, fetchgstreports } from "../../redux/gstreportSlice";
+import * as XLSX from "xlsx"
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import ExportButtons from "../../components/ExportButtons";
 
 const GstReport = () => {
   const dispatch = useDispatch()
@@ -102,10 +107,58 @@ const GstReport = () => {
     dispatch(deletegstreport(id))
   };
 
+  const handleExportExcel = () => {
+        const data = filteredreports.map((r) => ({
+          "Report Type" : r.report_type,
+          "From Date":r.from_date ? new Date(r.from_date).toISOString().split("T")[0] : "-",
+          "To Date":r.to_date ? new Date(r.to_date).toISOString().split("T")[0] : "-",
+          Supplier: r.supplier_id?.name || r.supplier_id,
+          Customer:r.customer_id?.name || r.customer_id,
+          "HSN":r.hsn,
+          "State":r.state,
+          
+         
+        }));
+    
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "GSTReport");
+    
+        const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+        saveAs(new Blob([excelBuffer], { type: "application/octet-stream" }), "GSTReport.xlsx");
+      };
+
+      
+        const handleExportPDF = () => {
+          const doc = new jsPDF();
+          doc.text("Sales Report", 14, 15);
+      
+          const tableData = filteredreports.map((r) => [
+            r.report_type,
+            r.from_date ? new Date(r.from_date).toISOString().split("T")[0] : "-",
+            r.to_date ? new Date(r.to_date).toISOString().split("T")[0] : "-",
+            r.supplier_id?.name || r.supplier_id,
+            r.customer_id?.name || r.customer_id,
+            r.hsn,
+            r.state,
+           
+          ]);
+      
+           autoTable(doc, {
+          startY: 20,
+          head: [["Report Type", "From Date", "To Date", "Supplier", "Customer", "HSN","State"]],
+          body: tableData,
+        });
+      
+          doc.save("GSTReport.pdf");
+        };
+      const handlePrint = () => {
+          window.print();
+        };
   return (
     <div className="container mt-4 bg-gradient-warning">
 
-
+<ExportButtons onExcel={handleExportExcel} onPdf={handleExportPDF} onPrint={handlePrint}/>
 
       <form className="row g-3" onSubmit={handleSubmit}>
         <div className="col-md-6">

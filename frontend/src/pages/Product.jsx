@@ -38,6 +38,7 @@ const Product = () => {
     is_serial_tracked: false,
     status: false,
   });
+  const [subcategories, setSubcategories] = useState([]);
 
   const [brands, setBrands] = useState([]);
   const [search, setSearch] = useState("");
@@ -82,10 +83,11 @@ const Product = () => {
     let updatedForm = { ...form, [name]: type === "checkbox" ? checked : value };
 
     if (name === "category_id") {
-      const selectedCat = categories.find((c) => c._id === value);
-      setBrands(selectedCat ? selectedCat.brands : []);
-      updatedForm.brand_name = "";
-    }
+  const selectedCat = categories.find((c) => c._id === value);
+  console.log("Selected Category:", selectedCat)
+  setBrands(selectedCat && Array.isArray(selectedCat.brands) ? selectedCat.brands : []);
+  updatedForm.brand_name = "";
+}
 
     setForm(updatedForm);
   };
@@ -99,6 +101,7 @@ const Product = () => {
         name: "",
         sku: "",
         category_id: "",
+        subcategory:"",
         brand_name: "",
         unit_id: "Kg",
         hsn_code: "",
@@ -116,6 +119,26 @@ const Product = () => {
       console.log("Product added successfully!");
     } catch (err) {
       console.error("Error adding product:", err.response?.data || err.message);
+    }
+  };
+
+  const handleCategoryChange = async (e) => {
+    const selectedCategory = e.target.value;
+    setForm({ ...form, category: selectedCategory, subcategory: "", brand: "" });
+
+    if (selectedCategory) {
+      try {
+        const res = await axios.get(`/api/categories/subcategories/${selectedCategory}`);
+        setSubcategories(res.data.subcategories);
+        setBrands(res.data.brands);
+      } catch (err) {
+        console.error(err);
+        setSubcategories([]);
+        setBrands([]);
+      }
+    } else {
+      setSubcategories([]);
+      setBrands([]);
     }
   };
 
@@ -194,6 +217,24 @@ const Product = () => {
               ))}
             </select>
           </div>
+
+          {subcategories.length > 0 && (
+          <div className="col-md-4">
+            <label className="form-label">Subcategory</label>
+            <select
+              name="subcategory"
+              className="form-control"
+              value={form.subcategory}
+              onChange={handleChange}
+              required
+            >
+              <option value="">-- Select Subcategory --</option>
+              {subcategories.map((sub, i) => (
+                <option key={i} value={sub}>{sub}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
           <div className="col-md-6">
             <label className="form-label">Brand (Optional)</label>

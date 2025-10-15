@@ -7,6 +7,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { addsalereport, deletesalereport, fetchsalereports } from "../../redux/salereportSlice";
 import { fetchcustomers } from "../../redux/customerSlice";
 import { setAuthToken } from "../../services/userService";
+import * as XLSX from "xlsx"
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import ExportButtons from "../../components/ExportButtons";
 
 
 const SalesReport = () => {
@@ -72,9 +77,54 @@ const SalesReport = () => {
   const handleDelete = async (id) => {
     dispatch(deletesalereport(id))
   };
+
+  const handleExportExcel = () => {
+    const data = filteredreports.map((r) => ({
+      "From Date": r.from_date ? new Date(r.from_date).toISOString().split("T")[0] : "-",
+      "To Date": r.to_date ? new Date(r.to_date).toISOString().split("T")[0] : "-",
+      Customer: r.customer_id?.name || r.customer_id,
+      "Invoice Type": r.invoice_type,
+      "Payment Mode": r.payment_mode,
+      "Invoice No": r.invoice_no,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "SalesReport");
+
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    saveAs(new Blob([excelBuffer], { type: "application/octet-stream" }), "SalesReport.xlsx");
+  };
+
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Sales Report", 14, 15);
+
+    const tableData = filteredreports.map((r) => [
+      r.from_date ? new Date(r.from_date).toISOString().split("T")[0] : "-",
+      r.to_date ? new Date(r.to_date).toISOString().split("T")[0] : "-",
+      r.customer_id?.name || r.customer_id,
+      r.invoice_type,
+      r.payment_mode,
+      r.invoice_no,
+    ]);
+
+     autoTable(doc, {
+    startY: 20,
+    head: [["From Date", "To Date", "Customer", "Invoice Type", "Payment Mode", "Invoice No"]],
+    body: tableData,
+  });
+
+    doc.save("SalesReport.pdf");
+  };
+const handlePrint = () => {
+    window.print();
+  };
   return (
     <div className="container mt-4 bg-gradient-warning">
 
+<ExportButtons onExcel={handleExportExcel} onPdf={handleExportPDF} onPrint={handlePrint} />
 
       <form className="row g-3" onSubmit={handleSubmit}>
         <div className="col-md-6">

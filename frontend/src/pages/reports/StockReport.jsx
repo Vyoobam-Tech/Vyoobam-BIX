@@ -9,6 +9,11 @@ import { fetchwarehouses } from "../../redux/warehouseSlice";
 import { fetchCategories } from "../../redux/categorySlice";
 import { addstockreport, deletestockreport, fetchstockreports } from "../../redux/stockreportSlice";
 import { setAuthToken } from "../../services/userService";
+import ExportButtons from "../../components/ExportButtons";
+import * as XLSX from "xlsx"
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 
 const StockReport = () => {
@@ -79,10 +84,49 @@ const StockReport = () => {
     dispatch(deletestockreport(id))
   };
 
+
+  const handleExportExcel = () => {
+      const data = filteredreports.map((r) => ({
+        
+        Product: r.product_id?.name || r.product_id,
+        Warehouse: r.warehouse_id?.name || r.warehouse_id?.warehouse_name  || r.warehouse_id?.store_name || r.warehouse_id,
+        Category:r.category_id.name || r.category_id,
+       
+      }));
+  
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "StockReport");
+  
+      const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      saveAs(new Blob([excelBuffer], { type: "application/octet-stream" }), "StockReport.xlsx");
+    };
+
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+        doc.text("Sales Report", 14, 15);
+    
+        const tableData = filteredreports.map((r) => [
+         r.product_id?.name || r.product_id,
+          r.warehouse_id?.name || r.warehouse_id?.warehouse_name  || r.warehouse_id?.store_name || r.warehouse_id,
+          r.category_id.name || r.category_id,
+        ]);
+    
+         autoTable(doc, {
+        startY: 20,
+        head: [["Product", "Warehouse", "Category", ]],
+        body: tableData,
+      });
+    
+        doc.save("StockReport.pdf");
+      };
+    const handlePrint = () => {
+        window.print();
+      };
   return (
 
     <div className="container mt-4 bg-gradient-warning">
-
+<ExportButtons onExcel={handleExportExcel} onPdf={handleExportPDF} onPrint={handlePrint}/>
 
       <form className="row g-3" onSubmit={handleSubmit}>
         <div className="col-md-6">

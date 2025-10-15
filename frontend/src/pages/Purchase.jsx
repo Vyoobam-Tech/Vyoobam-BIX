@@ -341,7 +341,8 @@ const Purchase = () => {
           : suppliers.find(s => s._id === p.supplier_id)?.name || "Unknown Supplier"}
       </td>
       <td>{p.invoice_no}</td>
-      <td>{p.invoice_date}</td>
+      <td>{p.invoice_date ?  new Date(p.invoice_date).toLocaleDateString()
+                      : "N/A"}</td>
       <td>
         {typeof p.warehouse_id === "object"
           ? p.warehouse_id.store_name

@@ -4,6 +4,7 @@ const {protect,authorize}=require("../middleware/auth");
 const router = express.Router();
 router.get("/check-exists", protect, authorize("super_admin", "admin", "user"), checkProductExists);
 router.get("/", protect, authorize("super_admin", "admin", "user"), getProducts);
+
 router.post("/", protect, authorize("super_admin", "admin"), addProduct);
 router.delete("/:id", protect, authorize("super_admin", "admin"), deleteProduct);
 

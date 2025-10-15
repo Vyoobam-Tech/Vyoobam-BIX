@@ -10,10 +10,7 @@ const Reports = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const role = user?.role;
 
-  const handleExcel = () => alert("Export to Excel");
-  const handlePdf = () => alert("Export to PDF");
-  const handlePrint = () => alert("Print Report");
-
+  
   const reports = [
     { path: "sales", label: "Sales Report", roles: ["super_admin", "admin", "user"] },
     { path: "purchase", label: "Purchase Report", roles: ["super_admin"] },
@@ -34,14 +31,14 @@ const Reports = () => {
       <ul className="nav nav-tabs mb-3">
         {reports.filter((r) => r.roles.includes(role)).map((r) => (
             <li className="nav-item" key={r.path}>
-              <NavLink to={r.path} className={({ isActive }) =>  `nav-link ${isActive || location.pathname === "/reports" ? "bg-primary text-white" : "bg-light text-dark"}`}>
+              <NavLink to={r.path} className={({ isActive }) =>  `nav-link ${isActive || location.pathname === "/reports" ? "bg-light text-black" : "bg-light text-dark"}`}>
                 {r.label}
               </NavLink>
             </li>
           ))}
       </ul>
 
-      <ExportButtons onExcel={handleExcel} onPdf={handlePdf} onPrint={handlePrint} />
+      
 
       
       <Outlet />

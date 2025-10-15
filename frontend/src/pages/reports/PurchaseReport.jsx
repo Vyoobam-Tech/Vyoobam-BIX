@@ -6,7 +6,11 @@ import { FaSearch } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchsuppliers } from "../../redux/supplierSlice";
 import { addpurchasereport, deletepurchasereport, fetchpurchasereports } from "../../redux/purchasereportSlice";
-
+import ExportButtons from "../../components/ExportButtons";
+import * as XLSX from "xlsx"
+import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 const PurchaseReport = () => {
   const dispatch = useDispatch()
   const { items: purchasereports, status } = useSelector((state) => state.purchasereports)
@@ -55,12 +59,50 @@ const PurchaseReport = () => {
   const handleDelete = async (id) => {
     dispatch(deletepurchasereport(id))
   };
+  const handleExportExcel = () => {
+      const data = filteredreports.map((r) => ({
+        "From Date": r.from_date ? new Date(r.from_date).toISOString().split("T")[0] : "-",
+        "To Date": r.to_date ? new Date(r.to_date).toISOString().split("T")[0] : "-",
+        Supplier: r.supplier_id?.name || r.supplier_id,
+      
+      }));
+  
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "PurchaseReport");
+  
+      const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      saveAs(new Blob([excelBuffer], { type: "application/octet-stream" }), "PurchaseReport.xlsx");
+    };
+
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+        doc.text("Sales Report", 14, 15);
+    
+        const tableData = filteredreports.map((r) => [
+          r.from_date ? new Date(r.from_date).toISOString().split("T")[0] : "-",
+          r.to_date ? new Date(r.to_date).toISOString().split("T")[0] : "-",
+        r.supplier_id?.name || r.supplier_id,
+     
+        ]);
+    
+         autoTable(doc, {
+        startY: 20,
+        head: [["From Date", "To Date", "Supplier", ]],
+        body: tableData,
+      });
+    
+        doc.save("PurchaseReport.pdf");
+      };
+    const handlePrint = () => {
+    window.print();
+  };
 
 
   return (
     <div className="container mt-4 bg-gradient-warning">
 
-
+<ExportButtons onExcel={handleExportExcel}  onPdf={handleExportPDF} onPrint={handlePrint}/>
       <form className="row g-3" onSubmit={handleSubmit}>
         <div className="col-md-6">
           <label className="form-label">From Date<span className="text-danger">*</span></label>

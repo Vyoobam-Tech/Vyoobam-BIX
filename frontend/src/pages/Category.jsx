@@ -72,7 +72,8 @@ if (name === "name") {
 const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await dispatch(addCategory(form)).unwrap()
+      const payload={...form,brands:form.brand ?[form.brand]:[],};
+      await dispatch(addCategory(payload)).unwrap()
       setForm({
         parental_id: "",
         name: "",

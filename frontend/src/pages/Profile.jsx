@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { getMe, setUserHeader } from "../services/userService";
 import axios from "axios";
+import { FaUser } from "react-icons/fa";
 
 export default function Profile({ show, onClose }) {
   const [user,setUser]=useState(null);
@@ -60,7 +61,7 @@ export default function Profile({ show, onClose }) {
       <div className="modal-dialog modal-sm modal-dialog-centered " >
         <div className="modal-content p-3" style={{ backgroundColor: "#faead1ff" }}>
           <div className="modal-header">
-            <h5 className="modal-title text-danger">User Profile</h5>
+            <h5 className="modal-title text-danger mb-4 d-flex align-items-center fs-5"><span className="me-2 d-flex align-items-center"><FaUser size={24}/></span>  User Profile</h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
           <div className="modal-body">

@@ -59,3 +59,14 @@ exports.deleteCategory = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+exports.getSubcategoriesByCategory = async (req, res) => {
+  const { name } = req.params;
+  try {
+    const category = await Category.findOne({ name });
+    if (!category) return res.status(404).json({ message: "Category not found" });
+    res.json({ subcategories: category.subcategory || [], brands: category.brands || [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
