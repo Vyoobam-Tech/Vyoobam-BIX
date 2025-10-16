@@ -15,3 +15,13 @@
 *{
   font-family: 'Nunito', sans-serif;
 }
+
+.hovers {
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.hovers:hover {
+  transform: translateY(-5px); /* lifts the card */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2); /* adds shadow */
+}

@@ -15,6 +15,7 @@ import { PiShippingContainer } from "react-icons/pi";
 import { FaArrowLeft } from "react-icons/fa";
 import UserProfile from "../components/UserProfile";
 import { isSuperAdmin, isAdmin, isEntryUser } from "../utils/auth";
+import DashboardSummary from "./DashboardSummary";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -65,6 +66,7 @@ export default function Dashboard() {
 
           <div className="ms-auto d-flex align-items-center gap-2">
             <UserProfile />
+           
           </div>
         </div>
       </nav>
@@ -94,13 +96,17 @@ export default function Dashboard() {
                   </div>
                 ))}
             </div>
+            
           </div>
+          
         )}
-
+        
         <div className="flex-grow-1 p-4 overflow-auto" style={{ backgroundColor: "#c9d9ecff" }}>
-          <div className="bg-white border rounded shadow-sm p-4 h-100">
-            <Outlet />
-          </div>
+          
+         <div className={`${ window.location.pathname === "/"? "p-0 border-0 shadow-none bg-transparent": "bg-white border rounded shadow-sm p-4 h-100" }`}>
+  {window.location.pathname === "/" && <DashboardSummary />}
+  <Outlet />
+</div>
         </div>
       </div>
 
@@ -112,6 +118,7 @@ export default function Dashboard() {
           transition: background-color 0.2s ease, color 0.2s ease;
         }
       `}</style>
+    
     </div>
   );
 }

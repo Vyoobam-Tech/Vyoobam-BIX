@@ -254,7 +254,7 @@ const Customer = () => {
                            <th className="fw-bold">Address</th>
                             <th className="fw-bold">Credit Limit</th>
                              <th className="fw-bold">Opening Balance</th>
-                              <th className="fw-bold">Status</th>
+                              {/* <th className="fw-bold">Status</th> */}
                            <th className="fw-bold">Actions</th>
                          </tr>
                        </thead>
@@ -275,9 +275,9 @@ const Customer = () => {
                              <td>{c.billing_address}</td>
                              <td>{c.credit_limit}</td>
                              <td>{c.opening_balance}</td>
-                             <td className={c.status ? "text-success" : "text-danger"}>
+                             {/* <td className={c.status ? "text-success" : "text-danger"}>
                                {c.status ? "Active" : "Inactive"}
-                             </td>
+                             </td> */}
                              <td>
                                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(c._id)}><span className="text-warning"><MdDeleteForever /></span>Delete</button>
                              </td>

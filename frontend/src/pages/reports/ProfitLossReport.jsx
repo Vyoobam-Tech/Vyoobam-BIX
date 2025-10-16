@@ -37,9 +37,6 @@ const ProfitLossReport = () => {
     dispatch(fetchProfitLoss(form));
   };
 
-
-
-
 const filteredDetails = (report?.details || []).filter((d) =>
   d.category.toLowerCase().includes(search.toLowerCase())
 );
