@@ -45,8 +45,6 @@ const DashboardSummary = () => {
 
 
 
-
-
    const topSellingProducts = useMemo(() => {
     const productCount = {};
  sales.forEach((sale) => {
@@ -89,9 +87,34 @@ const DashboardSummary = () => {
     .slice(0,5)
   },[purchases])
 
- const salesPurchaseData = [
-  { category: "Total", Sales: totalSales, Purchases: totalPurchases },
-];
+const salesPurchaseData = useMemo(()=>{
+  const formatDate=(date)=>{
+    const d=new Date(date);
+    return d.toLocaleDateString("en-IN",{day:"2-digit",month:"short"}); 
+  };
+  const salesByDate = {};
+  sales.forEach((s) => {
+    const date = formatDate(s.invoice_date_time);
+    const total = (Number(s.grand_total) || 0) - (Number(s.discount_amount) || 0);
+    salesByDate[date] = (salesByDate[date] || 0) + total;
+  });
+
+  const purchasesByDate = {};
+  purchases.forEach((p) => {
+    const date = formatDate(p.invoice_date);
+    const total = Number(p.grand_total) || 0;
+    purchasesByDate[date] = (purchasesByDate[date] || 0) + total;
+  });
+  const allDates=Array.from(new Set([...Object.keys(salesByDate),...Object.keys(purchasesByDate)])).sort(
+    (a, b) => new Date(a) - new Date(b)    ///   If result < 0 → a comes before b
+  );
+  return allDates.map((date) => ({
+    name: date,
+    Sales: salesByDate[date] || 0,
+    Purchases: purchasesByDate[date] || 0,
+  }));
+}, [sales, purchases]);
+ 
   return (
     <div className="container mt-4">
   <div className="row g-3">
@@ -278,24 +301,30 @@ const DashboardSummary = () => {
     </ResponsiveContainer>
   </div> */}
   <div className="card shadow-lg mt-4">
-  <div className="card-body">
-    <h5 className="fw-bold mb-3">📈 SALES vs PURCHASES</h5>
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart
-        data={salesPurchaseData}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="category" />
-        <YAxis />
-        <Tooltip />           
-        <Legend />
-        <Line type="monotone" dataKey="Sales" stroke="#4d6f99ff" strokeWidth={3} />
-        <Line type="monotone" dataKey="Purchases" stroke="#82ca9d" strokeWidth={3} />
-      </LineChart>
-    </ResponsiveContainer>
-  </div>
-</div>
+        <div className="card-body">
+          <h5 className="fw-bold mb-3">📈 SALES vs PURCHASES</h5>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={salesPurchaseData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name"label={{ value: "DATE", position: "insideBottom", offset: -5 }}/>
+              <YAxis label={{value: "AMOUNT (₹)",angle: -90,position: "insideLeft", }}/>
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="Sales" stroke="#4d6f99ff" strokeWidth={3} dot={{ r: 5 }}
+                activeDot={{ r: 8 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="Purchases"
+                stroke="#82ca9d"
+                strokeWidth={3}
+                dot={{ r: 5 }}
+                activeDot={{ r: 8 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 </div>
 
  

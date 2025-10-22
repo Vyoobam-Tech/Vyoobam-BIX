@@ -31,15 +31,7 @@ exports.addCategory=async(req,res)=>{
       return res.status(400).json(existing);
     }
 
-    const category = new Category({
-      parental_id,
-      name,
-      code,
-      subcategory,
-      brands,
-      status,
-      created_by_role:req.user.role
-    });
+    const category = new Category({parental_id,name,code,subcategory,brands,status,created_by_role:req.user.role});
 
     await category.save();
     res.status(201).json(category);

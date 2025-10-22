@@ -26,7 +26,7 @@ exports.addStockReport = async (req, res) => {
     res.json(stockreport)
   }
   catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(400).json({ error: err.message })
   }
 }
 

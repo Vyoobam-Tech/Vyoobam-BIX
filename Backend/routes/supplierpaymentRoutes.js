@@ -5,4 +5,4 @@ const router=express.Router()
 router.get("/",protect,authorize("super_admin","admin","user"),getSupplierPayments)
 router.post("/",protect,authorize("super_admin","admin","user"),addSupplierPayment)
 router.delete("/:id",protect,authorize("super_admin"),deletePayment)
-module.exports = router
+module.exports=router
