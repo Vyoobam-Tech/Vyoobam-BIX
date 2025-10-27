@@ -5,7 +5,7 @@ import { MdDeleteForever } from "react-icons/md";
 import { FaRegSave } from "react-icons/fa";
 import { FaSearch } from "react-icons/fa";
 import { useDispatch,useSelector } from "react-redux";
-import { addpurchase, deletepurchase, fetchpurchases } from "../redux/purchaseSlice";
+import { addpurchase, deletepurchase, fetchpurchases, updatePurchase } from "../redux/purchaseSlice";
 import { fetchProducts } from "../redux/productSlice";
 import { fetchwarehouses } from "../redux/warehouseSlice";
 import { fetchsuppliers } from "../redux/supplierSlice";
@@ -111,41 +111,60 @@ const Purchase = () => {
 
  const handleSubmit = async (e) => {
   e.preventDefault();
-
- 
-  let subtotal = 0;
-  purchase.items.forEach(item => {
-    const lineTotal =
-      (Number(item.qty) || 0) * (Number(item.unit_price) || 0) -
-      (Number(item.discount) || 0) +
-      (Number(item.tax) || 0);
-    subtotal += lineTotal;
-  });
-
-  const discount_amount = Number(purchase.discount_amount || 0);
-  const other_charges = Number(purchase.other_charges || 0);
-  const round_off = Number(purchase.round_off || 0);
-  const grand_total = subtotal - discount_amount + other_charges + round_off;
-
-  const paid_amount = Number(purchase.paid_amount || 0);
-  const due_amount = grand_total - paid_amount;
-
-  const purchaseData = {
-    ...purchase,
-    subtotal,
-    grand_total,
-    due_amount,
-  };
-
   try {
-    const res = await dispatch(addpurchase(purchaseData)).unwrap();
-    
+    // 🧮 Calculate totals
+    let subtotal = 0;
+    purchase.items.forEach(item => {
+      const lineTotal =
+        (Number(item.qty) || 0) * (Number(item.unit_price) || 0) -
+        (Number(item.discount) || 0) +
+        (Number(item.tax) || 0);
+      subtotal += lineTotal;
+    });
+
+    const discount_amount = Number(purchase.discount_amount || 0);
+    const other_charges = Number(purchase.other_charges || 0);
+    const round_off = Number(purchase.round_off || 0);
+    const grand_total = subtotal - discount_amount + other_charges + round_off;
+    const paid_amount = Number(purchase.paid_amount || 0);
+    const due_amount = grand_total - paid_amount;
+
+    const purchaseData = {
+      ...purchase,
+      subtotal,
+      grand_total,
+      due_amount,
+    };
+
+    // ✅ Add or Update logic
+    if (editingPurchase) {
+      await dispatch(updatePurchase({ id: editingPurchase, updatedData: purchaseData })).unwrap();
+      setEditingPurchase(null);
+      console.log("✅ Purchase updated successfully!");
+    } else {
+      await dispatch(addpurchase(purchaseData)).unwrap();
+      console.log("✅ Purchase added successfully!");
+    }
+
+    // 🧹 Reset form
     setPurchase({
       supplier_id: "",
       invoice_no: "",
       invoice_date: "",
       warehouse_id: "",
-      items: [{ product_id: "", batch_no: "", mfg_date: "", exp_date: "", qty: 0, unit_price: 0, discount: 0, tax: 0, line_total: 0 }],
+      items: [
+        {
+          product_id: "",
+          batch_no: "",
+          mfg_date: "",
+          exp_date: "",
+          qty: 0,
+          unit_price: 0,
+          discount: 0,
+          tax: 0,
+          line_total: 0,
+        },
+      ],
       subtotal: 0,
       discount_amount: 0,
       other_charges: 0,
@@ -154,13 +173,16 @@ const Purchase = () => {
       paid_amount: 0,
       due_amount: 0,
       payment_mode: "",
-      notes: ""
+      notes: "",
     });
-    dispatch(fetchpurchases())
+
+    // 🔁 Refresh table
+    dispatch(fetchpurchases());
   } catch (err) {
-    console.error(err.response?.data || err.message);
+    console.error("❌ Error saving purchase:", err.response?.data || err.message);
   }
 };
+
 
 
 
@@ -179,6 +201,28 @@ const Purchase = () => {
     console.error(err);
   }
 };
+
+const [editingPurchase,setEditingPurchase]=useState(null)
+
+const handleEdit =(purchase)=>{
+  setEditingPurchase(purchase._id)
+  setPurchase({
+    supplier_id: purchase.supplier_id || "",
+        invoice_no: purchase.invoice_no || "",
+        invoice_date:purchase.invoice_date || "",
+        warehouse_id:purchase.warehouse_id || "",
+        items: [{ product_id: purchase.product_id || "", batch_no:purchase.batch_no || "", mfg_date:purchase.mfg_date || "", exp_date:purchase.exp_date || "", qty: purchase.qty || 0, unit_price:purchase.unit_price || 0, discount:purchase.discount || 0, tax: purchase.tax ||0, line_total:purchase.line_total || 0 }],
+        subtotal:purchase.subtotal || 0,
+        discount_amount:purchase.discount_amount || 0,
+        other_charges:purchase.other_charges || 0,
+        round_off:purchase.round_off || 0,
+        grand_total:purchase.grand_total || 0,
+        paid_amount:purchase.paid_amount || 0,
+        due_amount:purchase.due_amount || 0,
+        payment_mode: purchase.payment_mode ||"",
+        notes:purchase.notes || ""
+  })
+}
 
     return (
         <div className="container mt-4 bg-gradient-warning">
@@ -315,82 +359,108 @@ const Purchase = () => {
                         <input type="text" className="form-control" placeholder="Search Customer, name, email" value={search} onChange={(e) => setSearch(e.target.value)} />
                         <span className="input-group-text"><FaSearch /></span>
                     </div>
-                    <table className="table table-bordered table-striped">
-                        <thead className="table-dark">
-                            <tr>
-                                <th className="fw-bold">Supplier</th>
-                                <th className="fw-bold">Invoice No</th>
-                                <th className="fw-bold">Invoice Date</th>
-                                <th className="fw-bold">Store Name</th>
-                                <th className="fw-bold">Products</th>
-                                <th className="fw-bold">Subtotal</th>
-                                <th className="fw-bold">Other Charges</th>
-                                <th className="fw-bold">Grand Total</th>
-                                <th className="fw-bold">Paid</th>
-                                <th className="fw-bold">Due</th>
-                                <th className="fw-bold">Payment Mode</th>
-                                <th className="fw-bold">Actions</th>
-                            </tr>
-                        </thead>
-      <tbody>
-  {filteredpurchase.map((p, index) => (
-    <tr key={index}>
-      <td>
-        {typeof p.supplier_id === "object"
-          ? p.supplier_id.name
-          : suppliers.find(s => s._id === p.supplier_id)?.name || "Unknown Supplier"}
-      </td>
-      <td>{p.invoice_no}</td>
-      <td>{p.invoice_date ?  new Date(p.invoice_date).toLocaleDateString()
-                      : "N/A"}</td>
-      <td>
-        {typeof p.warehouse_id === "object"
-          ? p.warehouse_id.store_name
-          : warehouses.find(w => w._id === p.warehouse_id)?.store_name || "Unknown Warehouse"}
-      </td>
-     <td>
-  {p.items.map((item, idx) => {
-   
-    const productName =
-      item.product_id && typeof item.product_id === 'object'
-        ? item.product_id.name
-        : products.find(prod => prod._id === item.product_id)?.name || 'Unknown Product';
-
-    return (
-      <div key={idx}>
-        {productName} ({item.qty})
-      </div>
-    );
-  })}
-</td>
-
-
-      <td>{p.subtotal ?? 0}</td>
-      <td>{p.other_charges ?? 0}</td>
-      <td>{p.grand_total ?? 0}</td>
-      <td>{p.paid_amount}</td>
-      <td>{p.due_amount ?? 0}</td>
-      <td>{p.payment_mode}</td>
-      <td>
-        {["super_admin","admin"].includes(role) ? (
-        <button
-          className="btn btn-danger btn-sm"
-          onClick={() => handleDelete(p._id)}
-        >
-          <span className="text-warning"><MdDeleteForever /></span> Delete
-        </button>) :(
-          <button className="btn btn-secondary btn-sm" disabled>
-                                                        View Only
-                                                    </button>
-        )}
-      </td>
+                   <table className="table table-bordered table-striped">
+  <thead className="table-dark">
+    <tr>
+      <th className="fw-bold">Supplier</th>
+      <th className="fw-bold">Invoice No</th>
+      <th className="fw-bold">Invoice Date</th>
+      <th className="fw-bold">Store Name</th>
+      <th className="fw-bold">Products</th>
+      <th className="fw-bold">Subtotal</th>
+      <th className="fw-bold">Other Charges</th>
+      <th className="fw-bold">Grand Total</th>
+      <th className="fw-bold">Paid</th>
+      <th className="fw-bold">Due</th>
+      <th className="fw-bold">Payment Mode</th>
+      <th className="fw-bold">Actions</th>
     </tr>
-  ))}
-</tbody>
+  </thead>
+  <tbody>
+    {filteredpurchase.map((p, index) => {
+      // ✅ Safely resolve supplier and warehouse names
+      const supplierName =
+        typeof p.supplier_id === "object" && p.supplier_id !== null
+          ? p.supplier_id?.name || "Unnamed Supplier"
+          : suppliers.find((s) => s._id === p.supplier_id)?.name ||
+            "Unknown Supplier";
 
+      const warehouseName =
+        typeof p.warehouse_id === "object" && p.warehouse_id !== null
+          ? p.warehouse_id?.store_name || "Unnamed Warehouse"
+          : warehouses.find((w) => w._id === p.warehouse_id)?.store_name ||
+            "Unknown Warehouse";
 
+      return (
+        <tr key={index}>
+          <td>{supplierName}</td>
+          <td>{p.invoice_no || "N/A"}</td>
+          <td>
+            {p.invoice_date
+              ? new Date(p.invoice_date).toLocaleDateString()
+              : "N/A"}
+          </td>
+          <td>{warehouseName}</td>
 
-                    </table>
+          {/* ✅ Safe Products Display */}
+          <td>
+            {Array.isArray(p.items) && p.items.length > 0 ? (
+              p.items.map((item, idx) => {
+                let productName = "No Product";
+
+                if (item?.product_id) {
+                  if (
+                    typeof item.product_id === "object" &&
+                    item.product_id !== null
+                  ) {
+                    productName = item.product_id?.name || "Unnamed Product";
+                  } else {
+                    const matchedProduct = products.find(
+                      (prod) => prod._id === item.product_id
+                    );
+                    productName =
+                      matchedProduct?.name || "Unknown Product";
+                  }
+                }
+
+                return (
+                  <div key={idx}>
+                    {productName} ({item?.qty ?? 0})
+                  </div>
+                );
+              })
+            ) : (
+              <span className="text-muted">No Items</span>
+            )}
+          </td>
+
+          <td>{p.subtotal ?? 0}</td>
+          <td>{p.other_charges ?? 0}</td>
+          <td>{p.grand_total ?? 0}</td>
+          <td>{p.paid_amount ?? 0}</td>
+          <td>{p.due_amount ?? 0}</td>
+          <td>{p.payment_mode || "N/A"}</td>
+
+          <td>
+
+            {["super_admin", "admin"].includes(role) ? (
+              <>
+              <button className="btn btn-warning btn-sm" onClick={()=>handleEdit(p)}>Edit</button>
+              <button className="btn btn-danger btn-sm" onClick={() => handleDelete(p._id)}>
+                <span className="text-warning"><MdDeleteForever /></span>{" "}Delete</button></>
+            ) : (
+              <button className="btn btn-secondary btn-sm" disabled>
+                View Only
+              </button>
+              
+            ) }
+          </td>
+        </tr>
+      );
+    })}
+  </tbody>
+</table>
+
                 </div>
             </div>
         </div>

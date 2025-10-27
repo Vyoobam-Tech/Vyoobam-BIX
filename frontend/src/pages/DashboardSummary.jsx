@@ -324,8 +324,7 @@ const salesPurchaseData = useMemo(()=>{
               <Line type="monotone" dataKey="Sales" stroke="#4d6f99ff" strokeWidth={3} dot={{ r: 5 }}
                 activeDot={{ r: 8 }}
               />
-              <Line
-                type="monotone"
+              <Line type="monotone"
                 dataKey="Purchases"
                 stroke="#82ca9d"
                 strokeWidth={3}

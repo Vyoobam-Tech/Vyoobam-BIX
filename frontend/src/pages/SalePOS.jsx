@@ -5,7 +5,7 @@ import { TfiHandStop } from "react-icons/tfi";
 import { MdDeleteForever } from "react-icons/md";
 import { FaSearch } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
-import { addSale, deleteSale, fetchsales } from '../redux/saleSlice';
+import { addSale, deleteSale, fetchsales, updateSale } from '../redux/saleSlice';
 import { fetchtaxes } from '../redux/taxSlice';
 import { fetchProducts } from '../redux/productSlice';
 import { fetchcustomers } from '../redux/customerSlice';
@@ -51,18 +51,23 @@ const SalePOS = () => {
   };
 
   const handleItemChange = (index, e) => {
-    const { name, value } = e.target;
-    const items = [...form.items];
-    items[index][name] = value;
-    if (name === "product_id") {
-      const product = products.find((p) => p._id === value);
-      if (product) {
-        items[index].unit_price = product.sale_price || 0;
-      }
+  const { name, value } = e.target;
+  const items = form.items.map((item, i) =>
+    i === index ? { ...item, [name]: value } : { ...item }
+  );
+  if (name === "product_id") {
+    const product = products.find((p) => p._id === value);
+    if (product) {
+      items[index].unit_price = product.sale_price || 0;
     }
-    calculateLineTotal(items[index]);
-    setForm((prev) => ({ ...prev, items }));
-  };
+  }
+
+  const updatedItem = { ...items[index] };
+  calculateLineTotal(updatedItem);
+  items[index] = updatedItem;
+
+  setForm((prev) => ({ ...prev, items }));
+};
 
   const addItem = () => {
     setForm((prev) => ({
@@ -144,7 +149,15 @@ const SalePOS = () => {
   const handleSubmit = async (e) => {
   e.preventDefault();
   try {
-    await dispatch(addSale(form));
+    if(editingSale){
+      await dispatch(updateSale({id:editingSale,updatedData:form})).unwrap()
+      setEditingSale(null)
+      console.log("Sale Updated Successfully")
+    }else{
+      await dispatch(addSale(form)).unwrap()
+      console.log("Sale Added Successfully")
+    }
+    
     await dispatch(fetchsales()); 
     setForm({
       invoice_no: "INV" + Math.floor(1000 + Math.random() * 9000),
@@ -181,6 +194,27 @@ const SalePOS = () => {
     dispatch(deleteSale(id));
   };
 
+
+  const [editingSale,setEditingSale]=useState(null)
+
+  const handleEdit=(sale)=>{
+    setEditingSale(sale._id)
+    setForm({
+       invoice_no: sale.invoice_no || "INV" + Math.floor(1000 + Math.random() * 9000),
+      invoice_date_time: sale.invoice_date_time || new Date().toISOString().slice(0, 10),
+      customer_id:sale.customer_id || "",
+      counter_id: sale.counter_id || "",
+      payment_mode:sale.payment_mode || "Cash",
+      subtotal:sale.subtotal || 0,
+      discount_amount:sale.discount_amount || 0,
+      tax_amount:sale.tax_amount  || 0,
+      grand_total:sale.grand_total || 0,
+      paid_amount: sale.paid_amount || 0,
+      due_amount: sale.due_amount || 0,
+      notes:sale.notes || "",
+      items: sale.items || [],
+    })
+  }
   return (
     <div className="container mt-4 bg-gradient-warning">
       <h2 className="mb-4 d-flex align-items-center fs-5">
@@ -274,7 +308,7 @@ const SalePOS = () => {
         </div>
 
         <div className="d-flex flex-wrap gap-2 mt-4">
-          <button type="submit" className="btn btn-primary px-4 d-flex align-items-center justify-content-center "><span className='me-2 d-flex align-items-center' ><FaRegSave /></span> Save & Print</button>
+          <button type="submit" className="btn btn-primary px-4 d-flex align-items-center justify-content-center "><span className='me-2 d-flex align-items-center' ><FaRegSave /></span> {editingSale ? "Update Sale" : "Save & Print"}</button>
           <button type="button" className="btn btn-success px-4 d-flex align-items-center justify-content-center"><span className='me-2 d-flex align-items-center'><FaWhatsapp /></span> Save & WhatsApp</button>
           <button type="button" className="btn btn-warning px-4 d-flex align-items-center justify-content-center text-white"><span className='me-2 d-flex align-items-center'><TfiHandStop /></span> Hold Bill</button>
         </div>
@@ -332,12 +366,15 @@ const SalePOS = () => {
                   <td>{s.grand_total?.toFixed(2) || "0.00"}</td>
                   <td>{s.due_amount?.toFixed(2) || "0.00"}</td>
                   <td>
+                    <>
+                    <button className='btn btn-sm btn-warning' onClick={()=>handleEdit(s)}>Edit</button>
                     <button
                       className="btn btn-sm btn-danger"
                       onClick={() => handleDelete(s._id)}
                     >
                       <MdDeleteForever /> Delete
                     </button>
+                    </>
                   </td>
                 </tr>
               ))}

@@ -8,7 +8,7 @@ import axios from 'axios';
 import { useDispatch,useSelector } from 'react-redux';
 import { fetchsuppliers } from '../redux/supplierSlice';
 
-import { addpayment, deletepayment, fetchpayments } from '../redux/supplierpaymentSlice';
+import { addpayment, deletepayment, fetchpayments, updatepayment } from '../redux/supplierpaymentSlice';
 import { setAuthToken } from '../services/userService';
 
 const Supplier_Payment = () => {
@@ -48,7 +48,17 @@ const Supplier_Payment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-   await dispatch(addpayment(form)).unwrap()
+      if(editingPayment){
+        await dispatch(updatepayment({id:editingPayment,updatedData:form})).unwrap()
+        setEditingPayment(null)
+        console.log("Payment Updated Successfully")
+      }
+      else{
+           await dispatch(addpayment(form)).unwrap()
+           console.log("Payment Added Successfully")
+
+      }
+  
       setForm({
         supplier_id: "",
 
@@ -78,6 +88,22 @@ const Supplier_Payment = () => {
   const handleDelete = async (id) => {
    dispatch(deletepayment(id))
   };
+
+  const [editingPayment,setEditingPayment]=useState(null)
+
+  const handleEdit=(payment)=>{
+    setEditingPayment(payment._id)
+    setForm({
+      supplier_id: payment.supplier_id || "",
+
+        date: payment.date || new Date().toISOString().slice(0, 16),
+        amount: payment.amount ||"",
+        mode:payment.mode || "",
+        reference_no: payment.reference_no ||"",
+        applied_purchase_id:payment.applied_purchase_id || "",
+        notes:payment.notes || "",
+    })
+  }
 
 
   return (
@@ -146,7 +172,7 @@ const Supplier_Payment = () => {
             <span className="text-warning me-2 d-flex align-items-center">
               <FaRegSave />
             </span>
-            Save Payment
+            {editingPayment ? "Update Payment" :"Save Payment"}
           </button>
           <button type="reset" className="btn btn-secondary px-4 d-flex align-items-center justify-content-center">
             <span className="text-danger me-2 d-flex align-items-center"><GrPowerReset /></span>Reset
@@ -194,6 +220,7 @@ const Supplier_Payment = () => {
                     <td>{p.notes}</td>
                     <td>
                       {["super_admin"].includes(role) ? (
+                        <><button className='btn btn-sm btn-warning' onClick={()=>handleEdit(p)}>Edit</button>
                                                 <button
                                                   className="btn btn-danger btn-sm px-4 d-flex align-items-center justify-content-center"
                                                   onClick={() => handleDelete(p._id)}
@@ -202,7 +229,7 @@ const Supplier_Payment = () => {
                                                     <MdDeleteForever />
                                                   </span>
                                                   Delete
-                                                </button>) : (
+                                                </button></>) : (
                                                      <button className="btn btn-secondary btn-sm" disabled>
                                                         View Only
                                                     </button>

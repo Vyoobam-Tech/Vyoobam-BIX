@@ -36,3 +36,13 @@ exports.deleteSale = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+exports.updateSale=async (req,res) => {
+  try{
+    const updated = await Sale.findByIdAndUpdate(req.params.id,req.body,{new:true})
+    res.json(updated)
+  }
+  catch(err){
+    res.json(400).status({error:err.message})
+  }
+}

@@ -30,6 +30,15 @@ await axios.delete(`${API_URL}/${id}`,{headers:{Authorization: `Bearer ${token}`
 return id
 })
 
+export const updatepayment=createAsyncThunk("sub_payments/update",async ({id,updatedData}) => {
+    const user=JSON.parse(localStorage.getItem("user"))
+    const token=user?.token
+    if(!token)
+        throw new Error("Token Missing")
+   const res= await axios.put(`${API_URL}/${id}`,updatedData,{headers:{Authorization:`Bearer ${token}`}})
+    return res.data
+
+})
 const suppilerpaymentSlice=createSlice({
     name:"sup_payments",
     initialState:{
@@ -57,6 +66,11 @@ const suppilerpaymentSlice=createSlice({
         })
         .addCase(deletepayment.fulfilled,(state,action)=>{
             state.items=state.items.filter((p)=>p._id !== action.payload)
+        })
+        .addCase(updatepayment.fulfilled,(state,action)=>{
+            const index=state.items.findIndex((p)=>p._id === action.payload._id)
+            if(index !== -1)
+                state.items[index]=action.payload
         })
     }
 

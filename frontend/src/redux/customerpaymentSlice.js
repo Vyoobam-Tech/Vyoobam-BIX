@@ -2,6 +2,7 @@ import { createSlice,createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 
+
 const API_URL="http://localhost:5000/api/cus_payments"
 
 export const fetchpayments=createAsyncThunk("cus_payments/fetchAll",async () => {
@@ -31,6 +32,16 @@ export const deletepayment=createAsyncThunk("cus_payments/delete",async (id) => 
     return id
 })
 
+
+export const updatePayment=createAsyncThunk("cus_payments/update",async ({id, updatedData}) => {
+    const user=JSON.parse(localStorage.getItem("user"))
+    const token=user?.token
+    if(!token)
+        throw new Error("Token Missing")
+    const res=await axios.put(`${API_URL}/${id}`,updatedData,{headers:{Authorization:`Bearer ${token}`}})
+    return res.data
+})
+
 const customerPaymentSlice = createSlice({
     name:"cus_payments",
     initialState:{
@@ -58,6 +69,11 @@ const customerPaymentSlice = createSlice({
     })
     .addCase(deletepayment.fulfilled,(state,action)=>{
         state.items=state.items.filter((p)=>p._id !== action.payload)
+    })
+    .addCase(updatePayment.fulfilled,(state,action)=>{
+        const index=state.items.findIndex((c)=> c._id === action.payload)
+        if(index !== -1)
+            state.items[index]=action.payload
     })
     
 })

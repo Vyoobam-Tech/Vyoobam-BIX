@@ -3,7 +3,7 @@ import { MdAttachMoney, MdDeleteForever } from "react-icons/md";
 import { FaRegSave, FaSearch } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchcustomers } from '../redux/customerSlice';
-import { addpayment, deletepayment, fetchpayments } from '../redux/customerpaymentSlice';
+import { addpayment, deletepayment, fetchpayments, updatePayment } from '../redux/customerpaymentSlice';
 import { setAuthToken } from '../services/userService';
 
 const Customer_Payment = () => {
@@ -45,9 +45,14 @@ const Customer_Payment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const resultAction = await dispatch(addpayment(form)).unwrap()
-      if (addpayment.fulfilled.match(resultAction)) {
-        
+      if(editingPayment){
+        await dispatch(updatePayment({id:editingPayment,updatedData:form})).unwrap()
+        setEditingPayment(null)
+        console.log("Payment Updated Successfully")
+      }else{
+        await dispatch(addpayment(form)).unwrap()
+        console.log("Payment Added Successfully")
+      }
         setForm({
           customer_id: "",
           date: new Date().toISOString().slice(0, 16),
@@ -58,8 +63,10 @@ const Customer_Payment = () => {
           notes: "",
         })
         dispatch(fetchpayments())
+      
       }
-    } catch (err) {
+      
+     catch (err) {
       console.error(err.response?.data || err.message)
     }
   }
@@ -76,6 +83,20 @@ const Customer_Payment = () => {
     )
   })
 
+const [editingPayment, setEditingPayment]=useState(null)
+
+  const handleEdit=(payment)=>{
+    setEditingPayment(payment._id)
+    setForm({
+      customer_id:payment.customer_id || "",
+          date: payment.date || new Date().toISOString().slice(0, 16),
+          amount: payment.amount ||"",
+          mode: payment.mode ||"",
+          reference_no:payment.reference_no || "",
+          applied_invoice_id:payment.applied_invoice_id || "",
+          notes: payment.notes || "",
+    })
+  }
   return (
     <div className="container mt-4">
       <h2 className="mb-4 d-flex align-items-center fs-5">
@@ -135,7 +156,7 @@ const Customer_Payment = () => {
 
         <div className="col-12">
           <button type="submit" className="btn btn-primary px-4 d-flex align-center justify-center">
-            <span className="text-warning me-2 d-flex align-items-center"><FaRegSave /></span> Save Payment
+            <span className="text-warning me-2 d-flex align-items-center"><FaRegSave /></span> {editingPayment ? "Update Payment" : "Save Payment"}
           </button>
         </div>
       </form>
@@ -181,9 +202,11 @@ const Customer_Payment = () => {
                       <td>{p.notes}</td>
                       <td>
                         {["super_admin","admin"].includes(role) ? (
+                          <>
+                          <button className='btn btn-sm btn-warning' onClick={()=>handleEdit(p)}>Edit</button>
                         <button className="btn btn-danger btn-sm" onClick={() => handleDelete(p._id)}>
                           <MdDeleteForever className="text-warning" /> Delete
-                        </button>):(
+                        </button></>):(
                           <button className="btn btn-secondary btn-sm" disabled>
                                                         View Only
                                                     </button>

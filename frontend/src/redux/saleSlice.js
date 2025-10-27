@@ -18,6 +18,15 @@ export const deleteSale=createAsyncThunk("sales/delete",async (id) => {
     return id
 })
 
+export const updateSale=createAsyncThunk("sales/update",async ({id,updatedData}) => {
+    const user=JSON.parse(localStorage.getItem("user"))
+    const token=user?.token
+    if(!token)
+        throw new Error("Token Missing")
+    const res=await axios.put(`${API_URL}/${id}`,updatedData,{headers:{Authorization:`Bearer ${token}`}})
+    return res.data
+})
+
 const saleSlice =  createSlice({
     name:"sales",
     initialState:{
@@ -46,6 +55,11 @@ const saleSlice =  createSlice({
             })
             .addCase(deleteSale.fulfilled,(state,action)=>{
                 state.items= state.items.filter((s)=>s._id  !== action.payload)
+            })
+            .addCase(updateSale.fulfilled,(state,action)=>{
+                const index=state.items.findIndex((s)=>s._id === action.payload)
+                if(index !== -1)
+                    state.items[index]=action.payload
             })
         }
     

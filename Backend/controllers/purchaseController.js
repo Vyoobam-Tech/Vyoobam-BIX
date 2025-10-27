@@ -7,7 +7,8 @@ exports.getPurchases = async (req, res) => {
       purchases=await Purchase.find({created_by_role:{$in:["super_admin","admin"]}}).populate('supplier_id warehouse_id items.product_id')
     }
     else{
-     purchases = await Purchase.find().populate('supplier_id warehouse_id items.product_id');
+     purchases = await Purchase.find().populate('items.product_id').populate('supplier_id').populate('warehouse_id');
+
     }
    
     res.json(purchases);
@@ -38,3 +39,13 @@ exports.deletePurchase = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+exports.updatePurchase=async (req,res) => {
+  try{
+    const updated=await Purchase.findByIdAndUpdate(req.params.id,req.body,{new:true})
+    res.json(updated)
+  }
+  catch(err){
+    res.status(400).json({error:err.message})
+  }
+}

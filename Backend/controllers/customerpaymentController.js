@@ -39,3 +39,13 @@ exports.deletePayment = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+exports.updatePayment=async (req,res) => {
+  try{
+        const updated=await CustomerPayment.findByIdAndUpdate(req.params.id,req.body,{new:true})
+  res.json(updated)
+  }
+  catch(err){
+    res.status(400).json({error:err.message})
+  }
+}
