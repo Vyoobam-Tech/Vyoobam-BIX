@@ -204,7 +204,7 @@ const handleDelete = async (id) => {
                 <th className="fw-bold">Subcategory</th>
                 <th className="fw-bold">Brand</th>
                 <th className="fw-bold">Category Code</th>
-                <th className="fw-bold">Status</th>
+                {/* <th className="fw-bold">Status</th> */}
                 <th className="fw-bold">Actions</th>
               </tr>
             </thead>
@@ -222,9 +222,9 @@ const handleDelete = async (id) => {
                   <td>{c.subcategory || "-"}</td>
                   <td>{c.brand || "-"}</td>
                   <td>{c.code}</td>
-                  <td className={c.status ? "text-success" : "text-danger"}>
+                  {/* <td className={c.status ? "text-success" : "text-danger"}>
                     {c.status ? "Active" : "Inactive"}
-                  </td>
+                  </td> */}
                   <td>
                     {["super_admin","admin"].includes(role) ? (
                       <>

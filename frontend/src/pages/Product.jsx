@@ -331,7 +331,7 @@ const filteredProducts = products.filter(
                   <th>MRP</th>
                   <th>Purchase</th>
                   <th>Sale</th>
-                  <th>Status</th>
+                  {/* <th>Status</th> */}
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -355,11 +355,11 @@ const filteredProducts = products.filter(
                       <td>{p.mrp}</td>
                       <td>{p.purchase_price}</td>
                       <td>{p.sale_price}</td>
-                      <td
+                      {/* <td
                         className={p.status ? "text-success" : "text-danger"}
                       >
                         {p.status ? "Active" : "Inactive"}
-                      </td>
+                      </td> */}
                       <td>
                         {["super_admin", "admin"].includes(role) ? (
                           <>
