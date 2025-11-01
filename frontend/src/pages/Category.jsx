@@ -28,21 +28,21 @@ const token = user?.token
     status: false,
   });
   const categoryData = {
-    Electronics: {
-      Mobiles: ["Samsung", "Apple", "OnePlus"],
-      Laptops: ["Dell", "HP", "Lenovo"],
-      Televisions: ["Sony", "LG", "Samsung"],
+    Pharmacy: {
+    Medicines: ["Cipla", "Sun Pharma", "Dr. Reddy’s", "Torrent", "Lupin", "Zydus", "Glenmark", "Mankind", "Intas", "Alkem"],
+      BabyCare: ["Johnson’s Baby", "Himalaya Baby", "Sebamed", "Pigeon", "Mee Mee"],
+      PersonalCare: ["Nivea", "Dove", "Himalaya", "Garnier", "Pond’s", "Vaseline", "Fiama"],
     },
-    Clothing: {
-      Men: ["Nike", "Adidas", "Puma"],
-      Women: ["Zara", "H&M", "Levis"],
-      Kids: ["Mothercare", "Disney", "Gap"],
-    },
-    Furniture: {
-      Sofa: ["Godrej", "IKEA", "Urban Ladder"],
-      Table: ["Pepperfry", "IKEA"],
-      Chair: ["Durian", "Nilkamal"],
-    },
+    // Clothing: {
+    //   Men: ["Nike", "Adidas", "Puma"],
+    //   Women: ["Zara", "H&M", "Levis"],
+    //   Kids: ["Mothercare", "Disney", "Gap"],
+    // },
+    // Furniture: {
+    //   Sofa: ["Godrej", "IKEA", "Urban Ladder"],
+    //   Table: ["Pepperfry", "IKEA"],
+    //   Chair: ["Durian", "Nilkamal"],
+    // },
   };
 const [subcategories, setSubcategories] = useState([]);
 const [brands, setBrands] = useState([]);
@@ -73,16 +73,18 @@ if (name === "name") {
   };
 const handleSubmit = async (e) => {
     e.preventDefault();
-     const payload={...form,brands:form.brand ?[form.brand]:[],};
-    try {
-      if(editingCategory){
-        await dispatch(updateCategory({id:editingCategory,updatedData:form})).unwrap()
-        setEditingCategory(null)
-        console.log("Category Updated Successfully")
-      }else{
-         await dispatch(addCategory(payload)).unwrap()
-         console.log("Category Added Successfully")
-      }
+     const payload = { ...form, brands: form.brand ? [form.brand] : [] };
+  try {
+    if (editingCategory) {
+      await dispatch(updateCategory({ id: editingCategory, updatedData: payload })).unwrap();
+      setEditingCategory(null);
+      console.log("✅ Category Updated Successfully");
+    } else {
+      await dispatch(addCategory(payload)).unwrap();   // ✅ FIXED LINE
+      console.log("✅ Category Added Successfully");
+    }
+
+    dispatch(fetchCategories());
      
      
       setForm({
@@ -93,7 +95,7 @@ const handleSubmit = async (e) => {
         brand: "",
         status: false,
       });
-      dispatch(fetchCategories())
+      
       setSubcategories([]);
       setBrands([]);
     } catch (err) {
@@ -102,12 +104,20 @@ const handleSubmit = async (e) => {
   };
   const [search, setSearch] = useState("");
 
-  const filteredCategories = categories.filter(
-        (c) =>
-            c.name.toLowerCase().includes(search.toLowerCase()) ||
-            c.code.toLowerCase().includes(search.toLowerCase()) ||
-            c.parental_id.toLowerCase().includes(search.toLowerCase())
-    );
+  const filteredCategories = categories.filter((c) => {
+  const name = c.name?.toLowerCase() || "";
+  const code = c.code?.toLowerCase() || "";
+  const parental_id = c.parental_id?.toLowerCase() || "";
+  return (
+    name.includes(search.toLowerCase()) ||
+    code.includes(search.toLowerCase()) ||
+    parental_id.includes(search.toLowerCase())
+  );
+});
+
+const uniqueCategories = filteredCategories.filter(
+  (c, index, self) => index === self.findIndex((obj) => obj._id === c._id)
+);
 
 const handleDelete = async (id) => {
     dispatch(deleteCategory(id))
@@ -215,12 +225,12 @@ const handleDelete = async (id) => {
                                     </td>
                                 </tr>
                             ) : (
-              filteredCategories.map((c) => (
+              uniqueCategories.map((c) => (
                 <tr key={c._id}>
                   <td>{c.parental_id}</td>
                   <td>{c.name}</td>
                   <td>{c.subcategory || "-"}</td>
-                  <td>{c.brand || "-"}</td>
+                  <td>{c.brands?.join("") || "-"}</td>
                   <td>{c.code}</td>
                   {/* <td className={c.status ? "text-success" : "text-danger"}>
                     {c.status ? "Active" : "Inactive"}

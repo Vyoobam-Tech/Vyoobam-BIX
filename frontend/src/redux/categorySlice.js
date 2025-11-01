@@ -12,21 +12,20 @@ export const fetchCategories=createAsyncThunk("categories/fetchAll",async () => 
     return res.data
 })
 
-export const addCategory=createAsyncThunk("categories/add",async (category) => {
-    try{
-        const user=JSON.parse(localStorage.getItem("user"))
-        const token=user?.token
-        if(!token)
-            throw new error("Token missing")
-        const res =await axios.post(API_URL,category,{headers:{Authorization :`Bearer ${token}`},})
-    return res.data
-    }
-    catch(error){
-        console.error("Add category error:",error.response?.data || error.message)
-        
-    }
-    
-})
+export const addCategory = createAsyncThunk("categories/add",async(category,{rejectWithValue})=> {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const token = user?.token;
+    if (!token) 
+        throw new Error("Token missing");
+const res = await axios.post(API_URL, category, {headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Add category error:", error.response?.data || error.message);
+    return rejectWithValue(error.response?.data || error.message);
+  }
+});
 
 export const deleteCategory=createAsyncThunk("categories/delete",async (id) => {
     const user=JSON.parse(localStorage.getItem("user"))
