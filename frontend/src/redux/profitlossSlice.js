@@ -1,7 +1,7 @@
 import { createAsyncThunk,createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import API from "../api/axiosInstance";
 
-const API_URL="http://localhost:5000/api/reports/profitloss"
+const API_URL="/reports/profitloss"
 
 export const fetchProfitLoss=createAsyncThunk("profitloss/fetchAll",async(filters,{rejectWithValue}) => {
     try {
@@ -10,7 +10,7 @@ export const fetchProfitLoss=createAsyncThunk("profitloss/fetchAll",async(filter
         toDate:filters.to_date,
         warehouseId:filters.warehouse_id,
       });
-      const res = await axios.get(`${API_URL}?${query}`);
+      const res = await API.get(`${API_URL}?${query}`);
       return res.data
     } catch (err) {
       return rejectWithValue(err.message);

@@ -1,32 +1,23 @@
 import { createSlice,createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import API from "../api/axiosInstance";
 
-const API_URL="http://localhost:5000/api/reports/sales"
+const API_URL="/reports/sales"
 
 export const fetchsalereports=createAsyncThunk("reports/sales/fetchAll",async () => {
-    const user=JSON.parse(localStorage.getItem("user"))
-    const token=user?.token
-    if(!token)
-        throw new Error("Token Missing")
-    const res=await axios.get(API_URL,{headers:{Authorization:`Bearer ${token}`},})
+    
+    const res=await API.get(API_URL)
     return res.data
 })
 
 export const addsalereport=createAsyncThunk("reports/sales/add",async (salereport) => {
-      const user=JSON.parse(localStorage.getItem("user"))
-    const token=user?.token
-    if(!token)
-        throw new Error("Token Missing")
-    const res=await axios.post(API_URL,salereport,{headers:{Authorization:`Bearer ${token}`},})
+      
+    const res=await API.post(API_URL,salereport)
     return res.data
 })
 
 export const deletesalereport=createAsyncThunk("reports/sales/delete",async (id) => {
-      const user=JSON.parse(localStorage.getItem("user"))
-    const token=user?.token
-    if(!token)
-        throw new Error("Token Missing")
-    await axios.delete(`${API_URL}/${id}`,{headers:{Authorization:`Bearer ${token}`},})
+     
+    await API.delete(`${API_URL}/${id}`)
     return id
 })
 

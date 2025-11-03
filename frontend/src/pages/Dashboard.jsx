@@ -24,21 +24,21 @@ export default function Dashboard() {
   const modules = [
     { name: "Dashboard", path: "/", icon: <AiOutlineDashboard />, roles: ["super_admin", "admin", "user"] },
     // { name: "Manage Users", path: "/users", icon: <AiOutlineDashboard />, roles: ["super_admin"] },
-    { name: "Products", path: "/products", icon: <MdProductionQuantityLimits />, roles: ["super_admin", "admin","user"] },
-    { name: "Categories", path: "/categories", icon: <MdOutlineCategory />, roles: ["super_admin", "admin","user"] },
+    { name: "Products", path: "/products", icon: <MdProductionQuantityLimits />, roles: ["super_admin", "admin", "user"] },
+    { name: "Categories", path: "/categories", icon: <MdOutlineCategory />, roles: ["super_admin", "admin", "user"] },
     // { name: "Units", path: "/units", icon: <LiaWeightSolid />, roles: ["super_admin", "admin"] },
-    { name: "Tax Rates", path: "/taxes", icon: <MdOutlineAttachMoney />, roles: ["super_admin", "admin","user"] },
+    { name: "Tax Rates", path: "/taxes", icon: <MdOutlineAttachMoney />, roles: ["super_admin", "admin", "user"] },
     { name: "Customers", path: "/customers", icon: <IoIosContact />, roles: ["super_admin", "admin", "user"] },
-    { name: "Suppliers", path: "/suppliers", icon: <IoIosContact />, roles: ["super_admin", "admin","user"] },
-    { name: "Warehouses", path: "/warehouses", icon: <MdOutlineWarehouse />, roles: ["super_admin", "admin","user"] },
-    { name: "Purchases", path: "/purchases", icon: <BiPurchaseTag />, roles: ["super_admin", "admin","user"] },
+    { name: "Suppliers", path: "/suppliers", icon: <IoIosContact />, roles: ["super_admin", "admin", "user"] },
+    { name: "Warehouses", path: "/warehouses", icon: <MdOutlineWarehouse />, roles: ["super_admin", "admin", "user"] },
+    { name: "Purchases", path: "/purchases", icon: <BiPurchaseTag />, roles: ["super_admin", "admin", "user"] },
     { name: "Sales", path: "/sales", icon: <TbFileInvoice />, roles: ["super_admin", "admin", "user"] },
     { name: "Customer Receipts", path: "/cus_receipts", icon: <MdAttachMoney />, roles: ["super_admin", "admin", "user"] },
-    { name: "Supplier Payments", path: "/sub_receipts", icon: <GiTakeMyMoney />, roles: ["super_admin", "admin","user"] },
-    { name: "Stock Adjustments", path: "/stocks", icon: <PiShippingContainer />, roles: ["super_admin", "admin","user"] },
-    { name: "Stock Ledger", path: "/stockledger", icon: <MdOutlineInventory2 />, roles: ["super_admin", "admin","user"] },
-    { name: "Expense", path: "/expenses", icon: <GiMoneyStack />, roles: ["super_admin", "admin","user"] },
-    { name: "Reports", path: "/reports", icon: <TbReportSearch />, roles: ["super_admin", "admin","user"] },
+    { name: "Supplier Payments", path: "/sub_receipts", icon: <GiTakeMyMoney />, roles: ["super_admin", "admin", "user"] },
+    { name: "Stock Adjustments", path: "/stocks", icon: <PiShippingContainer />, roles: ["super_admin", "admin", "user"] },
+    { name: "Stock Ledger", path: "/stockledger", icon: <MdOutlineInventory2 />, roles: ["super_admin", "admin", "user"] },
+    { name: "Expense", path: "/expenses", icon: <GiMoneyStack />, roles: ["super_admin", "admin", "user"] },
+    { name: "Reports", path: "/reports", icon: <TbReportSearch />, roles: ["super_admin", "admin", "user"] },
   ];
 
   const toggleSidebar = () => {
@@ -66,7 +66,7 @@ export default function Dashboard() {
 
           <div className="ms-auto d-flex align-items-center gap-2">
             <UserProfile />
-           
+
           </div>
         </div>
       </nav>
@@ -83,30 +83,30 @@ export default function Dashboard() {
           >
             <div className="list-group list-group-flush text-center">
               {modules.filter((m) => m.roles.includes(userRole)).map((m) => (
-                  <div
+                <div
                   key={m.path}
-                    onClick={() => handleMenuClick(m.path)}
-                    className="list-group-item border-0 list-group-item-action bg-transparent text-light hover-bg-light d-flex align-items-center gap-2"
-                    style={{ cursor: "pointer", padding: "0.75rem 1rem" }}
-                  >
-                    <div className="d-flex align-items-center gap-2">
-                      <span style={{ width: "24px" }}>{m.icon}</span>
-                      <span>{m.name}</span>
-                    </div>
+                  onClick={() => handleMenuClick(m.path)}
+                  className="list-group-item border-0 list-group-item-action bg-transparent text-light hover-bg-light d-flex align-items-center gap-2"
+                  style={{ cursor: "pointer", padding: "0.75rem 1rem" }}
+                >
+                  <div className="d-flex align-items-center gap-2">
+                    <span style={{ width: "24px" }}>{m.icon}</span>
+                    <span>{m.name}</span>
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
-            
+
           </div>
-          
+
         )}
-        
+
         <div className="flex-grow-1 p-4 overflow-auto" style={{ backgroundColor: "#94b4c1" }}>
-          
-         <div className={`${ window.location.pathname === "/"? "p-0 border-0 shadow-none bg-transparent": "bg-white border rounded shadow-sm p-4 h-100" }`}>
-  {window.location.pathname === "/" && <DashboardSummary />}
-  <Outlet />
-</div>
+
+          <div className={`${window.location.pathname === "/" ? "p-0 border-0 shadow-none bg-transparent" : "bg-white border rounded shadow-sm p-4 h-100"}`}>
+            {window.location.pathname === "/" && <DashboardSummary />}
+            <Outlet />
+          </div>
         </div>
       </div>
 
@@ -118,7 +118,7 @@ export default function Dashboard() {
           transition: background-color 0.2s ease, color 0.2s ease;
         }
       `}</style>
-    
+
     </div>
   );
 }

@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from 'react'
-import { MdAttachMoney, MdDeleteForever } from "react-icons/md";
+import { MdAttachMoney, MdAdd, MdClose, MdDeleteForever, MdEdit } from "react-icons/md";
 import { FaRegSave, FaSearch } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchcustomers } from '../redux/customerSlice';
 import { addpayment, deletepayment, fetchpayments, updatePayment } from '../redux/customerpaymentSlice';
 import { setAuthToken } from '../services/userService';
-import { MdEdit } from "react-icons/md";
 
 const Customer_Payment = () => {
   const dispatch = useDispatch()
   const { items: cus_payments } = useSelector((state) => state.cus_payments)
   const { items: customers } = useSelector((state) => state.customers)
 
-  const user=JSON.parse(localStorage.getItem("user"))
-  const role=user?.role || "user"
-  const token=user?.token
+  const user = JSON.parse(localStorage.getItem("user"))
+  const role = user?.role || "user"
+  const token = user?.token
+
+  const [showPaymentForm, setShowPaymentForm] = useState(false)
+  const [editingPayment, setEditingPayment] = useState(null)
+  const [search, setSearch] = useState("");
 
   const [form, setForm] = useState({
     customer_id: "",
@@ -26,13 +29,11 @@ const Customer_Payment = () => {
     notes: "",
   })
 
-  const [search, setSearch] = useState("");
-
   useEffect(() => {
-    const user=JSON.parse(localStorage.getItem("user"))
-    if(!user || !user.token)
+    const user = JSON.parse(localStorage.getItem("user"))
+    if (!user || !user.token)
       console.error("No user found Please Login")
-    const token=user?.token
+    const token = user?.token
     setAuthToken(token)
     dispatch(fetchcustomers())
     dispatch(fetchpayments())
@@ -46,28 +47,27 @@ const Customer_Payment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      if(editingPayment){
-        await dispatch(updatePayment({id:editingPayment,updatedData:form})).unwrap()
+      if (editingPayment) {
+        await dispatch(updatePayment({ id: editingPayment, updatedData: form })).unwrap()
         setEditingPayment(null)
         console.log("Payment Updated Successfully")
-      }else{
+      } else {
         await dispatch(addpayment(form)).unwrap()
         console.log("Payment Added Successfully")
       }
-        setForm({
-          customer_id: "",
-          date: new Date().toISOString().slice(0, 16),
-          amount: "",
-          mode: "",
-          reference_no: "",
-          applied_invoice_id: "",
-          notes: "",
-        })
-        dispatch(fetchpayments())
-      
-      }
-      
-     catch (err) {
+      setForm({
+        customer_id: "",
+        date: new Date().toISOString().slice(0, 16),
+        amount: "",
+        mode: "",
+        reference_no: "",
+        applied_invoice_id: "",
+        notes: "",
+      })
+      setShowPaymentForm(false)
+      dispatch(fetchpayments())
+    }
+    catch (err) {
       console.error(err.response?.data || err.message)
     }
   }
@@ -84,20 +84,34 @@ const Customer_Payment = () => {
     )
   })
 
-const [editingPayment, setEditingPayment]=useState(null)
-
-  const handleEdit=(payment)=>{
+  const handleEdit = (payment) => {
     setEditingPayment(payment._id)
     setForm({
-      customer_id:payment.customer_id || "",
-          date: payment.date || new Date().toISOString().slice(0, 16),
-          amount: payment.amount ||"",
-          mode: payment.mode ||"",
-          reference_no:payment.reference_no || "",
-          applied_invoice_id:payment.applied_invoice_id || "",
-          notes: payment.notes || "",
+      customer_id: payment.customer_id || "",
+      date: payment.date || new Date().toISOString().slice(0, 16),
+      amount: payment.amount || "",
+      mode: payment.mode || "",
+      reference_no: payment.reference_no || "",
+      applied_invoice_id: payment.applied_invoice_id || "",
+      notes: payment.notes || "",
+    })
+    setShowPaymentForm(true)
+  }
+
+  const handleCloseForm = () => {
+    setShowPaymentForm(false)
+    setEditingPayment(null)
+    setForm({
+      customer_id: "",
+      date: new Date().toISOString().slice(0, 16),
+      amount: "",
+      mode: "",
+      reference_no: "",
+      applied_invoice_id: "",
+      notes: "",
     })
   }
+
   return (
     <div className="container mt-4">
       <h2 className="mb-4 d-flex align-items-center fs-5">
@@ -106,63 +120,104 @@ const [editingPayment, setEditingPayment]=useState(null)
         </span>
         <b>CUSTOMER PAYMENT RECEIPT</b>
       </h2>
-      <form className="row g-3" onSubmit={handleSubmit}>
-        <div className="col-md-6">
-          <label className="form-label">Customer <span className="text-danger">*</span></label>
-          <select className="form-select bg-light" name="customer_id" value={form.customer_id} onChange={handleChange} required >
-            <option value="">-- Select Customer --</option>
-            {customers.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-          </select>
-        </div>
 
-        <div className="col-md-6">
-          <label className="form-label">Date <span className="text-danger">*</span></label>
-          <input type="datetime-local" className="form-control bg-light" name="date" value={form.date} onChange={handleChange} required />
-        </div>
-
-        <div className="col-md-6">
-          <label className="form-label">Amount (₹) <span className="text-danger">*</span></label>
-          <input type="number" className="form-control bg-light" name="amount" value={form.amount} onChange={handleChange} placeholder="Enter amount" required />
-        </div>
-
-        <div className="col-md-6">
-          <label className="form-label">Payment Mode <span className="text-danger">*</span></label>
-          <select className="form-select bg-light" name="mode" value={form.mode} onChange={handleChange} required>
-            <option value="">-- Select Mode --</option>
-            <option>Cash</option>
-            <option>UPI</option>
-            <option>Bank Transfer</option>
-          </select>
-        </div>
-
-        <div className="col-md-6">
-          <label className="form-label">Reference No (UTR/Cheque)</label>
-          <input type="text" className="form-control bg-light" name="reference_no" value={form.reference_no} onChange={handleChange} placeholder="Enter reference no" />
-        </div>
-
-        <div className="col-md-6">
-          <label className="form-label">Invoice to Adjust</label>
-          <select className="form-select bg-light" name="applied_invoice_id" value={form.applied_invoice_id} onChange={handleChange}>
-            <option value="">-- Optional --</option>
-            <option>INV-1001</option>
-            <option>INV-1002</option>
-            <option>INV-1003</option>
-          </select>
-        </div>
-
+      {/* Action Buttons */}
+      <div className="row mb-4">
         <div className="col-12">
-          <label className="form-label">Notes</label>
-          <textarea className="form-control bg-light" rows="2" placeholder="Enter notes" name="notes" value={form.notes} onChange={handleChange}></textarea>
+          <div className="d-flex gap-2">
+            {["super_admin", "admin"].includes(role) && (
+              <button
+                className="btn btn-primary d-flex align-items-center"
+                onClick={() => setShowPaymentForm(true)}
+              >
+                <MdAdd className="me-2" /> Add Payment
+              </button>
+            )}
+          </div>
         </div>
+      </div>
 
-        <div className="col-12">
-          <button type="submit" className="btn btn-primary px-4 d-flex align-center justify-center">
-            <span className="text-warning me-2 d-flex align-items-center"><FaRegSave /></span> {editingPayment ? "Update Payment" : "Save Payment"}
-          </button>
+      {/* Popup Modal */}
+      {showPaymentForm && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title">{editingPayment ? "Edit Payment" : "Add New Payment"}</h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={handleCloseForm}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <form className="row g-3" onSubmit={handleSubmit}>
+                  <div className="col-md-6">
+                    <label className="form-label">Customer <span className="text-danger">*</span></label>
+                    <select className="form-select bg-light" name="customer_id" value={form.customer_id} onChange={handleChange} required>
+                      <option value="">-- Select Customer --</option>
+                      {customers.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Date <span className="text-danger">*</span></label>
+                    <input type="datetime-local" className="form-control bg-light" name="date" value={form.date} onChange={handleChange} required />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Amount (₹) <span className="text-danger">*</span></label>
+                    <input type="number" className="form-control bg-light" name="amount" value={form.amount} onChange={handleChange} placeholder="Enter amount" required />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Payment Mode <span className="text-danger">*</span></label>
+                    <select className="form-select bg-light" name="mode" value={form.mode} onChange={handleChange} required>
+                      <option value="">-- Select Mode --</option>
+                      <option>Cash</option>
+                      <option>UPI</option>
+                      <option>Bank Transfer</option>
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Reference No (UTR/Cheque)</label>
+                    <input type="text" className="form-control bg-light" name="reference_no" value={form.reference_no} onChange={handleChange} placeholder="Enter reference no" />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Invoice to Adjust</label>
+                    <select className="form-select bg-light" name="applied_invoice_id" value={form.applied_invoice_id} onChange={handleChange}>
+                      <option value="">-- Optional --</option>
+                      <option>INV-1001</option>
+                      <option>INV-1002</option>
+                      <option>INV-1003</option>
+                    </select>
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label">Notes</label>
+                    <textarea className="form-control bg-light" rows="2" placeholder="Enter notes" name="notes" value={form.notes} onChange={handleChange}></textarea>
+                  </div>
+
+                  <div className="col-12 d-flex gap-2">
+                    <button type="submit" className="btn btn-primary px-4 d-flex align-items-center justify-content-center">
+                      <span className="text-warning me-2 d-flex align-items-center"><FaRegSave /></span>
+                      {editingPayment ? "Update Payment" : "Add Payment"}
+                    </button>
+                    <button type="button" className="btn btn-secondary px-4 d-flex align-items-center justify-content-center" onClick={handleCloseForm}>
+                      <MdClose className="me-2" /> Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
-      </form>
+      )}
 
-      <div className="card shadow-sm mt-4">
+      {/* Payment Table */}
+      <div className="card shadow-sm">
         <div className="card-body">
           <h5 className="mb-3">Payment Tree</h5>
           <div className="mt-4 mb-2 input-group">
@@ -185,9 +240,7 @@ const [editingPayment, setEditingPayment]=useState(null)
             </thead>
             <tbody>
               {filteredpayments.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="text-center">No payments found.</td>
-                </tr>
+                <tr><td colSpan="8" className="text-center">No payments found.</td></tr>
               ) : (
                 filteredpayments.map((p) => {
                   const customerName = p.customer_id?.name || (customers.find(c => c._id === p.customer_id)?.name) || "Unknown Customer"
@@ -202,15 +255,17 @@ const [editingPayment, setEditingPayment]=useState(null)
                       <td>{p.applied_invoice_id}</td>
                       <td>{p.notes}</td>
                       <td>
-                        {["super_admin","admin"].includes(role) ? (
+                        {["super_admin", "admin"].includes(role) ? (
                           <>
-                          <button className='btn btn-sm btn-warning' onClick={()=>handleEdit(p)}><MdEdit/>Edit</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(p._id)}>
-                          <MdDeleteForever className="text-warning" /> Delete
-                        </button></>):(
-                          <button className="btn btn-secondary btn-sm" disabled>
-                                                        View Only
-                                                    </button>
+                            <button className="btn btn-warning btn-sm me-2" onClick={() => handleEdit(p)}>
+                              <MdEdit /> Edit
+                            </button>
+                            <button className="btn btn-danger btn-sm" onClick={() => handleDelete(p._id)}>
+                              <MdDeleteForever className="text-warning" /> Delete
+                            </button>
+                          </>
+                        ) : (
+                          <button className="btn btn-secondary btn-sm" disabled>View Only</button>
                         )}
                       </td>
                     </tr>

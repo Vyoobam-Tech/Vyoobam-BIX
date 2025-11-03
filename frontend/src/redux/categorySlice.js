@@ -1,25 +1,21 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import API from "../api/axiosInstance";
 
-const API_URL = "http://localhost:5000/api/categories";
-
-export const fetchCategories=createAsyncThunk("categories/fetchAll",async () => {
-    const user=JSON.parse(localStorage.getItem("user"))
-    const token=user?.token
-    if(!token)
-        throw new error("Token is missing")
-    const res=await axios.get(API_URL,{headers:{Authorization :`Bearer ${token}`},})
-    return res.data
-})
-
-export const addCategory = createAsyncThunk("categories/add",async(category,{rejectWithValue})=> {
+const API_URL = "/categories";
+export const fetchCategories = createAsyncThunk("categories/fetchAll", async (_, { rejectWithValue }) => {
   try {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const token = user?.token;
-    if (!token) 
-        throw new Error("Token missing");
-const res = await axios.post(API_URL, category, {headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await API.get(API_URL);
+    return res.data;
+  } catch (error) {
+    console.error("Fetch categories error:", error.response?.data || error.message);
+    return rejectWithValue(error.response?.data || error.message);
+  }
+});
+
+
+export const addCategory = createAsyncThunk("categories/add", async (category, { rejectWithValue }) => {
+  try {
+    const res = await API.post(API_URL, category);
     return res.data;
   } catch (error) {
     console.error("Add category error:", error.response?.data || error.message);
@@ -27,58 +23,70 @@ const res = await axios.post(API_URL, category, {headers: { Authorization: `Bear
   }
 });
 
-export const deleteCategory=createAsyncThunk("categories/delete",async (id) => {
-    const user=JSON.parse(localStorage.getItem("user"))
-    const token=user?.token
-    if(!token)
-            throw new error("Token missing")
-    await axios.delete(`${API_URL}/${id}`,{headers:{Authorization :`Bearer ${token}`},})
-    return id
-})
 
-export const updateCategory=createAsyncThunk("categories/update",async({id,updatedData})=>{
-    const user=JSON.parse(localStorage.getItem("user"))
-    const token=user?.token
-    if(!token)
-        throw new error("Token Missing")
-    const res=await axios.put(`${API_URL}/${id}`,updatedData,{headers:{Authorization:`Bearer ${token}`}})
-    return res.data
-})
+export const deleteCategory = createAsyncThunk("categories/delete", async (id, { rejectWithValue }) => {
+  try {
+    await API.delete(`${API_URL}/${id}`);
+    return id;
+  } catch (error) {
+    console.error("Delete category error:", error.response?.data || error.message);
+    return rejectWithValue(error.response?.data || error.message);
+  }
+});
 
-const categorySlice=createSlice({
-    name:"categories",
-    initialState:{
-        items:[],
-        status:"idle",
-        error:null
-    },
-    reducers:{},
-    extraReducers:(builder)=>{
-        builder
-        .addCase(fetchCategories.pending,(state)=>{
-            state.status="loading"
-        })
-        .addCase(fetchCategories.fulfilled,(state,action)=>{
-            state.status="succeeded"
-            state.items=action.payload
-        })
-        .addCase(fetchCategories.rejected,(state,action)=>{
-           state.status="failed"
-           state.error=action.error.message
-        })
-        .addCase(addCategory.fulfilled,(state,action)=>{
-            state.items.push(action.payload)
-        })
-        .addCase(deleteCategory.fulfilled,(state,action)=>{
-            state.items=state.items.filter((c)=>c._id !== action.payload )
-        })
-        .addCase(updateCategory.fulfilled,(state,action)=>{
-            const index=state.items.findIndex((c)=>c._id === action.payload._id)
-            if(index !== -1){
-                state.items[index]=action.payload
-            }
-        })
-        
-    }
-})
-export default categorySlice.reducer
+
+export const updateCategory = createAsyncThunk("categories/update", async ({ id, updatedData }, { rejectWithValue }) => {
+  try {
+    const res = await API.put(`${API_URL}/${id}`, updatedData);
+    return res.data;
+  } catch (error) {
+    console.error("Update category error:", error.response?.data || error.message);
+    return rejectWithValue(error.response?.data || error.message);
+  }
+});
+
+
+const categorySlice = createSlice({
+  name: "categories",
+  initialState: {
+    items: [],
+    status: "idle",
+    error: null,
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      // Fetch Categories
+      .addCase(fetchCategories.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchCategories.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.items = action.payload;
+      })
+      .addCase(fetchCategories.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload || action.error.message;
+      })
+
+      // Add Category
+      .addCase(addCategory.fulfilled, (state, action) => {
+        state.items.push(action.payload);
+      })
+
+      // Delete Category
+      .addCase(deleteCategory.fulfilled, (state, action) => {
+        state.items = state.items.filter((c) => c._id !== action.payload);
+      })
+
+      // Update Category
+      .addCase(updateCategory.fulfilled, (state, action) => {
+        const index = state.items.findIndex((c) => c._id === action.payload._id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+      });
+  },
+});
+
+export default categorySlice.reducer;

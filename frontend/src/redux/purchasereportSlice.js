@@ -1,20 +1,20 @@
 import { createSlice,createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import API from "../api/axiosInstance";
 
-const API_URL="http://localhost:5000/api/reports/purchase"
+const API_URL="/reports/purchase"
 
 export const fetchpurchasereports=createAsyncThunk("reports/purchase/fetchAll",async () => {
-    const res=await axios.get(API_URL)
+    const res=await API.get(API_URL)
     return res.data
 })
 
 export const addpurchasereport=createAsyncThunk("reports/purchase/add",async (purchasereport) => {
-    const res=await axios.post(API_URL,purchasereport)
+    const res=await API.post(API_URL,purchasereport)
     return res.data
 })
 
 export const deletepurchasereport=createAsyncThunk("reports/purchase/delete",async (id) => {
-    await axios.delete(`${API_URL}/${id}`)
+    await API.delete(`${API_URL}/${id}`)
     return id
 })
 

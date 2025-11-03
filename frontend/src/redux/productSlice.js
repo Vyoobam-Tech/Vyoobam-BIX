@@ -1,61 +1,27 @@
-
- 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import API from "../api/axiosInstance";
 
-const API_URL = "http://localhost:5000/api/products";
+const API_URL = "/products"; 
 
-
-export const fetchProducts=createAsyncThunk("products/fetchAll", async () => {
-  const user=JSON.parse(localStorage.getItem("user"));
-  const token=user?.token;
-  if (!token) 
-    throw new Error("Token missing");
-   const res=await axios.get(API_URL,{headers:{ Authorization:`Bearer ${token}` },});
+export const fetchProducts = createAsyncThunk("products/fetchAll", async () => {
+  const res = await API.get(API_URL);
   return res.data;
 });
 
-export const addProduct = createAsyncThunk("products/addProduct",async (product) => {
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const token = user?.token;
-      if (!token) 
-        throw new Error("Token missing");
-     const res = await axios.post(API_URL,product,{headers: { Authorization: `Bearer ${token}` },});
- return res.data;
-    } catch (error) {
-      console.error("Add product error:", error.response?.data || error.message);
-      
-    }
-  }
-);
-
-
+export const addProduct = createAsyncThunk("products/addProduct", async (product) => {
+  const res = await API.post(API_URL, product);
+  return res.data;
+});
 
 export const deleteProduct = createAsyncThunk("products/delete", async (id) => {
-  const user=JSON.parse(localStorage.getItem("user"));
-  const token=user?.token;
-  if (!token) 
-    throw new Error("Token missing");
-   await axios.delete(`${API_URL}/${id}`, {headers: { Authorization: `Bearer ${token}` },
-  });
+  await API.delete(`${API_URL}/${id}`);
   return id;
 });
 
-export const updateProduct = createAsyncThunk(
-  "products/update",
-  async ({ id, updatedData }) => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const token = user?.token;
-    if (!token) throw new Error("Token missing");
-    const res = await axios.put(`${API_URL}/${id}`, updatedData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.data;
-  }
-);
-
-
+export const updateProduct = createAsyncThunk("products/update", async ({ id, updatedData }) => {
+  const res = await API.put(`${API_URL}/${id}`, updatedData);
+  return res.data;
+});
 
 const productSlice = createSlice({
   name: "products",
@@ -67,33 +33,35 @@ const productSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      
+
       .addCase(fetchProducts.pending, (state) => {
-        state.status="loading";
+        state.status = "loading";
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
-        state.status="succeeded";
-        state.items=action.payload;
+        state.status = "succeeded";
+        state.items = action.payload;
       })
       .addCase(fetchProducts.rejected, (state, action) => {
-        state.status="failed";
-        state.error=action.error.message;
+        state.status = "failed";
+        state.error = action.error.message;
       })
-      
+
       .addCase(addProduct.fulfilled, (state, action) => {
         state.items.push(action.payload);
       })
-      
+
       .addCase(deleteProduct.fulfilled, (state, action) => {
         state.items = state.items.filter((p) => p._id !== action.payload);
       })
 
       .addCase(updateProduct.fulfilled, (state, action) => {
-  const index = state.items.findIndex((p) => p._id === action.payload._id);
-  if (index !== -1) {
-    state.items[index] = action.payload;
-  }
-});
+        const index = state.items.findIndex(
+          (p) => p._id === action.payload._id
+        );
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+      });
   },
 });
 
