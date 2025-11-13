@@ -108,7 +108,7 @@ const __dirname1 = path.resolve();
 app.use(express.static(path.join(__dirname1, "/frontend/dist"))); // <-- adjust if folder name is different
 
 // ✅ Catch-all for React Router routes (like /login, /register, etc.)
-app.get("*", (req, res) => {
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname1, "/frontend/dist/index.html"));
 });
 
