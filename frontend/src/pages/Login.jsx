@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/userService";
+import logo from "../assets/Logo.png";
 import axios from "axios";
 
 const Login = () => {
@@ -48,7 +49,7 @@ const Login = () => {
       }}
     >
       <form className="card p-4 text-center" style={{ minWidth: 320 }} onSubmit={handleSubmit} >
-        <img src="/src/assets/Logo.png" alt="Logo" style={{ width: "80px", height: "50px", margin: "0 auto 10px" }}/>
+        <img src={logo} alt="Logo" style={{ width: "80px", height: "50px", margin: "0 auto 10px" }}/>
         <h4 className="mb-3">SIGN IN</h4>
         {error && <div className="alert alert-danger">{error}</div>}
 
