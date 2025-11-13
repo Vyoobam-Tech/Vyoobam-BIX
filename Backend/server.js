@@ -81,7 +81,7 @@ app.use(express.json());
 mongoose
   .connect(
     process.env.MONGO_URI ||
-      "mongodb+srv://jasim2003ahamed_db_user:dt82x9fit2XoqpaO@cluster0.tuvatzp.mongodb.net/"
+      "mongodb+srv://jasim2003ahamed_db_user:dt82x9fit2XoqpaO@cluster0.tuvatzp.mongodb.net/macinery"
   )
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
