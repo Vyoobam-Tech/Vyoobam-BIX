@@ -1,4 +1,4 @@
-// const User = require("../models/User");
+const User = require("../models/User");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
@@ -65,7 +65,7 @@ exports.login = async (req, res) => {
     delete userObj.password;
     const token = generateToken(user);
 
-    res.cookie("token", generateToken, {
+    res.cookie("token", token, {
       httpOnly: true,
       maxAge: 300000,
       samesite: "lax",
@@ -229,13 +229,11 @@ exports.resetPassword = async (req, res) => {
     if (!user)
       return res.status(400).json({ error: "Invalid or expired token" });
 
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-
+    user.password = password; // <-- DO NOT HASH MANUALLY
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
 
-    await user.save();
+    await user.save(); // pre("save") will hash it
 
     res.json({ message: "Password has been reset successfully" });
   } catch (err) {
@@ -243,3 +241,4 @@ exports.resetPassword = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
