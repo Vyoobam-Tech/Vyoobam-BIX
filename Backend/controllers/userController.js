@@ -13,6 +13,15 @@ const generateToken = (user) => {
   );
 };
 
+exports.checkSuperAdminExists = async (req, res) => {
+  try {
+    const superAdminCount = await User.countDocuments({ role: "super_admin" });
+    res.json({ superAdminExists: superAdminCount > 0 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.register = async (req, res) => {
   try {
     const { name, email, password, phone, role, avatar, address } = req.body;
@@ -25,6 +34,14 @@ exports.register = async (req, res) => {
     const emailNormalized = email.trim().toLowerCase();
     const exists = await User.findOne({ email: emailNormalized });
     if (exists) return res.status(400).json({ error: "Email already in use" });
+
+    // Check if super admin already exists and prevent creating another one
+    if (role === "super_admin") {
+      const superAdminExists = await User.findOne({ role: "super_admin" });
+      if (superAdminExists) {
+        return res.status(400).json({ error: "Super admin already exists" });
+      }
+    }
 
     const user = new User({
       name,

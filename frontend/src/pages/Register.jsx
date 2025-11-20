@@ -1,92 +1,195 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { register, setAuthToken } from "../services/userService";
+import { register, setAuthToken, checkSuperAdminExists } from "../services/userService";
 
 const Register = () => {
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
-    role: "",
+    role: "user",
     phone: "",
     avatar: "",
     address: "",
   });
 
   const [error, setError] = useState("");
+  const [superAdminExists, setSuperAdminExists] = useState(true); // Default to true for safety
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  // Check if super admin exists on component mount
+  useEffect(() => {
+    const checkSuperAdmin = async () => {
+      try {
+        console.log("Starting super admin check...");
+        
+        // Clear any existing tokens
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        
+        const result = await checkSuperAdminExists();
+        console.log("Super admin check completed:", result);
+        
+        setSuperAdminExists(result.superAdminExists);
+        setError("");
+        
+      } catch (err) {
+        console.error("Error in super admin check:", err);
+        // Even if there's an error, we stay on the register page
+        setSuperAdminExists(true);
+        setError("System check completed. You can register as Admin or User.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  
+    checkSuperAdmin();
+  }, []);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
+    // Additional client-side validation
+    if (superAdminExists && form.role === "super_admin") {
+      setError("Super admin already exists in the system");
+      return;
+    }
+
+    // Validate required fields
+    if (!form.name || !form.email || !form.password) {
+      setError("Name, email and password are required");
+      return;
+    }
+
     try {
-    
       const { user, token } = await register(form);
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
       setAuthToken(token);
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.error || err.message);
+      console.error("Registration error:", err);
+      setError(err.response?.data?.error || err.message || "Registration failed");
     }
   };
 
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100" style={{ backgroundColor: "#c2cdd8ff" }}>
+        <div className="card p-4 text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-2">Checking system status...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100" style={{ backgroundColor: "#c2cdd8ff" }} >
+    <div className="d-flex justify-content-center align-items-center vh-100" style={{ backgroundColor: "#c2cdd8ff" }}>
       <form className="card p-4" style={{ minWidth: 400 }} onSubmit={handleSubmit}>
         <h4 className="mb-3 text-center">REGISTER</h4>
-        {error && <div className="alert alert-danger">{error}</div>}
-   <div className="d-flex justify-content-between mb-3 ">
-  <div className="form-check">
-  <input className="form-check-input" type="radio" name="role" id="super_admin" value="super_admin" checked={form.role === "super_admin"} onChange={handleChange}/>
-  <label className="form-check-label" htmlFor="super_admin">Super Admin </label>
-</div>
+        
+        {error && (
+          <div className={`alert ${error.includes("System check completed") ? "alert-info" : "alert-danger"}`}>
+            {error}
+          </div>
+        )}
+        
+        <div className="d-flex justify-content-between mb-3 flex-wrap">
+          {/* Super Admin Radio - Only show if no super admin exists */}
+          {!superAdminExists && (
+            <div className="form-check mb-2">
+              <input 
+                className="form-check-input" 
+                type="radio" 
+                name="role" 
+                id="super_admin" 
+                value="super_admin" 
+                checked={form.role === "super_admin"} 
+                onChange={handleChange}
+              />
+              <label className="form-check-label" htmlFor="super_admin">
+                Super Admin
+              </label>
+            </div>
+          )}
 
-<div className="form-check">
-  <input className="form-check-input" type="radio" name="role" id="admin" value="admin" checked={form.role === "admin"} onChange={handleChange}/>
-  <label className="form-check-label" htmlFor="admin"> Admin</label>
-</div>
+          <div className="form-check mb-2">
+            <input 
+              className="form-check-input" 
+              type="radio" 
+              name="role" 
+              id="admin" 
+              value="admin" 
+              checked={form.role === "admin"} 
+              onChange={handleChange}
+            />
+            <label className="form-check-label" htmlFor="admin">
+              Admin
+            </label>
+          </div>
 
-<div className="form-check">
-  <input className="form-check-input" type="radio" name="role" id="user" value="user" checked={form.role === "user"} onChange={handleChange}/>
-  <label className="form-check-label" htmlFor="user">Entry User </label>
-</div>
+          <div className="form-check mb-2">
+            <input 
+              className="form-check-input" 
+              type="radio" 
+              name="role" 
+              id="user" 
+              value="user" 
+              checked={form.role === "user"} 
+              onChange={handleChange}
+            />
+            <label className="form-check-label" htmlFor="user">
+              User
+            </label>
+          </div>
+        </div>
 
-  </div>
+        {/* Informative message when super admin exists
+        {superAdminExists && (
+          <div className="alert alert-info mb-3">
+            <small>
+              <i className="bi bi-info-circle me-1"></i>
+              Super Admin role is not available as one already exists in the system.
+              You can register as Admin or User.
+            </small>
+          </div>
+        )} */}
 
         <div className="mb-2">
-          <label className="form-label">Name <span className="text-danger">*</span> </label>
-          <input  className="form-control bg-light" name="name" value={form.name} onChange={handleChange} required/>
+          <label className="form-label">Name <span className="text-danger">*</span></label>
+          <input className="form-control bg-light" name="name" value={form.name} onChange={handleChange} required/>
         </div>
 
         <div className="mb-2">
-          <label className="form-label"> Email <span className="text-danger">*</span></label>
-          <input className="form-control bg-light" name="email" type="email" value={form.email} onChange={handleChange}  required/>
+          <label className="form-label">Email <span className="text-danger">*</span></label>
+          <input className="form-control bg-light" name="email" type="email" value={form.email} onChange={handleChange} required/>
         </div>
 
         <div className="mb-2">
-          <label className="form-label">Password <span className="text-danger">*</span> </label>
-          <input className="form-control bg-light" name="password" type="password" value={form.password}  onChange={handleChange} required/>
+          <label className="form-label">Password <span className="text-danger">*</span></label>
+          <input className="form-control bg-light" name="password" type="password" value={form.password} onChange={handleChange} required/>
         </div>
 
         <div className="mb-2">
-          <label className="form-label"> Phone <span className="text-danger">*</span>  </label>
+          <label className="form-label">Phone</label>
           <input className="form-control bg-light" name="phone" value={form.phone} onChange={handleChange}/>
         </div>
 
-      
         <div className="mb-2">
-          <label className="form-label">Address <span className="text-danger">*</span></label>
+          <label className="form-label">Address</label>
           <input className="form-control bg-light" name="address" value={form.address} onChange={handleChange}/>
         </div>
 
-        <button type="submit" className="btn btn-primary w-100">Register</button>
+        <button type="submit" className="btn btn-primary w-100 mt-3">Register</button>
 
         <p className="mt-3 mb-0 text-center">
           Already have an account?{" "}
