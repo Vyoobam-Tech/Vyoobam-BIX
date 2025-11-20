@@ -6,6 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/userService";
 import logo from "../assets/Logo.png";
 import axios from "axios";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 
 const Login = () => {
   const [form, setForm] = useState({
@@ -13,6 +14,7 @@ const Login = () => {
     password: "",
   });
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) =>
@@ -58,10 +60,37 @@ const Login = () => {
           <input className="form-control bg-light" name="email" value={form.email} onChange={handleChange}/>
         </div>
 
-        <div className="mb-3 text-start">
-          <label className="form-label">Password<span className="text-danger">*</span></label>
-          <input className="form-control bg-light" type="password" name="password"value={form.password} onChange={handleChange}/>
-        </div>
+      <div className="mb-3 text-start position-relative">
+  <label className="form-label">
+    Password <span className="text-danger">*</span>
+  </label>
+
+  {/* Password Input */}
+  <input
+    className="form-control bg-light"
+    type={showPassword ? "text" : "password"}
+    name="password"
+    value={form.password}
+    onChange={handleChange}
+    style={{ paddingRight: "40px" }}   // space for icon
+  />
+
+  {/* Eye Icon inside input */}
+  <span
+    onClick={() => setShowPassword(!showPassword)}
+    style={{
+      position: "absolute",
+      right: "15px",
+      top: "35px",      // adjust based on input height
+      cursor: "pointer",
+      fontSize: "20px",
+      color: "#888",
+    }}
+  >
+    {showPassword ? <AiFillEye />  : <AiFillEyeInvisible />}
+  </span>
+</div>
+
 
         <button className="btn btn-primary w-100">Login</button>
 

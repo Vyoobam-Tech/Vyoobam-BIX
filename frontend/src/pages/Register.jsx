@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { register, setAuthToken, checkSuperAdminExists } from "../services/userService";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 
 const Register = () => {
   const [form, setForm] = useState({
@@ -14,6 +15,7 @@ const Register = () => {
   });
 
   const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
   const [superAdminExists, setSuperAdminExists] = useState(true); // Default to true for safety
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -174,10 +176,36 @@ const Register = () => {
           <input className="form-control bg-light" name="email" type="email" value={form.email} onChange={handleChange} required/>
         </div>
 
-        <div className="mb-2">
-          <label className="form-label">Password <span className="text-danger">*</span></label>
-          <input className="form-control bg-light" name="password" type="password" value={form.password} onChange={handleChange} required/>
-        </div>
+        <div className="mb-2 text-start position-relative">
+  <label className="form-label">
+    Password <span className="text-danger">*</span>
+  </label>
+
+  {/* Password Input */}
+  <input
+    className="form-control bg-light"
+    type={showPassword ? "text" : "password"}
+    name="password"
+    value={form.password}
+    onChange={handleChange}
+    style={{ paddingRight: "40px" }}   // space for icon
+  />
+
+  {/* Eye Icon inside input */}
+  <span
+    onClick={() => setShowPassword(!showPassword)}
+    style={{
+      position: "absolute",
+      right: "15px",
+      top: "35px",      // adjust based on input height
+      cursor: "pointer",
+      fontSize: "20px",
+      color: "#888",
+    }}
+  >
+    {showPassword ? <AiFillEye />  : <AiFillEyeInvisible />}
+  </span>
+</div>
 
         <div className="mb-2">
           <label className="form-label">Phone</label>
