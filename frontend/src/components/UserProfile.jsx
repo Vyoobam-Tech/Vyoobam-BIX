@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect} from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { getMe, setUserHeader } from "../services/userService";
 import { useNavigate } from "react-router-dom";
 import Profile from "../pages/Profile";
+import { useRef } from "react";
 
 const UserProfile = () => {
   const [user,setUser]=useState(null);
