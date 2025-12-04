@@ -9,6 +9,14 @@ const warehouseSchema = new mongoose.Schema({
     phone:{type:Number},
     email:{type:String},
     status: { type: Boolean, enum: ["active", "inactive"], default: "active" },
+    created_by:{type:mongoose.Schema.Types.ObjectId,ref:"User",required:false},
+    updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
+    updated_by_role:String,
+    updatedAt:Date,
+    history:{
+        oldValue:String,
+        newValue:String
+    }
 },
 {timestamps:true})
 

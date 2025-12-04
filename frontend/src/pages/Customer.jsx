@@ -8,13 +8,16 @@ import { State, Country } from 'country-state-city';
 import { useDispatch, useSelector } from 'react-redux';
 import { addcustomer, deletecustomer, fetchcustomers, updatecustomer } from '../redux/customerSlice';
 import ReusableTable, {createCustomRoleActions} from '../components/ReusableTable'; // Import the reusable table
+import API from '../api/axiosInstance';
+import HistoryModal from '../components/HistoryModal';
 
 const Customer = () => {
   const dispatch = useDispatch();
   const { items: customers, status } = useSelector((state) => state.customers);
   
-const user = JSON.parse(localStorage.getItem("user"))
-    const role = user?.role || "user"
+  const user = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem("token");
+  const role = user?.role || "user";
 
   const [form, setForm] = useState({
     name: "",
@@ -35,6 +38,8 @@ const user = JSON.parse(localStorage.getItem("user"))
   const [searchEmail,setSearchEmail]=useState("")
   const [showCustomerForm, setShowCustomerForm] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
+  const [showHistoryModal,setShowHistoryModal]=useState(false)
+  const [historyInfo,setHistoryInfo]=useState(null)
 
   useEffect(() => {
     dispatch(fetchcustomers());
@@ -89,7 +94,7 @@ const user = JSON.parse(localStorage.getItem("user"))
     e.preventDefault();
     try {
       if (editingCustomer) {
-        await dispatch(updatecustomer({ id: editingCustomer, updatedData: form })).unwrap();
+        await dispatch(updatecustomer({ id: editingCustomer, updatedData: form ,token})).unwrap();
         setEditingCustomer(null);
       } else {
         await dispatch(addcustomer(form)).unwrap();
@@ -216,16 +221,65 @@ const user = JSON.parse(localStorage.getItem("user"))
   },
   delete: { 
     show: () => ["super_admin", "admin"].includes(role)
+  },
+  history:{
+    show:()=>["super_admin","admin","user"].includes(role)
   }
 });
 
-    const handleTableAction = (actionType, category) => {
+    const handleTableAction = (actionType, customer) => {
       if (actionType === "edit") {
-        handleEdit(category);
+        handleEdit(customer);
       } else if (actionType === "delete") {
-        handleDelete(category._id);
+        handleDelete(customer._id);
+      }
+      else if(actionType === "history"){
+        handleHistory(customer)
       }
     };
+
+
+  const handleHistory = async (customer) => {
+    if(!customer._id){
+      console.error("Customer ID Missing",customer)
+      setHistoryInfo({
+        createdBy:customer?.created_by?.name || customer?.created_by?.email || customer?.created_by?.username || "Unknown",
+        createdAt:customer?.createdAt || null,
+        updatedBy:"-",
+        updatedAt:null,
+      })
+      setShowHistoryModal(true)
+      return
+    }
+    try{
+      const res=await API.get(`/customers/${customer._id}`,{
+        headers:{Authorization: `Bearer ${token}`,},
+      })
+      const c=res.data
+      const createdByUser=c?.created_by?.name || c?.created_by?.email || c?.created_by?.username || "Unknown"
+      const updatedByUser=c?.updated_by?.name || c?.updated_by?.email || c?.updated_by?.username || "-"
+      setHistoryInfo({
+        createdBy:createdByUser,
+        createdAt:c?.createdAt || customer?.createdAt || null,
+        updatedBy:updatedByUser,
+        updatedAt:c?.updatedAt || null,
+        oldValue:c?.history?.oldValue || null,
+        newValue:c?.history?.newValue || null,
+      })
+    }catch(err){
+      console.warn(`Failed to fetch customer history ${customer._id}`)
+      setHistoryInfo({
+       createdBy:customer?.created_by?.name || customer?.created_by?.email || customer?.created_by?.username || "Unknown",
+        createdAt:customer?.createdAt || null,
+        updatedBy:customer?.updated_by?.name || customer?.updated_by?.email || customer?.updated_by?.username || "-",
+        updatedAt:customer?.updatedAt || null,
+        oldValues:null,
+        newValues:customer,
+      })
+    }finally{
+      setShowHistoryModal(true)
+    }
+  }
   return (
     <div className="container mt-4">
       <h2 className="mb-4 d-flex align-items-center fs-3">
@@ -378,6 +432,7 @@ const user = JSON.parse(localStorage.getItem("user"))
           setSearchEmail("")
         }}
       />
+      <HistoryModal open={showHistoryModal} onClose={()=>setShowHistoryModal(false)} data={historyInfo} />
     </div>
   );
 };

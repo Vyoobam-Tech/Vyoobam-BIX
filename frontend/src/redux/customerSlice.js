@@ -19,7 +19,7 @@ export const deletecustomer=createAsyncThunk("customers/delete",async (id) => {
     return id
 })
 
-export const updatecustomer=createAsyncThunk("customers/update",async({id,updatedData})=>{
+export const updatecustomer=createAsyncThunk("customers/update",async({id,updatedData,token})=>{
    
     const res = await API.put(`${API_URL}/${id}`,updatedData,{headers:{Authorization:`Bearer ${token}`}})
     return res.data

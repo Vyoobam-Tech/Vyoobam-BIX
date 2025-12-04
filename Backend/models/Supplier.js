@@ -8,6 +8,14 @@ const supplierSchema = new mongoose.Schema({
     address:{type:String},
     state_code:{type:String},
     opening_balance:{type:Number},
+    created_by:{type:mongoose.Schema.Types.ObjectId,ref:"User",required:false},
+    updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
+    updated_by_role:String,
+    updatedAt:Date,
+    history:{
+        oldValue:String,
+        newValue:String,
+    }
 },
 {timestamps:true}
 )

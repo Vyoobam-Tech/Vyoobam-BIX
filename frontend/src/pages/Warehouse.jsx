@@ -9,6 +9,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addwarehouse, deletewarehouse, fetchwarehouses, updateWarehouse } from '../redux/warehouseSlice';
 import { setAuthToken } from '../services/userService';
 import ReusableTable, {createCustomRoleActions,} from '../components/ReusableTable'; // Import the reusable table
+import API from '../api/axiosInstance';
+import HistoryModal from '../components/HistoryModal';
 
 const Warehouse = () => {
   const dispatch = useDispatch();
@@ -36,6 +38,8 @@ const Warehouse = () => {
  const [searchName,setSearchName]=useState("")
  const [searchPerson,setSearchPerson]=useState("")
  const [searchPhone,setSearchPhone]=useState("")
+ const [showHistoryModal,setShowHistoryModal]=useState(false)
+ const [historyInfo,setHistoryInfo]=useState(null)
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -229,16 +233,67 @@ const Warehouse = () => {
      },
      delete: { 
        show: () => ["super_admin", "admin"].includes(role) 
-     }})
+     },
+     history:{
+      show:()=>["super_admin","admin","user"].includes(role)
+     }
+    })
    
     
-     const handleTableAction = (actionType, category) => {
+     const handleTableAction = (actionType, warehouse) => {
        if (actionType === "edit") {
-         handleEdit(category);
+         handleEdit(warehouse);
        } else if (actionType === "delete") {
-         handleDelete(category._id);
+         handleDelete(warehouse._id);
+       }else if(actionType === "history"){
+        handleHistory(warehouse)
        }
      };
+
+
+     const handleHistory=async (warehouse) => {
+      if(!warehouse._id){
+        console.error("warehouse ID missing :",warehouse)
+        setHistoryInfo({
+          createdBy:warehouse?.created_by?.name || warehouse?.created_by?.username  || warehouse?.created_by?.email || "Unknown",
+          createdAt:warehouse?.createdAt || null,
+          updatedBy:"-",
+          updatedAt:null,
+        })
+
+      }
+      try{
+        const res=await API.get(`/warehouses/${warehouse._id}`,{
+          headers:{Authorization:`Bearer ${user?.token}`,}
+        })
+        const w=res.data
+        const createdByUser=w?.created_by?.name || w?.created_by?.username  || w?.created_by?.email || "Unknown"
+        const updatedByUser=w?.updated_by?.name || w?.updated_by?.username || w?.updated_by?.email || "-"
+        setHistoryInfo({
+          createdBy:createdByUser,
+          createdAt:warehouse?.createdAt || w?.createdAt || null,
+          updatedBy:updatedByUser,
+          updatedAt:warehouse?.updatedAt || w?.updatedAt || null,
+         oldValue:w?.history?.oldValue || null,
+         newValue:w?.history?.newValue || null,
+        })
+      }catch(err){
+        console.warn(`Failed to fetch warehouse history ${warehouse._id}`)
+        setHistoryInfo({
+            createdBy:warehouse?.created_by?.name || warehouse?.created_by?.username  || warehouse?.created_by?.email || "Unknown",
+          createdAt:warehouse?.createdAt || null,
+          updatedBy:warehouse?.updated_by?.name || warehouse?.updated_by?.username || warehouse?.updated_by?.email || "-",
+          updatedAt:warehouse?.updatedAt || null,
+          oldValue:null,
+          newValue:warehouse
+
+        })
+
+      }
+      finally{
+        setShowHistoryModal(true)
+      }
+     }
  
   return (
     <div className="container mt-4">
@@ -419,6 +474,7 @@ const Warehouse = () => {
           setSearchPhone("")
         }}
       />
+       <HistoryModal open={showHistoryModal} onClose={()=>setShowHistoryModal(false)} data={historyInfo} />
     </div>
   );
 };

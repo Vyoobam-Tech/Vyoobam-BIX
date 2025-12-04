@@ -28,6 +28,15 @@ const purchaseSchema = new mongoose.Schema({
   due_amount:{type:Number,default:0},
   payment_mode:{type:String},
   notes:{type:String},
+  created_by:{type:mongoose.Schema.Types.ObjectId,ref:"User",required:false},
+  updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
+  updated_by_role:String,
+  updatedAt:Date,
+  history:{
+    oldValue:String,
+    newValue:String,
+  }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model("Purchase", purchaseSchema);

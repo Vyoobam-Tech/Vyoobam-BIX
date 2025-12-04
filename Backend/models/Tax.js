@@ -7,6 +7,14 @@ const taxSchema = new mongoose.Schema({
     igst_percent:{type:Number},
     cess_percent:{type:Number},
     is_inclusive: { type: Boolean,default:false},
+    created_by:{ type:mongoose.Schema.Types.ObjectId,ref:"User",required:false,},
+    updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
+    updated_by_role:String,
+    updatedAt:Date,
+     history: {
+    oldValue: String,
+    newValue: String
+  },
 },
  { timestamps: true }
 )

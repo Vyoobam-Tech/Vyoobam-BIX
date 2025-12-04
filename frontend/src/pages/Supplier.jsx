@@ -11,6 +11,8 @@ import { addSupplier, deleteSupplier, fetchsuppliers, updateSupplier } from '../
 import { setAuthToken } from '../services/userService';
 import ReusableTable, {createCustomRoleActions, } from '../components/ReusableTable'; // Import the reusable table
 import { useState,useEffect } from "react";
+import API from "../api/axiosInstance";
+import HistoryModal from "../components/HistoryModal";
 
 const Supplier = () => {
   const dispatch = useDispatch();
@@ -38,6 +40,8 @@ const Supplier = () => {
  
   const [editingSupplier, setEditingSupplier] = useState(null);
   const [showSupplierForm, setShowSupplierForm] = useState(false);
+  const [showHistoryModal,setShowHistoryModal]=useState(false)
+  const [historyInfo,setHistoryInfo]=useState(null)
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -204,17 +208,66 @@ const Supplier = () => {
       },
       delete: { 
         show: () => ["super_admin", "admin"].includes(role) 
-      }})
+      },
+      history:{
+        show:()=>["super_admin","admin","user"].includes(role)
+      }
+    })
     
       
-      const handleTableAction = (actionType, category) => {
+      const handleTableAction = (actionType, supplier) => {
         if (actionType === "edit") {
-          handleEdit(category);
+          handleEdit(supplier);
         } else if (actionType === "delete") {
-          handleDelete(category._id);
+          handleDelete(supplier._id);
+        }
+        else if(actionType === "history"){
+          handleHistory(supplier)
         }
       };
 
+
+  const handleHistory=async (supplier) => {
+    if(!supplier._id){
+      console.error("Supplier ID missing",supplier)
+      setHistoryInfo({
+        createdBy:supplier?.created_by?.name || supplier?.created_by?.username || supplier?.created_by?.email || "Unknown",
+        createdAt:supplier?.createdAt || null,
+        updatedBy:"-",
+        updatedAt:null,
+
+      })
+    }
+    try{
+      const res=await API.get(`/suppliers/${supplier._id}`,{
+        headers:{Authorization:`Bearer ${user?.token}`}
+      })
+      const s=res.data
+      const createdByUser=s?.created_by?.name || s?.created_by?.username || s?.created_by?.email || "Unknown"
+      const updatedByUser=s?.updated_by?.name || s?.updated_by?.username || s?.updated_by?.email || "-"
+      setHistoryInfo({
+        createdBy:createdByUser,
+        createdAt:s?.createdAt || supplier?.createdAt || null,
+        updatedBy:updatedByUser,
+        updatedAt:s?.updatedAt || supplier?.updatedAt || null,
+        oldValue:s?.history?.oldValue || null,
+        newValue:s?.history?.newValue || null,
+      })
+    }catch(err){
+      console.warn(`Failed to fetch supplier history ${supplier._id}`)
+      setHistoryInfo({
+        createdBy:supplier?.created_by?.name || supplier?.created_by?.username || supplier?.created_by?.email || "Unknown",
+        createdAt:supplier?.createdAt || null,
+        updatedBy:supplier?.updated_by?.name || supplier?.updated_by?.username || supplier?.updated_by?.email || "-",
+        updatedAt:supplier?.updatedAt || null,
+        oldValues:null,
+        newValues:supplier,
+      })
+    }
+    finally{
+      setShowHistoryModal(true)
+    }
+  }
   return (
     <div className="container mt-4">
       <h2 className="mb-4 d-flex align-items-center fs-3">
@@ -347,6 +400,7 @@ const Supplier = () => {
           setSearchEmail("")
         }}
       />
+      <HistoryModal open={showHistoryModal} onClose={()=>setShowHistoryModal(false)} data={historyInfo} />
     </div>
   );
 };

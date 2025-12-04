@@ -15,6 +15,8 @@ import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
+import API from "../api/axiosInstance";
+import HistoryModal from "../components/HistoryModal";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -52,7 +54,8 @@ const [searchinvoice,setSearchInvoice]=useState("")
 const [searchdate,setSearchDate]=useState("")
   const [editingPurchase, setEditingPurchase] = useState(null);
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
-
+const [showHistoryModal,setShowHistoryModal]=useState(false)
+const [historyInfo,setHistoryInfo]=useState(null)
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"))
     if (!user || !user.token)
@@ -122,76 +125,79 @@ const [searchdate,setSearchDate]=useState("")
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-     
-      let subtotal = 0;
-      purchase.items.forEach(item => {
-        const lineTotal =
-          (Number(item.qty) || 0) * (Number(item.unit_price) || 0) -
-          (Number(item.discount) || 0) +
-          (Number(item.tax) || 0);
-        subtotal += lineTotal;
-      });
+  e.preventDefault();
+  try {
+    let subtotal = 0;
+    purchase.items.forEach((item) => {
+      const lineTotal =
+        (Number(item.qty) || 0) * (Number(item.unit_price) || 0) -
+        (Number(item.discount) || 0) +
+        (Number(item.tax) || 0);
+      subtotal += lineTotal;
+    });
 
-      const discount_amount = Number(purchase.discount_amount || 0);
-      const other_charges = Number(purchase.other_charges || 0);
-      const round_off = Number(purchase.round_off || 0);
-      const grand_total = subtotal - discount_amount + other_charges + round_off;
-      const paid_amount = Number(purchase.paid_amount || 0);
-      const due_amount = grand_total - paid_amount;
+    const discount_amount = Number(purchase.discount_amount || 0);
+    const other_charges = Number(purchase.other_charges || 0);
+    const round_off = Number(purchase.round_off || 0);
 
-      const purchaseData = {
-        ...purchase,
-        subtotal,
-        grand_total,
-        due_amount,
-      };
-      if (editingPurchase) {
-        await dispatch(updatePurchase({ id: editingPurchase, updatedData: purchaseData })).unwrap();
-        setEditingPurchase(null);
-        console.log("Purchase updated successfully!");
-      } else {
-        await dispatch(addpurchase(purchaseData)).unwrap();
-        console.log("Purchase added successfully!");
-      }
+    const grand_total = subtotal - discount_amount + other_charges + round_off;
+    const paid_amount = Number(purchase.paid_amount || 0);
+    const due_amount = grand_total - paid_amount;
 
-      setPurchase({
-        supplier_id: "",
-        invoice_no: "",
-        invoice_date: "",
-        warehouse_id: "",
-        items: [
-          {
-            product_id: "",
-            batch_no: "",
-            mfg_date: "",
-            exp_date: "",
-            qty: 0,
-            unit_price: 0,
-            discount: 0,
-            tax: 0,
-            line_total: 0,
-          },
-        ],
-        subtotal: 0,
-        discount_amount: 0,
-        other_charges: 0,
-        round_off: 0,
-        grand_total: 0,
-        paid_amount: 0,
-        due_amount: 0,
-        payment_mode: "",
-        notes: "",
-      });
+    const purchaseData = {
+      ...purchase,
+      subtotal,
+      grand_total,
+      due_amount,
+    };
 
-      setShowPurchaseForm(false);
-      
-      dispatch(fetchpurchases());
-    } catch (err) {
-      console.error("❌ Error saving purchase:", err.response?.data || err.message);
+    if (editingPurchase) {
+      await dispatch(
+        updatePurchase({ id: editingPurchase, updatedData: purchaseData })
+      ).unwrap();
+      console.log("Purchase updated successfully!");
+    } else {
+      await dispatch(addpurchase(purchaseData)).unwrap();
+      console.log("Purchase added successfully!");
     }
-  };
+
+    // Reset form
+    setPurchase({
+      supplier_id: "",
+      invoice_no: "",
+      invoice_date: "",
+      warehouse_id: "",
+      items: [
+        {
+          product_id: "",
+          batch_no: "",
+          mfg_date: "",
+          exp_date: "",
+          qty: 0,
+          unit_price: 0,
+          discount: 0,
+          tax: 0,
+          line_total: 0,
+        },
+      ],
+      subtotal: 0,
+      discount_amount: 0,
+      other_charges: 0,
+      round_off: 0,
+      grand_total: 0,
+      paid_amount: 0,
+      due_amount: 0,
+      payment_mode: "",
+      notes: "",
+    });
+
+    setShowPurchaseForm(false);
+    dispatch(fetchpurchases());
+  } catch (err) {
+  console.error("❌ Error saving purchase:", err.response?.data || err.message);
+}
+};
+
 
   const filteredpurchase = purchases.filter((p) => {
   const supplierName =
@@ -385,14 +391,21 @@ const [searchdate,setSearchDate]=useState("")
      },
      delete: { 
        show: () => ["super_admin", "admin"].includes(role) 
-     }})
+     },
+    history:{
+      show:()=>["super_admin","admin","user"].includes(role)
+    }
+    })
     
 
-      const handleTableAction = (actionType, category) => {
+      const handleTableAction = (actionType, purchase) => {
         if (actionType === "edit") {
-          handleEdit(category);
+          handleEdit(purchase);
         } else if (actionType === "delete") {
-          handleDelete(category._id);
+          handleDelete(purchase._id);
+        }
+        else if(actionType === "history"){
+          handleHistory(purchase)
         }
       };
 
@@ -436,6 +449,48 @@ const [searchdate,setSearchDate]=useState("")
       width: 110,
     },
   ];
+
+
+  const handleHistory=async (purchase) => {
+    if(!purchase._id){
+      console.error("Purchase Id missing:",purchase)
+      setHistoryInfo({
+        createdBy:purchase?.created_by?.name || purchase?.created_by?.username || purchase?.created_by?.email || "Unknown",
+        createdAt:purchase?.createdAt || null,
+        updatedBy:"-",
+        updatedAt:null
+      })
+    }
+ try{
+  const res=await API.get(`/purchases/${purchase._id}`,{
+    headers:{Authorization:`Bearer ${user?.token}`}
+  })
+  const p=res.data
+  const createdByUser= p?.created_by?.name || p?.created_by?.username || p?.created_by?.email || "Unknown"
+  const updatedByUser= p?.updated_by?.name || p?.updated_by?.username || p?.updated_by?.email || "-"
+  setHistoryInfo({
+    createdBy:createdByUser,
+    createdAt:p?.createdAt || purchase?.createdAt || null,
+    updatedBy:updatedByUser,
+    updatedAt:p?.updatedAt || purchase?.updatedAt || null,
+    oldValue:p?.history?.oldValue || null,
+    newValue:p?.history?.newValue || null, 
+  })
+ }catch(err){
+  console.warn(`Failed to fetch purchase history ${purchase._id}`)
+  setHistoryInfo({
+    createdBy:purchase?.created_by?.name || purchase?.created_by?.username || purchase?.created_by?.email || "Unknown",
+        createdAt:purchase?.createdAt || null,
+        updatedBy:purchase?.updated_by?.name || purchase?.updated_by?.username || purchase?.updated_by?.email || "-",
+        updatedAt:purchase?.updatedAt || null,
+        oldValue:null,
+        newValue:purchase
+  })
+ }
+ finally{
+  setShowHistoryModal(true)
+ }
+  }
 
   return (
     <div className="container mt-4">
@@ -626,6 +681,7 @@ const [searchdate,setSearchDate]=useState("")
           setSearchDate("")
         }}
       />
+      <HistoryModal open={showHistoryModal} onClose={()=>setShowHistoryModal(false)} data={historyInfo} />
     </div>
   );
 };

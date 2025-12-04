@@ -8,8 +8,9 @@ import { FaRegSave } from "react-icons/fa";
 import { useDispatch, useSelector } from 'react-redux';
 import { addtax, deletetax, fetchtaxes, updatetax } from '../redux/taxSlice';
 import { setAuthToken } from '../services/userService';
-
+import HistoryModal from '../components/HistoryModal';
 import ReusableTable, {createCustomRoleActions, } from '../components/ReusableTable'; // Import the reusable table
+import API from '../api/axiosInstance';
 
 const Tax = () => {
     const dispatch = useDispatch()
@@ -21,6 +22,8 @@ const [searchcgst,setSearchcgst]=useState("")
 
 
     const [showTaxForm, setShowTaxForm] = useState(false)
+    const [showHistoryModal,setShowHistoryModal]=useState(false)
+    const [historyInfo,setHistoryInfo]=useState(null)
     const [form, setForm] = useState({
         name: "",
         cgst_percent: "",
@@ -164,15 +167,65 @@ const [searchcgst,setSearchcgst]=useState("")
        },
        delete: { 
          show: () => ["super_admin", "admin"].includes(role) 
-       }})
+       },
+       history:{
+        show:()=>["super_admin","admin","user"].includes(role)
+       },
+    })
 
-  const handleTableAction = (actionType, category) => {
+  const handleTableAction = (actionType, tax) => {
     if (actionType === "edit") {
-      handleEdit(category);
+      handleEdit(tax);
     } else if (actionType === "delete") {
-      handleDelete(category._id);
+      handleDelete(tax._id);
+    }
+    else if(actionType === "history"){
+        handleHistory(tax)
     }
   };
+
+  const handleHistory=async (tax) => {
+    if(!tax._id){
+        console.error("Tax Id missing:",tax)
+        setHistoryInfo({
+            createdBy:tax?.created_by?.name || tax?.created_by?.username || tax?.created_by?.email || "Unknown",
+            createdAt:tax?.createdAt || null,
+            updatedBy:"-",
+            updatedAt:null,
+        })
+        setShowHistoryModal(true)
+        return
+    }
+    try{
+        const res=await API.get(`/taxes/${tax._id}`,{
+            headers:{Authorization:`Bearer ${user?.token}`,},
+        })
+        const t=res.data
+        const createdByUser=t?.created_by?.name || t?.created_by?.username || t?.created_by?.email || "Unknown"
+        const updatedByUser=t?.updated_by?.name || t?.updated_by?.username || t?.updated_by?.email || "-"
+        setHistoryInfo({
+            createdBy:createdByUser,
+            createdAt:t?.createdAt || tax?.createdAt || null,
+            updatedBy:updatedByUser,
+            updatedAt:t?.updatedAt || null,
+             oldValues: t?.history?.oldValue || null,
+newValues: t?.history?.newValue || null,
+            
+        })
+    }catch(err){
+        console.warn(`Failed to fetch tax history ${tax._id}`)
+        setHistoryInfo({
+           createdBy:tax?.created_by?.name ||tax?.created_by?.username ||tax?.created_by?.email ||"Unknown",
+      createdAt: tax?.createdAt || null,
+      updatedBy:tax?.updated_by?.name ||tax?.updated_by?.username ||tax?.updated_by?.email ||"-",
+      updatedAt:tax?.updatedAt || null,
+       oldValues: null,
+  newValues: tax,
+        })
+    }finally{
+        setShowHistoryModal(true)
+    }
+  }
     return (
         <div className="container mt-4">
             <h2 className="mb-4 d-flex align-items-center fs-3">
@@ -288,6 +341,7 @@ const [searchcgst,setSearchcgst]=useState("")
     setSearchcgst("");
   }}
       />
+      <HistoryModal open={showHistoryModal} onClose={()=>setShowHistoryModal(false)} data={historyInfo}/>
         </div>
     )
 }

@@ -22,11 +22,14 @@ export const deletepurchase=createAsyncThunk("purchases/delete",async (id) => {
     return id
 })
 
-export const updatePurchase=createAsyncThunk("purchases/update",async ({id, updatedData}) => {
-    
-    await API.put(`${API_URL}/${id}`,updatedData)
-    return res.data
-})
+export const updatePurchase = createAsyncThunk(
+  "purchases/update",
+  async ({ id, updatedData }) => {
+    const res = await API.put(`${API_URL}/${id}`, updatedData);
+    return res.data;
+  }
+);
+
 
 const purchaseSlice=createSlice({
   name:"purchases",
@@ -57,7 +60,7 @@ const purchaseSlice=createSlice({
             state.items=state.items.filter((p)=>p._id !== action.payload)
         })
         .addCase(updatePurchase.fulfilled,(state,action)=>{
-              const index=state.items.findIndex((p)=>p._id === action.payload)
+              const index=state.items.findIndex((p)=>p._id === action.payload._id)
               if( index !== -1){
                 state.items[index]=action.payload
               }
