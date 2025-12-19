@@ -22,7 +22,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 // mongoose.connect("mongodb://127.0.0.1:27017/inventory")
-mongoose.connect("mongodb+srv://jasim2003ahamed_db_user:2003%40Ahamed@cluster0.tuvatzp.mongodb.net/")
+mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB connected"))
 .catch(err => console.log(err));
 app.use("/api/products", productRoutes);
