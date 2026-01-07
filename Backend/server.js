@@ -11,6 +11,7 @@ const supplierRoutes = require("./routes/supplierRoutes");
 const warehouseRoutes = require("./routes/warehouseRoutes");
 const purchaseRoutes = require("./routes/purchaseRoutes");
 const saleposRoutes = require("./routes/saleposRoutes");
+const salereturnRoutes = require("./routes/salereturnRoutes")
 const customerpaymentRoutes = require("./routes/customerpaymentRoutes");
 const supplierpaymentRoutes = require("./routes/supplierpaymentRoutes");
 const stockadjustmentRoutes = require("./routes/stockadjRoutes");
@@ -21,8 +22,8 @@ const userRoutes = require("./routes/userRoutes");
 const app = express();
 app.use(cors());
 app.use(express.json());
-// mongoose.connect("mongodb://127.0.0.1:27017/inventory")
-mongoose.connect(process.env.MONGO_URI) 
+mongoose.connect("mongodb://127.0.0.1:27017/inventory")
+// mongoose.connect(process.env.MONGO_URI) 
 .then(() => console.log("MongoDB connected"))
 .catch(err => console.log(err));
 app.use("/api/products", productRoutes);
@@ -33,6 +34,7 @@ app.use("/api/suppliers", supplierRoutes);
 app.use("/api/warehouses", warehouseRoutes);
 app.use("/api/purchases", purchaseRoutes);
 app.use("/api/sales", saleposRoutes);
+app.use("/api/sales-returns",salereturnRoutes)
 app.use("/api/cus_payments", customerpaymentRoutes);
 app.use("/api/sup_payments", supplierpaymentRoutes);
 app.use("/api/stocks", stockadjustmentRoutes);

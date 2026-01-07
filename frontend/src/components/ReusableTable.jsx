@@ -91,55 +91,63 @@ const ReusableTable = ({
   className = "",
   showHeader = true,
 }) => {
-  const gridColumns = [
-    ...columns.map((col) => ({
-      field: col.key,
-      headerName: col.header,
-      cellRenderer: col.render
-        ? (params) => col.render(params.data)
-        : undefined,
-      width: col.width || 150,
-      cellClass: col.cellClassName || "pt-1",
-      headerClass: col.headerClassName || "bg-light fs-6 fw-bold",
-    })),
-  ];
+const gridColumns = [];
 
-  if (actions.length > 0) {
-    gridColumns.push({
-      cellClass: "pt-1",
-      headerClass: "bg-light fs-6 fw-bold",
-      headerName: "Actions",
-      field: "actions",
-      cellRenderer: (params) => {
-        const availableActions = actions.filter(
-          (a) => !a.show || a.show(params.data)
-        );
-        if (availableActions.length === 0)
-          return <span className="text-muted">-</span>;
+// 👉 Actions column FIRST
+if (actions.length > 0) {
+  gridColumns.push({
+    headerName: "Actions",
+    field: "actions",
+    cellClass: "pt-1",
+    headerClass: "bg-light fs-6 fw-bold",
+    cellRenderer: (params) => {
+      const availableActions = actions.filter(
+        (a) => !a.show || a.show(params.data)
+      );
 
-        return (
-          <div className="btn-group btn-group-sm">
-            {availableActions.map((action, index) => (
-              <button
-                key={index}
-                className={`btn btn-${action.variant} ${
-                  action.className || ""
-                }`}
-                onClick={() => onActionClick(action.type, params.data)}
-                disabled={action.disabled && action.disabled(params.data)}
-                title={action.title || action.type}
-              >
-                {action.icon && <span className="me-1">{action.icon}</span>}
-                {action.label}
-              </button>
-            ))}
-          </div>
-        );
-      },
-      minWidth: 150,
-      flex: 1,
-    });
-  }
+      if (availableActions.length === 0)
+        return <span className="text-muted">-</span>;
+
+      return (
+        <div className="btn-group btn-group-sm">
+          {availableActions.map((action, index) => (
+            <button
+              key={index}
+              className={`btn btn-${action.variant || ""} ${
+                action.className || ""
+              }`}
+              onClick={() => onActionClick(action.type, params.data)}
+              disabled={action.disabled && action.disabled(params.data)}
+              title={action.title || action.type}
+            >
+              {action.icon && <span className="me-1">{action.icon}</span>}
+              {action.label}
+            </button>
+          ))}
+        </div>
+      );
+    },
+    minWidth: 160,
+    pinned: "left", // ⭐ keeps Actions always visible
+    suppressMovable: true,
+  });
+}
+
+// 👉 Other columns AFTER
+gridColumns.push(
+  ...columns.map((col) => ({
+    field: col.key,
+    headerName: col.header,
+    cellRenderer: col.render
+      ? (params) => col.render(params.data)
+      : undefined,
+    width: col.width || 150,
+    cellClass: col.cellClassName || "pt-1",
+    headerClass: col.headerClassName || "bg-light fs-6 fw-bold",
+  }))
+);
+
+
 
   return (
     <div>

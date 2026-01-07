@@ -17,6 +17,7 @@ function Navbar() {
           <li className="nav-item"><Link className="nav-link" to="/warehouses">Warehouses</Link></li>
           <li className="nav-item"><Link className="nav-link" to="/purchases">Purchases</Link></li>
           <li className="nav-item"><Link className="nav-link" to="/sales">Sales</Link></li>
+          <li className="nav-item"><Link className="nav-link" to="/sales-returns"></Link></li>
           <li className="nav-item"><Link className="nav-link" to="/cus_receipts">Customer Receipt</Link></li>
           <li className="nav-item"><Link className="nav-link" to="/sub_receipts">Supplier Receipt</Link></li>
            <li className="nav-item"><Link className="nav-link" to="/stocks">Stocks Adjustment</Link></li>

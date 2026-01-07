@@ -55,6 +55,7 @@ const [dateTime, setDateTime] = useState(() => {
     { name: "Warehouses", path: "/warehouses", icon: <MdOutlineWarehouse />, roles: ["super_admin", "admin", "user"] },
     { name: "Purchases", path: "/purchases", icon: <BiPurchaseTag />, roles: ["super_admin", "admin", "user"] },
     { name: "Sales", path: "/sales", icon: <TbFileInvoice />, roles: ["super_admin", "admin", "user"] },
+    { name:"Sales Return", path:"/sales-returns", icon:<TbFileInvoice/>, roles:["super_admin","admin","user"]},
     { name: "Customer Receipts", path: "/cus_receipts", icon: <MdAttachMoney />, roles: ["super_admin", "admin",] },
     { name: "Supplier Receipts", path: "/sub_receipts", icon: <GiTakeMyMoney />, roles: ["super_admin", "admin",] },
     { name: "Stock Adjustments", path: "/stocks", icon: <PiShippingContainer />, roles: ["super_admin", "admin", "user"] },
@@ -106,11 +107,14 @@ const [dateTime, setDateTime] = useState(() => {
         {sidebarOpen && (
           <div className="p-3"
             style={{
-              width: "280px",
-              background: "linear-gradient(180deg, #1e293b, #0f172a)",
-              color: "white",
-              transition: "width 0.3s ease",
-            }}
+  width: "18rem",
+  minWidth: "16rem",
+  maxWidth: "20rem",
+  background: "linear-gradient(180deg, #1e293b, #0f172a)",
+  color: "white",
+  flexShrink: 0
+}}
+
           >
             <div className="list-group list-group-flush text-center">
               {modules.filter((m) => m.roles.includes(userRole)).map((m) => (

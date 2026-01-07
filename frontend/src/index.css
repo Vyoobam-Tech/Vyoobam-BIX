@@ -5,6 +5,29 @@
   font-style: normal;
 } */
 
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  .card h6 {
+    font-size: 0.9rem;
+  }
+
+  .card p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar-brand span {
+    font-size: 1.2rem;
+  }
+}
+
+
 @font-face {
   font-family: 'Nunito';
   src: url('./assets/fonts/Nunito/Nunito-Bold.ttf') format('truetype');
@@ -12,8 +35,10 @@
   font-style: normal;
 }
 
-*{
+*,*::before,
+*::after{
   font-family: 'Nunito', sans-serif;
+  box-sizing: border-box;
 }
 
 .hovers {

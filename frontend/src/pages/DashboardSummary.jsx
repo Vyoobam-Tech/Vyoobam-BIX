@@ -1,18 +1,19 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProfitLoss } from "../redux/profitlossSlice";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { FaCartShopping } from "react-icons/fa6";
-import { GiBoxUnpacking } from "react-icons/gi";
-import { GiProfit } from "react-icons/gi";
-import { FaUserGroup } from "react-icons/fa6";
-import { MdWarehouse } from "react-icons/md";
-import { BiSolidPurchaseTag } from "react-icons/bi";
 import { fetchcustomers } from "../redux/customerSlice";
 import { fetchsuppliers } from "../redux/supplierSlice";
 import { fetchpurchases } from "../redux/purchaseSlice";
 import { fetchsales } from "../redux/saleSlice";
 import { useNavigate } from "react-router-dom";
+
+import "bootstrap/dist/css/bootstrap.min.css";
+
+import { FaCartShopping, FaUserGroup } from "react-icons/fa6";
+import { GiBoxUnpacking, GiProfit } from "react-icons/gi";
+import { MdWarehouse } from "react-icons/md";
+import { BiSolidPurchaseTag } from "react-icons/bi";
+
 import {
   BarChart,
   Bar,
@@ -22,17 +23,19 @@ import {
   CartesianGrid,
   ResponsiveContainer,
   Legend,
+  LineChart,
+  Line,
 } from "recharts";
-import { LineChart, Line } from "recharts";
-import { useMemo } from "react";
+
 const DashboardSummary = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const { report } = useSelector((state) => state.profitloss);
-  const { items: customers } = useSelector((state) => state.customers);
-  const { items: suppliers } = useSelector((state) => state.suppliers);
-  const { items: purchases } = useSelector((state) => state.purchases);
-  const { items: sales } = useSelector((state) => state.sales);
+  const { items: customers = [] } = useSelector((state) => state.customers);
+  const { items: suppliers = [] } = useSelector((state) => state.suppliers);
+  const { items: purchases = [] } = useSelector((state) => state.purchases);
+  const { items: sales = [] } = useSelector((state) => state.sales);
 
   useEffect(() => {
     dispatch(fetchProfitLoss());
@@ -41,6 +44,8 @@ const DashboardSummary = () => {
     dispatch(fetchpurchases());
     dispatch(fetchsales());
   }, [dispatch]);
+
+  /* ================== CALCULATIONS ================== */
 
   const totalPurchases = purchases.reduce(
     (acc, p) => acc + (Number(p.grand_total) || 0),
@@ -55,6 +60,7 @@ const DashboardSummary = () => {
 
   const topSellingProducts = useMemo(() => {
     const productCount = {};
+
     sales.forEach((sale) => {
       sale.items?.forEach((item) => {
         const name = item.product_id?.name || "Unknown Product";
@@ -63,26 +69,11 @@ const DashboardSummary = () => {
       });
     });
 
-    const sortedProducts = Object.entries(productCount)
+    return Object.entries(productCount)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
-
-    return sortedProducts;
   }, [sales]);
-
-  const goSale = () => {
-    navigate("/sales");
-  };
-  const goCustomer = () => {
-    navigate("/customers");
-  };
-  const getSupplier = () => {
-    navigate("/suppliers");
-  };
-  const getpurchase = () => {
-    navigate("/purchases");
-  };
 
   const recentSales = useMemo(() => {
     return [...sales]
@@ -92,7 +83,7 @@ const DashboardSummary = () => {
       .slice(0, 5);
   }, [sales]);
 
-  const recentpurchases = useMemo(() => {
+  const recentPurchases = useMemo(() => {
     return [...purchases]
       .sort(
         (a, b) => new Date(b.invoice_date_time) - new Date(a.invoice_date_time)
@@ -101,11 +92,15 @@ const DashboardSummary = () => {
   }, [purchases]);
 
   const salesPurchaseData = useMemo(() => {
-    const formatDate = (date) => {
-      const d = new Date(date);
-      return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
-    };
+    const formatDate = (date) =>
+      new Date(date).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+      });
+
     const salesByDate = {};
+    const purchasesByDate = {};
+
     sales.forEach((s) => {
       const date = formatDate(s.invoice_date_time);
       const total =
@@ -113,377 +108,135 @@ const DashboardSummary = () => {
       salesByDate[date] = (salesByDate[date] || 0) + total;
     });
 
-    const purchasesByDate = {};
     purchases.forEach((p) => {
       const date = formatDate(p.invoice_date);
-      const total = Number(p.grand_total) || 0;
-      purchasesByDate[date] = (purchasesByDate[date] || 0) + total;
+      purchasesByDate[date] =
+        (purchasesByDate[date] || 0) + (Number(p.grand_total) || 0);
     });
-    const allDates = Array.from(
+
+    return Array.from(
       new Set([...Object.keys(salesByDate), ...Object.keys(purchasesByDate)])
-    ).sort(
-      (a, b) => new Date(a) - new Date(b) ///   If result < 0 → a comes before b
-    );
-    return allDates.map((date) => ({
+    ).map((date) => ({
       name: date,
       Sales: salesByDate[date] || 0,
       Purchases: purchasesByDate[date] || 0,
     }));
   }, [sales, purchases]);
 
+  /* ================== NAVIGATION ================== */
+
+  const goSale = () => navigate("/sales");
+  const goCustomer = () => navigate("/customers");
+  const goSupplier = () => navigate("/suppliers");
+  const goPurchase = () => navigate("/purchases");
+
+  /* ================== UI ================== */
+
   return (
-    <div className="container mt-4">
+    <div className="container-fluid mt-4">
+      {/* ================== SUMMARY CARDS ================== */}
       <div className="row g-3">
-        <div className="col-md-4">
-          <div
-            className="card mt-0 text-center hovers shadow-lg "
-            style={{
-              width: "80%",
-              minHeight: 150,
-              cursor: "pointer",
-              borderRadius: "20px",
-            }}
-            onClick={goSale}
-          >
-            <div className="card-body d-flex flex-column align-items-center justify-content-center">
-              <span
-                className=" mb-1"
-                style={{ fontSize: 35, color: "#4d6f99ff" }}
-              >
-                <FaCartShopping />
-              </span>
-              <h5 className="card-title mb-0">TOTAL SALES</h5>
-              <p
-                className=" fw-bold mb-0"
-                style={{ fontSize: 20, color: "#4d6f99ff" }}
-              >
-                {" "}
-                ₹{totalSales.toFixed(2)}
-              </p>
+        {[
+          {
+            title: "TOTAL SALES",
+            value: `₹${totalSales.toFixed(2)}`,
+            icon: <FaCartShopping />,
+            onClick: goSale,
+          },
+          {
+            title: "COGS",
+            value: `₹${report?.cogs || 0}`,
+            icon: <GiBoxUnpacking />,
+          },
+          {
+            title: "GROSS PROFIT",
+            value: `₹${report?.grossProfit || 0}`,
+            icon: <GiProfit />,
+          },
+          {
+            title: "TOTAL PURCHASES",
+            value: `₹${totalPurchases.toFixed(2)}`,
+            icon: <BiSolidPurchaseTag />,
+            onClick: goPurchase,
+          },
+          {
+            title: "TOTAL CUSTOMERS",
+            value: customers.length,
+            icon: <FaUserGroup />,
+            onClick: goCustomer,
+          },
+          {
+            title: "TOTAL SUPPLIERS",
+            value: suppliers.length,
+            icon: <MdWarehouse />,
+            onClick: goSupplier,
+          },
+        ].map((card, index) => (
+          <div key={index} className="col-xl-4 col-md-6 col-sm-12">
+            <div
+              className="card text-center h-100 shadow-lg rounded-4"
+              style={{ minHeight: 150, cursor: "pointer" }}
+              onClick={card.onClick}
+            >
+              <div className="card-body d-flex flex-column align-items-center justify-content-center">
+                <span style={{ fontSize: 35, color: "#4d6f99ff" }}>
+                  {card.icon}
+                </span>
+                <h6 className="mt-2">{card.title}</h6>
+                <p
+                  className="fw-bold mb-0"
+                  style={{ fontSize: 20, color: "#4d6f99ff" }}
+                >
+                  {card.value}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="col-md-4">
-          <div
-            className="card mt-0 text-center hovers shadow-lg"
-            style={{
-              width: "80%",
-              minHeight: 150,
-              cursor: "pointer",
-              borderRadius: "20px",
-            }}
-          >
-            <div className="card-body d-flex flex-column align-items-center justify-content-center">
-              <span
-                className=" mb-2"
-                style={{ fontSize: 35, color: "#4d6f99ff" }}
-              >
-                <GiBoxUnpacking />
-              </span>
-              <h5 className="card-title mb-1">COGS</h5>
-              <p
-                className=" fw-bold mb-0"
-                style={{ fontSize: 20, color: "#4d6f99ff" }}
-              >
-                {" "}
-                ₹{report?.cogs || 0}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <div
-            className="card mt-0 text-center hovers shadow-lg"
-            style={{
-              width: "80%",
-              minHeight: 150,
-              cursor: "pointer",
-              borderRadius: "20px",
-            }}
-          >
-            <div className="card-body d-flex flex-column align-items-center justify-content-center">
-              <span
-                className=" mb-2"
-                style={{ fontSize: 35, color: "#4d6f99ff" }}
-              >
-                <GiProfit />
-              </span>
-              <h5 className="card-title mb-1">GROSS PROFIT</h5>
-              <p
-                className=" fw-bold mb-0"
-                style={{ fontSize: 20, color: "#4d6f99ff" }}
-              >
-                {" "}
-                ₹{report?.grossProfit || 0}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <div
-            className="card mt-0 text-center hovers shadow-lg"
-            style={{
-              width: "80%",
-              minHeight: 150,
-              cursor: "pointer",
-              borderRadius: "20px",
-            }}
-            onClick={getpurchase}
-          >
-            <div className="card-body d-flex flex-column align-items-center justify-content-center">
-              <span
-                className=" mb-2"
-                style={{ fontSize: 35, color: "#4d6f99ff" }}
-              >
-                <BiSolidPurchaseTag />
-              </span>
-              <h5 className="card-title mb-1">TOTAL PURCHASES</h5>
-              <p
-                className=" fw-bold mb-0"
-                style={{ fontSize: 20, color: "#4d6f99ff" }}
-              >
-                {" "}
-                ₹{totalPurchases.toFixed(2)}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <div
-            className="card mt-0 text-center hovers shadow-lg"
-            style={{
-              width: "80%",
-              minHeight: 150,
-              cursor: "pointer",
-              borderRadius: "20px",
-            }}
-            onClick={goCustomer}
-          >
-            <div className="card-body d-flex flex-column align-items-center justify-content-center">
-              <span
-                className=" mb-2"
-                style={{ fontSize: 35, color: "#4d6f99ff" }}
-              >
-                <FaUserGroup />
-              </span>
-              <h5 className="card-title mb-1">TOTAL CUSTOMERS</h5>
-              <p
-                className=" fw-bold mb-0"
-                style={{ fontSize: 20, color: "#4d6f99ff" }}
-              >
-                {" "}
-                ₹{customers?.length || 0}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <div
-            className="card mt-0 text-center hovers shadow-lg"
-            style={{
-              width: "80%",
-              minHeight: 150,
-              cursor: "pointer",
-              borderRadius: "20px",
-            }}
-            onClick={getSupplier}
-          >
-            <div className="card-body d-flex flex-column align-items-center justify-content-center">
-              <span
-                className=" mb-2"
-                style={{ fontSize: 35, color: "#4d6f99ff" }}
-              >
-                <MdWarehouse />
-              </span>
-              <h5 className="card-title mb-1">TOTAL SUPPLIERS</h5>
-              <p
-                className=" fw-bold mb-0"
-                style={{ fontSize: 20, color: "#4d6f99ff" }}
-              >
-                {" "}
-                ₹{suppliers?.length || 0}
-              </p>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
+
+      {/* ================== TOP SELLING PRODUCTS ================== */}
       <div className="card shadow-lg mt-4">
         <div className="card-body">
-          <h5 className="fw-bold mb-3"> 📊 TOP SELLING PRODUCTS</h5>
-          {topSellingProducts.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={topSellingProducts}
-                margin={{ top: 10, right: 20, bottom: 10, left: 0 }}
-                onClick={goSale}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#4d6f99ff" radius={[10, 10, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-muted text-center mt-3">
-              No sales data available to display.
-            </p>
-          )}
+          <h5 className="fw-bold mb-3">📊 TOP SELLING PRODUCTS</h5>
+         <ResponsiveContainer width="100%" height={window.innerWidth < 576 ? 220 : 300}>
+
+            <BarChart data={topSellingProducts}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="count" fill="#4d6f99ff" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
+      {/* ================== SALES vs PURCHASES ================== */}
       <div className="card shadow-lg mt-4">
         <div className="card-body">
-          <h5 className="fw-bold mb-3">🧾 RECENT SALES</h5>
-          <table className="table table-bordered table-striped">
-            <thead className="table-dark">
-              <tr>
-                <th>CUSTOMER</th>
-                <th>INVOICE NO</th>
-                <th>DATE</th>
-                <th>PRODUCTS</th>
-                <th>GRAND TOTAL</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentSales.map((s) => (
-                <tr key={s._id}>
-                  <td>{s.customer_id?.name || "Unknown Customer"}</td>
-                  <td>{s.invoice_no || "N/A"}</td>
-                  <td>
-                    {s.invoice_date_time
-                      ? new Date(s.invoice_date_time).toLocaleDateString()
-                      : "N/A"}
-                  </td>
-                  <td>
-                    {s.items?.map((item, idx) => (
-                      <div key={idx}>
-                        {item.product_id?.name || "Unknown Product"} ({item.qty}
-                        )
-                      </div>
-                    ))}
-                  </td>
-                  <td>₹{s.grand_total?.toFixed(2) || "0.00"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="card shadow-lg mt-4">
-        <div className="card-body">
-          <h5 className="fw-bold mb-3">🧾 RECENT PURCHASES</h5>
-          <table className="table table-bordered table-striped">
-            <thead className="table-dark">
-              <tr>
-                <th>SUPPLIER</th>
-                <th>INVOICE NO</th>
-                <th>DATE</th>
-                <th>STORE NAME</th>
-                <th>PRODUCTS</th>
-                <th>GRAND TOTAL</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentpurchases.map((p) => (
-                <tr key={p._id}>
-                  <td>
-                    {p.supplier_id && typeof p.supplier_id === "object"
-                      ? p.supplier_id.name
-                      : suppliers.find((s) => s._id === p.supplier_id)?.name ||
-                        "Unknown Supplier"}
-                  </td>
-
-                  <td>{p.invoice_no || "N/A"}</td>
-                  <td>
-                    {p.invoice_date
-                      ? new Date(p.invoice_date).toLocaleDateString()
-                      : "N/A"}
-                  </td>
-                  <td>
-                    {p.warehouse_id && typeof p.warehouse_id === "object"
-                      ? p.warehouse_id.store_name
-                      : warehouses.find((w) => w._id === p.warehouse_id)
-                          ?.store_name || "Unknown Warehouse"}
-                  </td>
-                  <td>
-                    {p.items?.map((item, idx) => {
-                      let productName = "Unknown Product";
-
-                      if (
-                        item?.product_id &&
-                        typeof item.product_id === "object"
-                      ) {
-                        productName = item.product_id.name || "Unknown Product";
-                      } else if (item?.product_id && Array.isArray(products)) {
-                        const foundProduct = products.find(
-                          (prod) => prod._id === item.product_id
-                        );
-                        productName = foundProduct?.name || "Unknown Product";
-                      }
-
-                      return (
-                        <div key={idx}>
-                          {productName} ({item.qty || 0})
-                        </div>
-                      );
-                    })}
-                  </td>
-                  <td>₹{p.grand_total?.toFixed(2) || "0.00"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="card shadow-lg mt-4">
-        <div className="card shadow-lg mt-4">
-          <div className="card-body">
-            <h5 className="fw-bold mb-3">📈 SALES vs PURCHASES</h5>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart
-                data={salesPurchaseData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="name"
-                  label={{
-                    value: "DATE",
-                    position: "insideBottom",
-                    offset: -5,
-                  }}
-                />
-                <YAxis
-                  label={{
-                    value: "AMOUNT (₹)",
-                    angle: -90,
-                    position: "insideLeft",
-                  }}
-                />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="Sales"
-                  stroke="#4d6f99ff"
-                  strokeWidth={3}
-                  dot={{ r: 5 }}
-                  activeDot={{ r: 8 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="Purchases"
-                  stroke="#82ca9d"
-                  strokeWidth={3}
-                  dot={{ r: 5 }}
-                  activeDot={{ r: 8 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <h5 className="fw-bold mb-3">📈 SALES vs PURCHASES</h5>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={salesPurchaseData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="Sales"
+                stroke="#4d6f99ff"
+                strokeWidth={3}
+              />
+              <Line
+                type="monotone"
+                dataKey="Purchases"
+                stroke="#82ca9d"
+                strokeWidth={3}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>

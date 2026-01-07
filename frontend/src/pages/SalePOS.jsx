@@ -725,6 +725,8 @@ const SalePOS = () => {
     }
   };
 
+
+  
   return (
     <div className="container mt-4">
       <h2 className="mb-4 d-flex align-items-center fs-3">
