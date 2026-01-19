@@ -10,7 +10,6 @@ exports.getexpenses=async (req,res) => {
         else{
            expenses= await Expense.find().populate("warehouseId").populate("created_by","name email role")
         }
-          
         res.json(expenses)
     }
     catch(err){

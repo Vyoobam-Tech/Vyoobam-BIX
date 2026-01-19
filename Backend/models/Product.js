@@ -23,10 +23,7 @@ const productSchema = new mongoose.Schema(
     mrp: { type: Number, required: true },
     purchase_price: { type: Number, required: true },
     sale_price: { type: Number, required: true },
-    min_stock: { type: Number, default: 0 },
-    barcode: { type: String },
-    is_batch_tracked: { type: Boolean, default: false },
-    is_serial_tracked: { type: Boolean, default: false },
+  
     updated_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     updated_by_role: String,
     updatedAt: Date,

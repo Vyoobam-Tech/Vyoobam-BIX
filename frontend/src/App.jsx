@@ -11,7 +11,7 @@ import Purchase from "./pages/Purchase";
 import SalePOS from "./pages/SalePOS";
 import Customer_Payment from "./pages/Customer_Payment";
 import Supplier_Payment from "./pages/Supplier_Payment";
-import StockAdjustment from "./pages/StockAdjustment";
+// import StockAdjustment from "./pages/StockAdjustment";
 import SalesReport from "./pages/reports/SalesReport";
 import Reports from "./pages/Reports";
 import PurchaseReport from "./pages/reports/PurchaseReport";
@@ -96,7 +96,7 @@ function App() {
             <Route path="sales-returns" element={<PrivateRoute roles={["super_admin", "admin", "user"]}><SalesReturn/></PrivateRoute>} />
           <Route path="cus_receipts" element={<PrivateRoute roles={["super_admin", "admin", ]}><Customer_Payment /></PrivateRoute>} />
           <Route path="sub_receipts" element={<PrivateRoute roles={["super_admin", "admin",]}><Supplier_Payment /></PrivateRoute>} />
-          <Route path="stocks" element={<PrivateRoute roles={["super_admin", "admin","user"]}><StockAdjustment /></PrivateRoute>} />
+          {/* <Route path="stocks" element={<PrivateRoute roles={["super_admin", "admin","user"]}><StockAdjustment /></PrivateRoute>} /> */}
           <Route path="stockledger" element={<PrivateRoute roles={["super_admin", "admin","user"]}><StockLedger /></PrivateRoute>} />
           <Route path="expenses" element={<PrivateRoute roles={["super_admin", "admin","user"]}><Expenses /></PrivateRoute>} />
           <Route path="profile" element={<PrivateRoute roles={["super_admin", "admin", "entry_user"]}><Profile /></PrivateRoute>} />

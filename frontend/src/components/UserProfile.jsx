@@ -10,7 +10,6 @@ const UserProfile = () => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const ref = useRef();
-
   useEffect(() => {
     const stored = localStorage.getItem("user");
     const userId = localStorage.getItem("userId");
@@ -121,7 +120,8 @@ const UserProfile = () => {
               style={{ width: "200px" }}
             >
               <button
-                className="btn  w-100 text-white " style={{backgroundColor:"#182235"}}
+                className="btn  w-100 text-white "
+                style={{ backgroundColor: "#182235" }}
                 onClick={() => setShowProfile(true)}
               >
                 View Profile

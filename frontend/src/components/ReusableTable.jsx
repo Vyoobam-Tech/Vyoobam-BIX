@@ -25,7 +25,6 @@ export const createRoleBasedActions = (
   allowedRoles = ["super_admin", "admin", "user"]
 ) => {
   const showAction = allowedRoles.includes(role);
-
   return {
     edit: {
       ...COMMON_ACTIONS.EDIT,
@@ -44,14 +43,12 @@ export const createRoleBasedActions = (
 
 export const createCustomRoleActions = (roleConfig) => {
   const actions = {};
-
   if (roleConfig.edit) {
     actions.edit = {
       ...COMMON_ACTIONS.EDIT,
       show: roleConfig.edit.show || (() => true),
     };
   }
-
   if (roleConfig.delete) {
     actions.delete = {
       ...COMMON_ACTIONS.DELETE,
@@ -65,7 +62,6 @@ export const createCustomRoleActions = (roleConfig) => {
       show: roleConfig.history.show || (() => true),
     };
   }
-
   return Object.values(actions);
 };
 
@@ -91,64 +87,59 @@ const ReusableTable = ({
   className = "",
   showHeader = true,
 }) => {
-const gridColumns = [];
+  const gridColumns = [];
 
-// 👉 Actions column FIRST
-if (actions.length > 0) {
-  gridColumns.push({
-    headerName: "Actions",
-    field: "actions",
-    cellClass: "pt-1",
-    headerClass: "bg-light fs-6 fw-bold",
-    cellRenderer: (params) => {
-      const availableActions = actions.filter(
-        (a) => !a.show || a.show(params.data)
-      );
+  if (actions.length > 0) {
+    gridColumns.push({
+      headerName: "Actions",
+      field: "actions",
+      cellClass: "pt-1",
+      headerClass: "bg-light fs-6 fw-bold",
+      cellRenderer: (params) => {
+        const availableActions = actions.filter(
+          (a) => !a.show || a.show(params.data)
+        );
 
-      if (availableActions.length === 0)
-        return <span className="text-muted">-</span>;
+        if (availableActions.length === 0)
+          return <span className="text-muted">-</span>;
 
-      return (
-        <div className="btn-group btn-group-sm">
-          {availableActions.map((action, index) => (
-            <button
-              key={index}
-              className={`btn btn-${action.variant || ""} ${
-                action.className || ""
-              }`}
-              onClick={() => onActionClick(action.type, params.data)}
-              disabled={action.disabled && action.disabled(params.data)}
-              title={action.title || action.type}
-            >
-              {action.icon && <span className="me-1">{action.icon}</span>}
-              {action.label}
-            </button>
-          ))}
-        </div>
-      );
-    },
-    minWidth: 160,
-    pinned: "left", // ⭐ keeps Actions always visible
-    suppressMovable: true,
-  });
-}
+        return (
+          <div className="btn-group btn-group-sm">
+            {availableActions.map((action, index) => (
+              <button
+                key={index}
+                className={`btn btn-${action.variant || ""} ${
+                  action.className || ""
+                }`}
+                onClick={() => onActionClick(action.type, params.data)}
+                disabled={action.disabled && action.disabled(params.data)}
+                title={action.title || action.type}
+              >
+                {action.icon && <span className="me-1">{action.icon}</span>}
+                {action.label}
+              </button>
+            ))}
+          </div>
+        );
+      },
+      minWidth: 160,
+      pinned: "left",
+      suppressMovable: true,
+    });
+  }
 
-// 👉 Other columns AFTER
-gridColumns.push(
-  ...columns.map((col) => ({
-    field: col.key,
-    headerName: col.header,
-    cellRenderer: col.render
-      ? (params) => col.render(params.data)
-      : undefined,
-    width: col.width || 150,
-    cellClass: col.cellClassName || "pt-1",
-    headerClass: col.headerClassName || "bg-light fs-6 fw-bold",
-  }))
-);
-
-
-
+  gridColumns.push(
+    ...columns.map((col) => ({
+      field: col.key,
+      headerName: col.header,
+      cellRenderer: col.render
+        ? (params) => col.render(params.data)
+        : undefined,
+      width: col.width || 150,
+      cellClass: col.cellClassName || "pt-1",
+      headerClass: col.headerClassName || "bg-light fs-6 fw-bold",
+    }))
+  );
   return (
     <div>
       {searchable && (

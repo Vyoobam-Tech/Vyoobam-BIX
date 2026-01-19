@@ -29,8 +29,6 @@ const Customer = () => {
     billing_address: "",
     shipping_address: "",
     state_code: "",
-    credit_limit: "",
-    opening_balance: "",
   });
 
   const [states, setStates] = useState([]);
@@ -75,6 +73,22 @@ const Customer = () => {
       (countryData?.dialCode
         ? getCountryCodeFromDialCode(countryData.dialCode)
         : "");
+    let localNumber = phone;
+    if (countryData?.dialCode) {
+      localNumber = phone.slice(countryData.dialCode.length);
+    }
+    if (localNumber === "") {
+      setForm((prev) => ({
+        ...prev,
+        phone: phone,
+        country: countryCode,
+      }));
+      updateStates(countryCode);
+      return;
+    }
+    if (!/^[6-9]\d*$/.test(localNumber)) {
+      return;
+    }
     setForm((prev) => ({
       ...prev,
       phone: phone,
@@ -113,8 +127,6 @@ const Customer = () => {
         billing_address: "",
         shipping_address: "",
         state_code: "",
-        credit_limit: "",
-        opening_balance: "",
       });
       setStates([]);
       setShowCustomerForm(false);
@@ -152,8 +164,6 @@ const Customer = () => {
       billing_address: customer.billing_address || "",
       shipping_address: customer.shipping_address || "",
       state_code: customer.state_code || "",
-      credit_limit: customer.credit_limit || "",
-      opening_balance: customer.opening_balance || "",
     });
     setShowCustomerForm(true);
   };
@@ -170,8 +180,6 @@ const Customer = () => {
       billing_address: "",
       shipping_address: "",
       state_code: "",
-      credit_limit: "",
-      opening_balance: "",
     });
   };
   const tableColumns = [
@@ -207,20 +215,6 @@ const Customer = () => {
       header: "Address",
       headerStyle: { width: "200px" },
       render: (customer) => customer.billing_address || "-",
-    },
-    {
-      key: "credit_limit",
-      header: "Credit Limit",
-      headerStyle: { width: "120px" },
-      render: (customer) =>
-        customer.credit_limit ? `₹${customer.credit_limit}` : "-",
-    },
-    {
-      key: "opening_balance",
-      header: "Opening Balance",
-      headerStyle: { width: "140px" },
-      render: (customer) =>
-        customer.opening_balance ? `₹${customer.opening_balance}` : "-",
     },
   ];
   const tableActions = createCustomRoleActions({
@@ -374,6 +368,12 @@ const Customer = () => {
                       containerStyle={{ width: "100%" }}
                       inputStyle={{ width: "100%", height: "38px" }}
                     />
+                    {form.phone && !/^(91)?[6-9]\d{9}$/.test(form.phone) && (
+                      <small className="text-danger">
+                        Mobile number must start with 6, 7, 8, or 9
+                      </small>
+                    )}
+
                     <small className="text-muted">
                       Selected country: {form.country || "None"}
                     </small>
@@ -451,34 +451,6 @@ const Customer = () => {
                       name="shipping_address"
                       value={form.shipping_address}
                     ></textarea>
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label">
-                      Credit Limit (Optional)
-                    </label>
-                    <input
-                      type="number"
-                      className="form-control bg-light"
-                      placeholder="e.g. 50000"
-                      onChange={handleChange}
-                      name="credit_limit"
-                      value={form.credit_limit}
-                    />
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label">
-                      Opening Balance (Optional)
-                    </label>
-                    <input
-                      type="number"
-                      className="form-control bg-light"
-                      placeholder="e.g. 1000"
-                      onChange={handleChange}
-                      value={form.opening_balance}
-                      name="opening_balance"
-                    />
                   </div>
 
                   <div className="col-12 d-flex gap-2">

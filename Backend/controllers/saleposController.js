@@ -34,7 +34,6 @@ exports.addSalePOS = async (req, res) => {
         productId: item.product_id,
         warehouseId: sale.warehouseId,
       }).sort({ createdAt: -1 });
-
       const oldQty = lastLedger ? Number(lastLedger.balanceQty) : 0;
       const saleQty = Number(item.qty);
       if (saleQty > oldQty) {
@@ -112,30 +111,24 @@ exports.getSaleById = async (req, res) => {
       .populate("items.tax_rate_id", "name")
       .populate("created_by", "name email role")
       .populate("updated_by", "name email role");
-
     if (!sale) {
       return res.status(404).json({ error: "Sale not found" });
     }
-
     if (!sale.customer_name && sale.customer_id?.name) {
       sale.customer_name = sale.customer_id.name;
     }
-
     res.json(sale);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-
 exports.getSalesByDateRange = async (req, res) => {
   try {
     const { from_date, to_date } = req.query;
-
     if (!from_date || !to_date) {
       return res.status(400).json({ message: "From date & To date required" });
     }
-
     const sales = await Sale.find({
       invoice_date_time: {
         $gte: new Date(from_date),
@@ -144,7 +137,6 @@ exports.getSalesByDateRange = async (req, res) => {
     })
       .populate("customer_id", "name")
       .populate("items.product_id", "name");
-
     res.json(sales);
   } catch (err) {
     res.status(500).json({ error: err.message });

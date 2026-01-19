@@ -58,7 +58,7 @@ const [dateTime, setDateTime] = useState(() => {
     { name:"Sales Return", path:"/sales-returns", icon:<TbFileInvoice/>, roles:["super_admin","admin","user"]},
     { name: "Customer Receipts", path: "/cus_receipts", icon: <MdAttachMoney />, roles: ["super_admin", "admin",] },
     { name: "Supplier Receipts", path: "/sub_receipts", icon: <GiTakeMyMoney />, roles: ["super_admin", "admin",] },
-    { name: "Stock Adjustments", path: "/stocks", icon: <PiShippingContainer />, roles: ["super_admin", "admin", "user"] },
+    // { name: "Stock Adjustments", path: "/stocks", icon: <PiShippingContainer />, roles: ["super_admin", "admin", "user"] },
     { name: "Stock Ledger", path: "/stockledger", icon: <MdOutlineInventory2 />, roles: ["super_admin", "admin", "user"] },
     { name: "Expense", path: "/expenses", icon: <GiMoneyStack />, roles: ["super_admin", "admin", "user"] },
     { name: "Reports", path: "/reports", icon: <TbReportSearch />, roles: ["super_admin", "admin", "user"] },

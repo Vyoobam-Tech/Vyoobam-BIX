@@ -58,6 +58,8 @@ const SalePOS = () => {
   const [showSaleForm, setShowSaleForm] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyInfo, setHistoryInfo] = useState(null);
+  const [qtyErrors, setQtyErrors] = useState({});
+
   useEffect(() => {
     dispatch(fetchcustomers());
     dispatch(fetchProducts());
@@ -86,21 +88,43 @@ const SalePOS = () => {
     }
   };
 
-  const handleItemChange = (index, e) => {
-    const { name, value } = e.target;
-    const items = [...form.items];
-    let updatedItem = {
-      ...items[index],
-      [name]: value,
-    };
-    if (name === "product_id") {
-      const product = products.find((p) => p._id === value);
-      updatedItem.unit_price = product ? product.sale_price : 0;
-    }
-    updatedItem = calculateLineTotal(updatedItem);
-    items[index] = updatedItem;
-    setForm((prev) => ({ ...prev, items }));
+const handleItemChange = (index, e) => {
+  const { name, value } = e.target;
+  const items = [...form.items];
+
+  let updatedItem = {
+    ...items[index],
+    [name]: value,
   };
+
+  if (name === "product_id") {
+    const product = products.find((p) => p._id === value);
+    updatedItem.unit_price = product ? product.sale_price : 0;
+  }
+
+  if (name === "qty") {
+    const available = getAvailableStock(updatedItem.product_id, form.warehouseId);
+    const entered = Number(value);
+
+    if (entered > available) {
+      setQtyErrors((prev) => ({
+        ...prev,
+        [index]: `Only ${available} item(s) available in stock.`,
+      }));
+    } else {
+      setQtyErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[index];
+        return copy;
+      });
+    }
+  }
+
+  updatedItem = calculateLineTotal(updatedItem);
+  items[index] = updatedItem;
+
+  setForm((prev) => ({ ...prev, items }));
+};
 
   const addItem = () => {
     setForm((prev) => ({
@@ -896,20 +920,23 @@ const SalePOS = () => {
                                 })}
                               </select>
                             </td>
-                            <td>
-                              <input
-                                type="number"
-                                name="qty"
-                                value={item.qty}
-                                min="1"
-                                max={getAvailableStock(
-                                  item.product_id,
-                                  form.warehouseId
-                                )}
-                                onChange={(e) => handleItemChange(index, e)}
-                                className="form-control"
-                              />
-                            </td>
+                           <td>
+  <input
+    type="number"
+    name="qty"
+    value={item.qty}
+    min="1"
+    max={getAvailableStock(item.product_id, form.warehouseId)}
+    onChange={(e) => handleItemChange(index, e)}
+    className={`form-control ${qtyErrors[index] ? "is-invalid" : ""}`}
+  />
+  {qtyErrors[index] && (
+    <div className="invalid-feedback d-block">
+      {qtyErrors[index]}
+    </div>
+  )}
+</td>
+
                             <td>
                               <input
                                 type="number"

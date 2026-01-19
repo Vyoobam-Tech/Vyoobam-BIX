@@ -43,6 +43,7 @@ const totalSalesAmount = salereports.reduce(
   0
 );
 
+const [customerSearch, setCustomerSearch] = useState("");
 const totalCustomers = new Set(
   salereports
     .map((sale) =>
@@ -75,6 +76,16 @@ Object.entries(productQtyMap).forEach(([product, qty]) => {
     topProductQty = qty;
   }
 });
+
+const filteredSalesReports = salereports.filter((sale) => {
+  if (!customerSearch) return true;
+
+  const customerName =
+    sale.customer_id?.name?.toLowerCase() || "walk-in";
+
+  return customerName.includes(customerSearch.toLowerCase());
+});
+
 
   const salesReportColumns = [
   
@@ -242,14 +253,35 @@ Object.entries(productQtyMap).forEach(([product, qty]) => {
   </div>
 )}
 
+{salereports.length > 0 && (
+  <div className="row mb-3">
+    <div className="col-md-4">
+      <label className="form-label">Filter by Customer</label>
+      <div className="input-group">
+        <span className="input-group-text">
+          <FaSearch />
+        </span>
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Type customer name..."
+          value={customerSearch}
+          onChange={(e) => setCustomerSearch(e.target.value)}
+        />
+      </div>
+    </div>
+  </div>
+)}
+
+
       <div className="card">
   <div className="card-header add text-white">
     <h5 className="mb-0">Sales Report</h5>
   </div>
 
   <div className="card-body">
-    <ReusableTable
-      data={salereports}
+   <ReusableTable
+  data={filteredSalesReports}
       columns={salesReportColumns}
       loading={status === "loading"}
       searchable={false}

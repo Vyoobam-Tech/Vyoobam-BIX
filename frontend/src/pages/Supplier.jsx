@@ -25,7 +25,7 @@ const Supplier = () => {
     email: "",
     address: "",
     state_code: "",
-    opening_balance: "",
+    
   });
 
   const [states, setStates] = useState([]);
@@ -68,13 +68,38 @@ const Supplier = () => {
   };
 
   const handlePhoneChange = (phone, countryData) => {
-    const countryCode =
-      countryData?.countryCode ||
-      countryData?.iso2 ||
-      (countryData?.dialCode === '91' ? 'IN' : '');
-    setForm(prev => ({ ...prev, phone: phone, country: countryCode }));
+  const countryCode =
+    countryData?.countryCode ||
+    countryData?.iso2 ||
+    (countryData?.dialCode === '91' ? 'IN' : '');
+  let localNumber = phone;
+  if (countryData?.dialCode) {
+    localNumber = phone.slice(countryData.dialCode.length);
+  }
+
+  if (localNumber === '') {
+    setForm(prev => ({ 
+      ...prev, 
+      phone: phone, 
+      country: countryCode 
+    }));
     updateStates(countryCode);
-  };
+    return;
+  }
+
+  if (countryData?.dialCode === '91' && !/^[6-9]\d*$/.test(localNumber)) {
+    return; 
+  }
+
+  setForm(prev => ({ 
+    ...prev, 
+    phone: phone, 
+    country: countryCode 
+  }));
+
+  updateStates(countryCode);
+};
+
 
   const handleCountryChange = (countryCode) => {
     setForm(prev => ({ ...prev, country: countryCode }));
@@ -98,7 +123,7 @@ const Supplier = () => {
         email: "",
         address: "",
         state_code: "",
-        opening_balance: "",
+        
       });
       setStates([]);
       setShowSupplierForm(false);
@@ -118,7 +143,7 @@ const Supplier = () => {
       email: supplier.email || "",
       address: supplier.address || "",
       state_code: supplier.state_code || "",
-      opening_balance: supplier.opening_balance || "",
+    
     });
     setShowSupplierForm(true);
   };
@@ -138,7 +163,7 @@ const Supplier = () => {
       email: "",
       address: "",
       state_code: "",
-      opening_balance: "",
+      
     });
   };
 
@@ -189,12 +214,7 @@ const Supplier = () => {
       header: "State",
       headerStyle: { width: "100px" }
     },
-    {
-      key: "opening_balance",
-      header: "Opening Balance",
-      headerStyle: { width: "140px" },
-      render: (supplier) => supplier.opening_balance ? `₹${supplier.opening_balance}` : "-"
-    }
+    
   ];
 
    const tableActions = createCustomRoleActions({
@@ -300,7 +320,7 @@ const Supplier = () => {
                 <form className="row g-3" onSubmit={handleSubmit}>
                   <div className="col-md-6">
                     <label className="form-label">Supplier Name <span className="text-danger">*</span></label>
-                    <input type="text" className="form-control bg-light" name="name" value={form.name} onChange={handleChange} required placeholder="Enter Supplier Name" />
+                    <input type="text" className="form-control bg-light" name="name" value={form.name} onChange={handleChange} required placeholder="Enter Supplier Name"   pattern="[A-Za-z\s]+" />
                   </div>
 
                   <div className="col-md-6">
@@ -318,6 +338,11 @@ const Supplier = () => {
                       containerStyle={{ width: '100%' }}
                       inputStyle={{ width: '100%', height: '38px' }}
                     />
+                    {form.phone && !/^(91)?[6-9]\d{9}$/.test(form.phone) && (
+                      <small className="text-danger">
+                        Mobile number must start with 6, 7, 8, or 9
+                      </small>
+                    )}
                     <small className="text-muted">Selected country: {form.country || 'None'}</small>
                   </div>
 
@@ -348,10 +373,7 @@ const Supplier = () => {
                     </select>
                   </div>
 
-                  <div className="col-md-6">
-                    <label className="form-label">Opening Balance</label>
-                    <input type="number" className="form-control bg-light" name="opening_balance" value={form.opening_balance} onChange={handleChange} placeholder="0.00" />
-                  </div>
+                 
 
                   <div className="col-12 d-flex gap-2">
                      <button type="submit" className="btn add text-white px-4" >

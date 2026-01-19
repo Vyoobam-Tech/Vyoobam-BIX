@@ -8,8 +8,7 @@ const customerSchema = new mongoose.Schema({
     billing_address:{type:String,required:true},
     shipping_address:{type:String},
     state_code:{type:String},
-    credit_limit:{type:Number},
-    opening_balance:{type:Number},
+   
     created_by:{type:mongoose.Schema.Types.ObjectId,ref:"User",required:false},
     updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
     updated_by_role:String,

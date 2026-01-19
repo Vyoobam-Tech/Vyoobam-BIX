@@ -112,6 +112,20 @@ const Tax = () => {
     });
   };
 
+  useEffect(() => {
+  const cgst = parseFloat(form.cgst_percent) || 0;
+  const sgst = parseFloat(form.sgst_percent) || 0;
+
+  const calculatedIgst = cgst + sgst;
+  if (calculatedIgst !== Number(form.igst_percent)) {
+    setForm((prev) => ({
+      ...prev,
+      igst_percent: calculatedIgst.toFixed(2),
+    }));
+  }
+}, [form.cgst_percent, form.sgst_percent]);
+
+
   const tableColumns = [
     {
       key: "name",
@@ -122,25 +136,25 @@ const Tax = () => {
       key: "cgst_percent",
       header: "CGST",
       headerStyle: { width: "100px" },
-      render: (tax) => `${tax.cgst_percent}%`,
+      render: (tax) => `${tax.cgst_percent}`,
     },
     {
       key: "sgst_percent",
       header: "SGST",
       headerStyle: { width: "100px" },
-      render: (tax) => `${tax.sgst_percent}%`,
+      render: (tax) => `${tax.sgst_percent}`,
     },
     {
       key: "igst_percent",
       header: "IGST",
       headerStyle: { width: "100px" },
-      render: (tax) => `${tax.igst_percent}%`,
+      render: (tax) => `${tax.igst_percent}`,
     },
     {
       key: "cess_percent",
       header: "CESS",
       headerStyle: { width: "100px" },
-      render: (tax) => (tax.cess_percent ? `${tax.cess_percent}%` : "-"),
+      render: (tax) => (tax.cess_percent ? `${tax.cess_percent}` : "-"),
     },
     {
       key: "is_inclusive",
@@ -295,7 +309,7 @@ const Tax = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label">CGST %</label>
+                    <label className="form-label">CGST </label>
                     <input
                       type="number"
                       className="form-control bg-light"
@@ -306,7 +320,7 @@ const Tax = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label">SGST %</label>
+                    <label className="form-label">SGST </label>
                     <input
                       type="number"
                       className="form-control bg-light"
@@ -317,15 +331,16 @@ const Tax = () => {
                     />
                   </div>
                   <div className="col-md-6">
-                    <label className="form-label">IGST %</label>
+                    <label className="form-label">IGST </label>
                     <input
-                      type="number"
-                      name="igst_percent"
-                      value={form.igst_percent}
-                      onChange={handleChange}
-                      className="form-control bg-light"
-                      placeholder="0.00"
-                    />
+  type="number"
+  name="igst_percent"
+  value={form.igst_percent}
+  readOnly
+  className="form-control bg-light"
+  placeholder="Auto calculated"
+/>
+
                   </div>
                   <div className="col-md-6">
                     <label className="form-label">CESS % (Optional)</label>

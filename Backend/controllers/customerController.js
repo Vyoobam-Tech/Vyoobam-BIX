@@ -2,7 +2,6 @@ const Customer = require('../models/Customer')
 
 exports.getCustomers = async (req, res) => {
   try {
-    
     const customers = await Customer.find().populate("created_by","name email role")
     res.json(customers)
   }

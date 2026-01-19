@@ -33,8 +33,7 @@ exports.addProduct = async (req, res) => {
       sale_price,
       min_stock,
       barcode,
-      is_batch_tracked,
-      is_serial_tracked,
+      
       status,
     } = req.body;
 
@@ -53,8 +52,7 @@ exports.addProduct = async (req, res) => {
       sale_price,
       min_stock,
       barcode,
-      is_batch_tracked,
-      is_serial_tracked,
+      
       status,
       created_by: req.user._id,
       created_by_role: req.user.role,

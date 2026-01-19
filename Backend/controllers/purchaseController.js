@@ -1,5 +1,5 @@
 const Purchase = require("../models/Purchase");
-const StockLedger = require("../models/Stockledger")
+const StockLedger = require("../models/Stockledger");
 
 exports.getPurchases = async (req, res) => {
   try {
@@ -17,7 +17,6 @@ exports.getPurchases = async (req, res) => {
         .populate("warehouse_id")
         .populate("created_by", "name email role");
     }
-
     res.json(purchases);
   } catch {
     res.status(500).json({ error: err.message });
@@ -31,37 +30,27 @@ exports.addPurchase = async (req, res) => {
       created_by: req.user._id,
       created_by_role: req.user.role,
     });
-
     await purchase.save();
-
-for (const item of purchase.items) {
-  const lastLedger = await StockLedger.findOne({
-    productId: item.product_id,
-    warehouseId: purchase.warehouse_id,
-  }).sort({ createdAt: -1 });
-
-  const previousBalance = lastLedger ? lastLedger.balanceQty : 0;
-
-  await StockLedger.create({
-    productId: item.product_id,
-    warehouseId: purchase.warehouse_id,
-
-    txnType: "PURCHASE",
-    txnId: purchase.invoice_no,
-    txnDate: purchase.invoice_date, 
-
-    inQty: Number(item.qty),
-    outQty: 0,
-
-    rate: Number(item.unit_price), 
-    balanceQty: previousBalance + Number(item.qty),
-
-    created_by: req.user._id,
-    created_by_role: req.user.role,
-  });
-}
-
-
+    for (const item of purchase.items) {
+      const lastLedger = await StockLedger.findOne({
+        productId: item.product_id,
+        warehouseId: purchase.warehouse_id,
+      }).sort({ createdAt: -1 });
+      const previousBalance = lastLedger ? lastLedger.balanceQty : 0;
+      await StockLedger.create({
+        productId: item.product_id,
+        warehouseId: purchase.warehouse_id,
+        txnType: "PURCHASE",
+        txnId: purchase.invoice_no,
+        txnDate: purchase.invoice_date,
+        inQty: Number(item.qty),
+        outQty: 0,
+        rate: Number(item.unit_price),
+        balanceQty: previousBalance + Number(item.qty),
+        created_by: req.user._id,
+        created_by_role: req.user.role,
+      });
+    }
     res.json(purchase);
   } catch (err) {
     console.error("Error saving purchase", err);
@@ -104,7 +93,6 @@ exports.updatePurchase = async (req, res) => {
     )
       .populate("created_by", "name email role")
       .populate("updated_by", "name email role");
-
     res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });

@@ -8,7 +8,6 @@ exports.getCustomerPayments = async (req, res) => {
     }else{
        receipts = await CustomerPayment.find().populate('customer_id', 'name')
     }
-    
     res.json(receipts)
   }
   catch (err) {

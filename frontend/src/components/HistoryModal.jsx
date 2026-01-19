@@ -34,7 +34,6 @@ const HistoryModal = ({ open, onClose, data }) => {
                 ? new Date(data.createdAt).toLocaleTimeString()
                 : "-"}
             </p>
-
             <hr />
             <p>
               <b>Updated By:</b> {data?.updatedBy || "-"}

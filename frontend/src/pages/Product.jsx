@@ -30,10 +30,7 @@ const Product = () => {
     mrp: "",
     purchase_price: "",
     sale_price: "",
-    min_stock: "",
-    barcode: "",
-    is_batch_tracked: false,
-    is_serial_tracked: false,
+  
     status: false,
   });
 const [subcategories, setSubcategories] = useState([]);
@@ -182,10 +179,7 @@ const [historyInfo, setHistoryInfo] = useState(null);
       mrp: "",
       purchase_price: "",
       sale_price: "",
-      min_stock: "",
-      barcode: "",
-      is_batch_tracked: false,
-      is_serial_tracked: false,
+     
       status: true,
     });
 
@@ -232,10 +226,7 @@ const [historyInfo, setHistoryInfo] = useState(null);
       mrp: product.mrp || "",
       purchase_price: product.purchase_price || "",
       sale_price: product.sale_price || "",
-      min_stock: product.min_stock || "",
-      barcode: product.barcode || "",
-      is_batch_tracked: product.is_batch_tracked || false,
-      is_serial_tracked: product.is_serial_tracked || false,
+    
       status: product.status || false,
     });
 
@@ -272,10 +263,7 @@ const handleCloseForm = () => {
       mrp: "",
       purchase_price: "",
       sale_price: "",
-      min_stock: "",
-      barcode: "",
-      is_batch_tracked: false,
-      is_serial_tracked: false,
+   
       status: true,
     });
     setSubcategories([]);
@@ -573,49 +561,7 @@ return (
                     />
                   </div>
 
-                  <div className="col-md-6">
-                    <label className="form-label">Min Stock / Reorder Level</label>
-                    <input 
-                      type="number" 
-                      className="form-control bg-light" 
-                      name="min_stock" 
-                      value={form.min_stock} 
-                      onChange={handleChange} 
-                    />
-                  </div>
-
-                  <div className="col-md-6">
-                    <label className="form-label">Barcode (Optional)</label>
-                    <input 
-                      type="text" 
-                      className="form-control bg-light" 
-                      name="barcode" 
-                      value={form.barcode} 
-                      onChange={handleChange} 
-                    />
-                  </div>
-
-                  <div className="col-md-4 form-check">
-                    <input 
-                      type="checkbox" 
-                      className="form-check-input" 
-                      name="is_batch_tracked" 
-                      checked={form.is_batch_tracked} 
-                      onChange={handleChange} 
-                    />
-                    <label className="form-check-label">Batch Tracking</label>
-                  </div>
-
-                  <div className="col-md-4 form-check">
-                    <input 
-                      type="checkbox" 
-                      className="form-check-input" 
-                      name="is_serial_tracked" 
-                      checked={form.is_serial_tracked} 
-                      onChange={handleChange} 
-                    />
-                    <label className="form-check-label">Serial Tracking</label>
-                  </div>
+                  
 
                   <div className="col-md-4 form-check">
                     <input 

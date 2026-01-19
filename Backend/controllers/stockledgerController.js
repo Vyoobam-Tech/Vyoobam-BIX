@@ -5,57 +5,48 @@ exports.getStockledger = async (req, res) => {
     if (req.user.role === "user") {
       query.created_by_role = { $in: ["super_admin", "admin", "user"] };
     }
-const ledgers = await Stockledger.find(query)
+    const ledgers = await Stockledger.find(query)
       .limit(500)
       .populate("productId", "name")
-      .populate("warehouseId", "store_name") 
+      .populate("warehouseId", "store_name")
       .populate("created_by", "name email role")
       .lean();
-
     res.json(ledgers);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-
 exports.postStockledger = async (req, res) => {
   try {
     const { productId, warehouseId, inQty } = req.body;
-
     if (!productId || !warehouseId) {
       return res
         .status(400)
         .json({ error: "Product and Warehouse are required" });
     }
-
     const qty = Number(inQty);
     if (!qty || qty <= 0) {
       return res.status(400).json({ error: "In Qty must be greater than 0" });
     }
-
     const lastLedger = await Stockledger.findOne({
       productId,
       warehouseId,
     }).sort({ createdAt: -1 });
-
     const oldQty = lastLedger ? Number(lastLedger.balanceQty) : 0;
-
     const ledger = new Stockledger({
       productId,
       warehouseId,
       txnType: "PURCHASE",
       txnId: `TD-${Math.floor(1000 + Math.random() * 9000)}`,
-
       txnDate: new Date(),
       inQty: qty,
       outQty: 0,
-      quantity:0,
+      quantity: 0,
       balanceQty: oldQty + qty,
       created_by: req.user._id,
       created_by_role: req.user.role,
     });
-
     await ledger.save();
     res.status(201).json(ledger);
   } catch (err) {
@@ -108,7 +99,7 @@ exports.updateStockledger = async (req, res) => {
 exports.getStockById = async (req, res) => {
   try {
     const stock = await Stockledger.findById(req.params.id)
-     .populate("productId", "name")
+      .populate("productId", "name")
       .populate("warehouseId", "store_name")
       .populate("created_by", "name email role")
       .populate("updated_by", "name email role");

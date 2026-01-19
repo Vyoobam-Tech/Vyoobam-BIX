@@ -87,17 +87,37 @@ return;
 
 
   const handlePhoneChange = (phone, countryData) => {
-    const countryCode =
-      countryData?.countryCode ||
-      countryData?.iso2 ||
-      (countryData?.dialCode === '91' ? 'IN' : '');
+  const countryCode =
+    countryData?.countryCode ||
+    countryData?.iso2 ||
+    (countryData?.dialCode === '91' ? 'IN' : '');
+  let localNumber = phone;
+  if (countryData?.dialCode) {
+    localNumber = phone.slice(countryData.dialCode.length);
+  }
+
+  if (localNumber === '') {
     setForm((prev) => ({
       ...prev,
       phone: phone,
       country: countryCode
     }));
     updateStates(countryCode);
-  };
+    return;
+  }
+  if (countryData?.dialCode === '91' && !/^[6-9]\d*$/.test(localNumber)) {
+    return; 
+  }
+
+  setForm((prev) => ({
+    ...prev,
+    phone: phone,
+    country: countryCode
+  }));
+
+  updateStates(countryCode);
+};
+
 
   const handleCountryChange = (countryCode, countryData) => {
     setForm((prev) => ({
@@ -391,6 +411,12 @@ return;
                         height: '38px',
                       }}
                     />
+
+                    {form.phone && !/^(91)?[6-9]\d{9}$/.test(form.phone) && (
+                      <small className="text-danger">
+                        Mobile number must start with 6, 7, 8, or 9
+                      </small>
+                    )}
                     <small className="text-muted">Selected country: {form.country || 'None'}</small>
                   </div>
 

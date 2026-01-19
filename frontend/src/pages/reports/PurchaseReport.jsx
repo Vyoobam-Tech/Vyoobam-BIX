@@ -17,6 +17,8 @@ const [form, setForm] = useState({
     to_date: "",
   });
 
+  const [supplierSearch, setSupplierSearch] = useState("");
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -69,6 +71,16 @@ Object.entries(productQtyMap).forEach(([product, qty]) => {
     topProductQty = qty;
   }
 });
+
+const filteredPurchaseReports = purchasereports.filter((purchase) => {
+  if (!supplierSearch) return true;
+
+  const supplierName =
+    purchase.supplier_id?.name?.toLowerCase() || "";
+
+  return supplierName.includes(supplierSearch.toLowerCase());
+});
+
 
   const purchaseReportColumns = [
   {
@@ -231,6 +243,27 @@ Object.entries(productQtyMap).forEach(([product, qty]) => {
   </div>
 )}
 
+
+{purchasereports.length > 0 && (
+  <div className="row mb-3">
+    <div className="col-md-4">
+      <label className="form-label">Filter by Supplier</label>
+      <div className="input-group">
+        <span className="input-group-text">
+          <FaSearch />
+        </span>
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Type supplier name..."
+          value={supplierSearch}
+          onChange={(e) => setSupplierSearch(e.target.value)}
+        />
+      </div>
+    </div>
+  </div>
+)}
+
 <div className="row mb-4">
   <div className="col-12">
     <div className="card">
@@ -240,7 +273,8 @@ Object.entries(productQtyMap).forEach(([product, qty]) => {
 
       <div className="card-body">
         <ReusableTable
-          data={purchasereports}
+  data={filteredPurchaseReports}
+
           columns={purchaseReportColumns}
           loading={status === "loading"}
           searchable={false}

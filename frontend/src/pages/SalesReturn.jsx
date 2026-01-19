@@ -34,6 +34,9 @@ const [form, setForm] = useState({
     return_amount: 0,
 });
 
+const [qtyError, setQtyError] = useState("");
+
+
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user || !user.token) console.error("No user found Please Login");
@@ -75,14 +78,27 @@ const [form, setForm] = useState({
 }, []);
 
 
+const handleChange = (e) => {
+  const { name, value, type, checked } = e.target;
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm({
-      ...form,
-      [name]: type === "checkbox" ? checked : value
-    });
-  };
+  if (name === "quantity") {
+    const qty = Number(value);
+    const soldQty = Number(selectedSaleItem?.qty || 0);
+
+    if (qty > soldQty) {
+      setQtyError(
+        `Customer bought only ${soldQty} item(s), but you are trying to return ${qty}.`
+      );
+    } else {
+      setQtyError("");
+    }
+  }
+
+  setForm({
+    ...form,
+    [name]: type === "checkbox" ? checked : value,
+  });
+};
 
   const selectedSale = customerSales.find(
   (s) => s._id === form.invoice_no
@@ -416,26 +432,32 @@ const handleSubmit = async (e) => {
         </div>
         
 
-        <div className="col-md-6">
-  <label className="form-label">Quantity <span className="text-danger">*</span></label>
+     <div className="col-md-6">
+  <label className="form-label">
+    Quantity <span className="text-danger">*</span>
+  </label>
+
   <input
     type="number"
-    className="form-control bg-light"
+    className={`form-control bg-light ${qtyError ? "is-invalid" : ""}`}
     name="quantity"
     value={form.quantity}
     min="1"
-    max={
-      Math.min(
-        selectedSaleItem?.qty || 0,
-        getAvailableStock(form.product_id) + (selectedSaleItem?.qty || 0)
-      )
-    }
+    max={selectedSaleItem?.qty || 0}
     onChange={handleChange}
   />
+
   <small className="text-muted">
-    Sold Qty: {selectedSaleItem?.qty || 0} 
+    Sold Qty: {selectedSaleItem?.qty || 0}
   </small>
+
+  {qtyError && (
+    <div className="invalid-feedback d-block">
+      {qtyError}
+    </div>
+  )}
 </div>
+
 
 
         <div className="col-md-6">
