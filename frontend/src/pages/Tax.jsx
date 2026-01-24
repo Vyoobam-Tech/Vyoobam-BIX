@@ -5,7 +5,7 @@ import { setAuthToken } from "../services/userService";
 import HistoryModal from "../components/HistoryModal";
 import ReusableTable, {
   createCustomRoleActions,
-} from "../components/ReusableTable"; // Import the reusable table
+} from "../components/ReusableTable"; 
 import API from "../api/axiosInstance";
 const Tax = () => {
   const dispatch = useDispatch();

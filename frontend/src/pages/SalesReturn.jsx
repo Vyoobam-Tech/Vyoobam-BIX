@@ -215,7 +215,7 @@ const handleSubmit = async (e) => {
         ],
         reason: form.reason,
       })
-    ).unwrap(); // 🔥 catches backend errors properly
+    ).unwrap();
 
     alert("Sales Return Created Successfully");
 
@@ -228,7 +228,7 @@ const handleSubmit = async (e) => {
       return_amount: 0,
     });
 
-    dispatch(fetchsales()); // refresh sales list
+    dispatch(fetchsales());
   } catch (err) {
     console.error("Sales return error:", err);
     alert(err);

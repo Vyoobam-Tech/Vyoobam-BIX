@@ -11,11 +11,7 @@ const router = express.Router();
 
 router.get("/sales",protect,authorize("super_admin","admin","user"), getSaleReports);
 router.get("/purchase",protect,authorize("super_admin","admin","user"), getPurchaseReports);
-
-
 router.get("/salesreturns",protect,authorize("super_admin","admin"),getSaleReturnReports)
-
-
 router.get("/gst",getGSTReports)
 router.post("/gst",addGSTReport)
 router.delete("/gst/:id",deletegstReport)

@@ -62,23 +62,21 @@ const Login = () => {
     Password <span className="text-danger">*</span>
   </label>
 
-  {/* Password Input */}
   <input
     className="form-control bg-light"
     type={showPassword ? "text" : "password"}
     name="password"
     value={form.password}
     onChange={handleChange}
-    style={{ paddingRight: "40px" }}   // space for icon
+    style={{ paddingRight: "40px" }}  
   />
 
-  {/* Eye Icon inside input */}
   <span
     onClick={() => setShowPassword(!showPassword)}
     style={{
       position: "absolute",
       right: "15px",
-      top: "35px",      // adjust based on input height
+      top: "35px",     
       cursor: "pointer",
       fontSize: "20px",
       color: "#888",

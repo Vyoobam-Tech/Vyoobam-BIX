@@ -9,7 +9,7 @@ export const fetchProducts = createAsyncThunk("products/fetchAll", async () => {
 });
 
 export const addProduct = createAsyncThunk("products/addProduct", async (product) => {
-  // Remove fields that backend should generate
+
   const filtered = { ...product };
   delete filtered.created_by;
   delete filtered.created_by_role;

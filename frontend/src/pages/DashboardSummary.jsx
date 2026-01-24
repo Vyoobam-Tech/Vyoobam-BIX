@@ -45,8 +45,6 @@ const DashboardSummary = () => {
     dispatch(fetchsales());
   }, [dispatch]);
 
-  /* ================== CALCULATIONS ================== */
-
   const totalPurchases = purchases.reduce(
     (acc, p) => acc + (Number(p.grand_total) || 0),
     0
@@ -123,18 +121,14 @@ const DashboardSummary = () => {
     }));
   }, [sales, purchases]);
 
-  /* ================== NAVIGATION ================== */
-
   const goSale = () => navigate("/sales");
   const goCustomer = () => navigate("/customers");
   const goSupplier = () => navigate("/suppliers");
   const goPurchase = () => navigate("/purchases");
 
-  /* ================== UI ================== */
-
   return (
     <div className="container-fluid mt-4">
-      {/* ================== SUMMARY CARDS ================== */}
+ 
       <div className="row g-3">
         {[
           {
@@ -195,7 +189,7 @@ const DashboardSummary = () => {
         ))}
       </div>
 
-      {/* ================== TOP SELLING PRODUCTS ================== */}
+     
       <div className="card shadow-lg mt-4">
         <div className="card-body">
           <h5 className="fw-bold mb-3">📊 TOP SELLING PRODUCTS</h5>
@@ -212,7 +206,6 @@ const DashboardSummary = () => {
         </div>
       </div>
 
-      {/* ================== SALES vs PURCHASES ================== */}
       <div className="card shadow-lg mt-4">
         <div className="card-body">
           <h5 className="fw-bold mb-3">📈 SALES vs PURCHASES</h5>
