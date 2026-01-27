@@ -1,21 +1,24 @@
-import { useEffect, useState } from 'react';
-import PhoneInput from 'react-phone-input-2';
-import { State, Country } from 'country-state-city';
-import { useDispatch, useSelector } from 'react-redux';
-import { addwarehouse, deletewarehouse, fetchwarehouses, updateWarehouse } from '../redux/warehouseSlice';
-import { setAuthToken } from '../services/userService';
-import ReusableTable, {createCustomRoleActions,} from '../components/ReusableTable'; 
-import API from '../api/axiosInstance';
-import HistoryModal from '../components/HistoryModal';
-
+import { useEffect, useState } from "react";
+import PhoneInput from "react-phone-input-2";
+import { State, Country } from "country-state-city";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addwarehouse,
+  deletewarehouse,
+  fetchwarehouses,
+  updateWarehouse,
+} from "../redux/warehouseSlice";
+import ReusableTable, {
+  createCustomRoleActions,
+} from "../components/ReusableTable";
+import API from "../api/axiosInstance";
+import { useNavigate } from "react-router-dom";
+import HistoryModal from "../components/HistoryModal";
 const Warehouse = () => {
   const dispatch = useDispatch();
-  const { items: warehouses, status } = useSelector((state) => state.warehouses);
-
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role || "user";
-  const token = user?.token;
-
+  const { items: warehouses, status } = useSelector(
+    (state) => state.warehouses,
+  );
   const [form, setForm] = useState({
     store_name: "",
     code: "",
@@ -25,26 +28,30 @@ const Warehouse = () => {
     contact: "",
     phone: "",
     email: "",
-    status: false
+    status: false,
   });
 
   const [states, setStates] = useState([]);
   const [editingWarehouse, setEditingWarehouse] = useState(null);
   const [showWarehouseForm, setShowWarehouseForm] = useState(false);
- const [searchName,setSearchName]=useState("")
- const [searchPerson,setSearchPerson]=useState("")
- const [searchPhone,setSearchPhone]=useState("")
- const [showHistoryModal,setShowHistoryModal]=useState(false)
- const [historyInfo,setHistoryInfo]=useState(null)
+  const [searchName, setSearchName] = useState("");
+  const [searchPerson, setSearchPerson] = useState("");
+  const [searchPhone, setSearchPhone] = useState("");
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyInfo, setHistoryInfo] = useState(null);
+  const [role, setRole] = useState("user");
 
+  const navigate = useNavigate();
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.token) console.error("No user found Please Login");
-    const token = user?.token;
-    setAuthToken(token);
-    dispatch(fetchwarehouses());
-  }, [dispatch]);
-
+    API.get("/users/me")
+      .then((res) => {
+        setRole(res.data.role);
+        dispatch(fetchwarehouses());
+      })
+      .catch(() => {
+        navigate("/login", { replace: true });
+      });
+  }, [dispatch, navigate]);
 
   const updateStates = (countryCode) => {
     if (countryCode) {
@@ -61,68 +68,66 @@ const Warehouse = () => {
       setForm((prev) => ({ ...prev, state_code: "" }));
     }
   };
-const handleChange = (e) => {
-  const { name, value, type, checked } = e.target;
-if (name === "store_name") {
-    const existingWarehouse = warehouses.find(
-      (w) => w.store_name?.toLowerCase() === value.toLowerCase()
-    );
- setForm((prev) => ({
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (name === "store_name") {
+      const existingWarehouse = warehouses.find(
+        (w) => w.store_name?.toLowerCase() === value.toLowerCase(),
+      );
+      setForm((prev) => ({
+        ...prev,
+        store_name: value,
+        status: existingWarehouse ? true : false,
+      }));
+      return;
+    }
+
+    setForm((prev) => ({
       ...prev,
-      store_name: value,
-      status: existingWarehouse ? true : false,
+      [name]: type === "checkbox" ? checked : value,
     }));
-return;
-  }
 
-  setForm((prev) => ({
-    ...prev,
-    [name]: type === "checkbox" ? checked : value,
-  }));
-
-  if (name === "country") {
-    updateStates(value);
-  }
-};
-
+    if (name === "country") {
+      updateStates(value);
+    }
+  };
 
   const handlePhoneChange = (phone, countryData) => {
-  const countryCode =
-    countryData?.countryCode ||
-    countryData?.iso2 ||
-    (countryData?.dialCode === '91' ? 'IN' : '');
-  let localNumber = phone;
-  if (countryData?.dialCode) {
-    localNumber = phone.slice(countryData.dialCode.length);
-  }
+    const countryCode =
+      countryData?.countryCode ||
+      countryData?.iso2 ||
+      (countryData?.dialCode === "91" ? "IN" : "");
+    let localNumber = phone;
+    if (countryData?.dialCode) {
+      localNumber = phone.slice(countryData.dialCode.length);
+    }
 
-  if (localNumber === '') {
+    if (localNumber === "") {
+      setForm((prev) => ({
+        ...prev,
+        phone: phone,
+        country: countryCode,
+      }));
+      updateStates(countryCode);
+      return;
+    }
+    if (countryData?.dialCode === "91" && !/^[6-9]\d*$/.test(localNumber)) {
+      return;
+    }
+
     setForm((prev) => ({
       ...prev,
       phone: phone,
-      country: countryCode
+      country: countryCode,
     }));
+
     updateStates(countryCode);
-    return;
-  }
-  if (countryData?.dialCode === '91' && !/^[6-9]\d*$/.test(localNumber)) {
-    return; 
-  }
-
-  setForm((prev) => ({
-    ...prev,
-    phone: phone,
-    country: countryCode
-  }));
-
-  updateStates(countryCode);
-};
-
+  };
 
   const handleCountryChange = (countryCode, countryData) => {
     setForm((prev) => ({
       ...prev,
-      country: countryCode
+      country: countryCode,
     }));
     updateStates(countryCode);
   };
@@ -131,7 +136,9 @@ return;
     e.preventDefault();
     try {
       if (editingWarehouse) {
-        await dispatch(updateWarehouse({ id: editingWarehouse, updatedData: form })).unwrap();
+        await dispatch(
+          updateWarehouse({ id: editingWarehouse, updatedData: form }),
+        ).unwrap();
         setEditingWarehouse(null);
         console.log("Warehouse updated Successfully");
       } else {
@@ -148,7 +155,7 @@ return;
         contact: "",
         phone: "",
         email: "",
-        status: false
+        status: false,
       });
       setShowWarehouseForm(false);
       setStates([]);
@@ -173,7 +180,7 @@ return;
       contact: warehouse.contact || "",
       phone: warehouse.phone?.toString() || "",
       email: warehouse.email || "",
-      status: warehouse.status || false
+      status: warehouse.status || false,
     });
     setShowWarehouseForm(true);
   };
@@ -190,158 +197,170 @@ return;
       contact: "",
       phone: "",
       email: "",
-      status: false
+      status: false,
     });
   };
 
-  const filteredwarehouse = warehouses.filter(
-    (w) =>{
-      const name=w.store_name?.toLowerCase() || ""
-      const person=w.contact?.toLowerCase() || ""
-      const phone=String(w.phone || "").toLowerCase() 
-      const matchname=searchName.trim() === "" || name.includes(searchName.toLowerCase())
-      const matchperson=searchPerson.trim() === ""|| person.includes(searchPerson.toLowerCase())
-      const matchphone=searchPhone.trim() === ""|| phone.includes(searchPhone.toLowerCase())
-      return matchname && matchperson && matchphone
-    }
-     
-  );
+  const filteredwarehouse = warehouses.filter((w) => {
+    const name = w.store_name?.toLowerCase() || "";
+    const person = w.contact?.toLowerCase() || "";
+    const phone = String(w.phone || "").toLowerCase();
+    const matchname =
+      searchName.trim() === "" || name.includes(searchName.toLowerCase());
+    const matchperson =
+      searchPerson.trim() === "" || person.includes(searchPerson.toLowerCase());
+    const matchphone =
+      searchPhone.trim() === "" || phone.includes(searchPhone.toLowerCase());
+    return matchname && matchperson && matchphone;
+  });
 
   const tableColumns = [
     {
       key: "store_name",
       header: "Warehouse / Store Name",
-      headerStyle: { width: "180px" }
+      headerStyle: { width: "180px" },
     },
     {
       key: "code",
       header: "Code",
-      headerStyle: { width: "100px" }
+      headerStyle: { width: "100px" },
     },
     {
       key: "address",
       header: "Address",
       headerStyle: { width: "200px" },
-      render: (warehouse) => warehouse.address || "-"
+      render: (warehouse) => warehouse.address || "-",
     },
     {
       key: "state_code",
       header: "State",
-      headerStyle: { width: "100px" }
+      headerStyle: { width: "100px" },
     },
     {
       key: "contact",
       header: "Contact",
       headerStyle: { width: "150px" },
-      render: (warehouse) => warehouse.contact || "-"
+      render: (warehouse) => warehouse.contact || "-",
     },
     {
       key: "phone",
       header: "Phone",
-      headerStyle: { width: "130px" }
+      headerStyle: { width: "130px" },
     },
     {
       key: "email",
       header: "Email",
       headerStyle: { width: "180px" },
-      render: (warehouse) => warehouse.email || "-"
+      render: (warehouse) => warehouse.email || "-",
     },
     {
       key: "status",
       header: "Status",
       headerStyle: { width: "100px" },
       render: (warehouse) => (
-        <span className={warehouse.status ? "text-success fw-bold" : "text-danger"}>
+        <span
+          className={warehouse.status ? "text-success fw-bold" : "text-danger"}
+        >
           {warehouse.status ? "Active" : "Inactive"}
         </span>
-      )
-    }
+      ),
+    },
   ];
 
   const tableActions = createCustomRoleActions({
-     edit: { 
-       show: () => ["super_admin", "admin",].includes(role) 
-     },
-     delete: { 
-       show: () => ["super_admin", "admin"].includes(role) 
-     },
-     history:{
-      show:()=>["super_admin","admin","user"].includes(role)
-     }
-    })
-   
-    
-     const handleTableAction = (actionType, warehouse) => {
-       if (actionType === "edit") {
-         handleEdit(warehouse);
-       } else if (actionType === "delete") {
-         handleDelete(warehouse._id);
-       }else if(actionType === "history"){
-        handleHistory(warehouse)
-       }
-     };
+    edit: {
+      show: () => ["super_admin", "admin"].includes(role),
+    },
+    delete: {
+      show: () => ["super_admin", "admin"].includes(role),
+    },
+    history: {
+      show: () => ["super_admin", "admin", "user"].includes(role),
+    },
+  });
 
+  const handleTableAction = (actionType, warehouse) => {
+    if (actionType === "edit") {
+      handleEdit(warehouse);
+    } else if (actionType === "delete") {
+      handleDelete(warehouse._id);
+    } else if (actionType === "history") {
+      handleHistory(warehouse);
+    }
+  };
 
-     const handleHistory=async (warehouse) => {
-      if(!warehouse._id){
-        console.error("warehouse ID missing :",warehouse)
-        setHistoryInfo({
-          createdBy:warehouse?.created_by?.name || warehouse?.created_by?.username  || warehouse?.created_by?.email || "Unknown",
-          createdAt:warehouse?.createdAt || null,
-          updatedBy:"-",
-          updatedAt:null,
-        })
+  const handleHistory = async (warehouse) => {
+    if (!warehouse._id) {
+      console.error("warehouse ID missing :", warehouse);
+      setHistoryInfo({
+        createdBy:
+          warehouse?.created_by?.name ||
+          warehouse?.created_by?.username ||
+          warehouse?.created_by?.email ||
+          "Unknown",
+        createdAt: warehouse?.createdAt || null,
+        updatedBy: "-",
+        updatedAt: null,
+      });
+    }
+    try {
+      const res = await API.get(`/warehouses/${warehouse._id}`);
 
-      }
-      try{
-        const res=await API.get(`/warehouses/${warehouse._id}`,{
-          headers:{Authorization:`Bearer ${user?.token}`,}
-        })
-        const w=res.data
-        const createdByUser=w?.created_by?.name || w?.created_by?.username  || w?.created_by?.email || "Unknown"
-        const updatedByUser=w?.updated_by?.name || w?.updated_by?.username || w?.updated_by?.email || "-"
-        setHistoryInfo({
-          createdBy:createdByUser,
-          createdAt:warehouse?.createdAt || w?.createdAt || null,
-          updatedBy:updatedByUser,
-          updatedAt:warehouse?.updatedAt || w?.updatedAt || null,
-         oldValue:w?.history?.oldValue || null,
-         newValue:w?.history?.newValue || null,
-        })
-      }catch(err){
-        console.warn(`Failed to fetch warehouse history ${warehouse._id}`)
-        setHistoryInfo({
-            createdBy:warehouse?.created_by?.name || warehouse?.created_by?.username  || warehouse?.created_by?.email || "Unknown",
-          createdAt:warehouse?.createdAt || null,
-          updatedBy:warehouse?.updated_by?.name || warehouse?.updated_by?.username || warehouse?.updated_by?.email || "-",
-          updatedAt:warehouse?.updatedAt || null,
-          oldValue:null,
-          newValue:warehouse
+      const w = res.data;
+      const createdByUser =
+        w?.created_by?.name ||
+        w?.created_by?.username ||
+        w?.created_by?.email ||
+        "Unknown";
+      const updatedByUser =
+        w?.updated_by?.name ||
+        w?.updated_by?.username ||
+        w?.updated_by?.email ||
+        "-";
+      setHistoryInfo({
+        createdBy: createdByUser,
+        createdAt: warehouse?.createdAt || w?.createdAt || null,
+        updatedBy: updatedByUser,
+        updatedAt: warehouse?.updatedAt || w?.updatedAt || null,
+        oldValue: w?.history?.oldValue || null,
+        newValue: w?.history?.newValue || null,
+      });
+    } catch (err) {
+      console.warn(`Failed to fetch warehouse history ${warehouse._id}`);
+      setHistoryInfo({
+        createdBy:
+          warehouse?.created_by?.name ||
+          warehouse?.created_by?.username ||
+          warehouse?.created_by?.email ||
+          "Unknown",
+        createdAt: warehouse?.createdAt || null,
+        updatedBy:
+          warehouse?.updated_by?.name ||
+          warehouse?.updated_by?.username ||
+          warehouse?.updated_by?.email ||
+          "-",
+        updatedAt: warehouse?.updatedAt || null,
+        oldValue: null,
+        newValue: warehouse,
+      });
+    } finally {
+      setShowHistoryModal(true);
+    }
+  };
 
-        })
-
-      }
-      finally{
-        setShowHistoryModal(true)
-      }
-     }
- 
   return (
     <div className="container mt-4">
       <h2 className="mb-4 d-flex align-items-center fs-3">
-        
         <b>Warehouses</b>
       </h2>
 
-  
       <div className="row mb-4">
         <div className="col-12">
           {["super_admin", "admin"].includes(role) && (
             <button
-              className="btn add text-white d-flex align-items-center" 
+              className="btn add text-white d-flex align-items-center"
               onClick={() => setShowWarehouseForm(true)}
             >
-             
               Add Warehouse
             </button>
           )}
@@ -349,7 +368,11 @@ return;
       </div>
 
       {showWarehouseForm && (
-        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <div
+          className="modal show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
           <div className="modal-dialog modal-lg modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header  text-white">
@@ -364,51 +387,88 @@ return;
               </div>
               <div className="modal-body">
                 <form className="row g-3" onSubmit={handleSubmit}>
-                  
                   <div className="col-md-6">
-                    <label className="form-label">Warehouse / Store Name <span className="text-danger">*</span></label>
-                    <input type="text" className="form-control bg-light" placeholder="Enter warehouse/store name" name="store_name" value={form.store_name} onChange={handleChange} required />
+                    <label className="form-label">
+                      Warehouse / Store Name{" "}
+                      <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control bg-light"
+                      placeholder="Enter warehouse/store name"
+                      name="store_name"
+                      value={form.store_name}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
 
                   <div className="col-md-6">
-                    <label className="form-label">Code <span className="text-danger">*</span></label>
-                    <input type="text" className="form-control bg-light" placeholder="Unique code" name="code" value={form.code} onChange={handleChange} required />
+                    <label className="form-label">
+                      Code <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control bg-light"
+                      placeholder="Unique code"
+                      name="code"
+                      value={form.code}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
 
                   <div className="col-md-6">
                     <label className="form-label">Location / Address</label>
-                    <textarea className="form-control bg-light" rows="2" placeholder="Enter address" name="address" value={form.address} onChange={handleChange}></textarea>
+                    <textarea
+                      className="form-control bg-light"
+                      rows="2"
+                      placeholder="Enter address"
+                      name="address"
+                      value={form.address}
+                      onChange={handleChange}
+                    ></textarea>
                   </div>
 
                   <div className="col-md-6">
                     <label className="form-label">Contact Person</label>
-                    <input type="text" className="form-control bg-light" placeholder="Enter contact person" name="contact" value={form.contact} onChange={handleChange} required />
+                    <input
+                      type="text"
+                      className="form-control bg-light"
+                      placeholder="Enter contact person"
+                      name="contact"
+                      value={form.contact}
+                      onChange={handleChange}
+                      required
+                    />
                   </div>
 
                   <div className="col-md-6">
-                    <label className="form-label">Mobile Number <span className="text-danger">*</span></label>
+                    <label className="form-label">
+                      Mobile Number <span className="text-danger">*</span>
+                    </label>
                     <PhoneInput
-                      country={'in'}
+                      country={"in"}
                       value={form.phone}
                       onChange={handlePhoneChange}
                       onCountryChange={handleCountryChange}
                       inputProps={{
-                        name: 'phone',
+                        name: "phone",
                         required: true,
                         autoFocus: true,
                         pattern: "^[0-9\\-\\+\\s]{7,15}$",
-                        className: 'form-control bg-light',
+                        className: "form-control bg-light",
                       }}
-                      containerStyle={{ width: '100%' }}
+                      containerStyle={{ width: "100%" }}
                       inputStyle={{
-                        width: '100%',
-                        height: '38px',
-                        padding: '6px 12px',
-                        fontSize: '1rem',
+                        width: "100%",
+                        height: "38px",
+                        padding: "6px 12px",
+                        fontSize: "1rem",
                       }}
                       buttonStyle={{
-                        border: '1px solid #ced4da',
-                        height: '38px',
+                        border: "1px solid #ced4da",
+                        height: "38px",
                       }}
                     />
 
@@ -417,16 +477,27 @@ return;
                         Mobile number must start with 6, 7, 8, or 9
                       </small>
                     )}
-                    <small className="text-muted">Selected country: {form.country || 'None'}</small>
+                    <small className="text-muted">
+                      Selected country: {form.country || "None"}
+                    </small>
                   </div>
 
                   <div className="col-md-6">
                     <label className="form-label">Email</label>
-                    <input type="email" className="form-control bg-light" placeholder="example@mail.com" name="email" value={form.email} onChange={handleChange} />
+                    <input
+                      type="email"
+                      className="form-control bg-light"
+                      placeholder="example@mail.com"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                    />
                   </div>
 
                   <div className="col-md-6">
-                    <label className="form-label">State <span className="text-danger">*</span></label>
+                    <label className="form-label">
+                      State <span className="text-danger">*</span>
+                    </label>
                     <select
                       className="form-select bg-light"
                       name="state_code"
@@ -436,7 +507,7 @@ return;
                       disabled={!form.country}
                     >
                       <option value="">Select State</option>
-                      {states.map(s => (
+                      {states.map((s) => (
                         <option key={s.isoCode} value={s.isoCode}>
                           {s.name} ({s.isoCode})
                         </option>
@@ -444,7 +515,10 @@ return;
                     </select>
                     {form.country && (
                       <small className="form-text text-muted">
-                        States for {Country.getCountryByCode(form.country)?.name || form.country}: {states.length} states available
+                        States for{" "}
+                        {Country.getCountryByCode(form.country)?.name ||
+                          form.country}
+                        : {states.length} states available
                       </small>
                     )}
                   </div>
@@ -460,15 +534,20 @@ return;
                         checked={form.status}
                         onChange={handleChange}
                       />
-                      <label className="form-check-label" htmlFor="statusToggle">
+                      <label
+                        className="form-check-label"
+                        htmlFor="statusToggle"
+                      >
                         Active
                       </label>
                     </div>
                   </div>
 
                   <div className="col-12 d-flex gap-2">
-                    <button type="submit" className="btn add text-white px-4 d-flex align-items-center justify-content-center" >
-                   
+                    <button
+                      type="submit"
+                      className="btn add text-white px-4 d-flex align-items-center justify-content-center"
+                    >
                       {editingWarehouse ? "Update Warehouse" : "Save Warehouse"}
                     </button>
                     <button
@@ -505,13 +584,17 @@ return;
         onActionClick={handleTableAction}
         emptyMessage="No warehouses found."
         className="mt-4"
-        onResetSearch={()=>{
-          setSearchName("")
-          setSearchPerson("")
-          setSearchPhone("")
+        onResetSearch={() => {
+          setSearchName("");
+          setSearchPerson("");
+          setSearchPhone("");
         }}
       />
-       <HistoryModal open={showHistoryModal} onClose={()=>setShowHistoryModal(false)} data={historyInfo} />
+      <HistoryModal
+        open={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        data={historyInfo}
+      />
     </div>
   );
 };

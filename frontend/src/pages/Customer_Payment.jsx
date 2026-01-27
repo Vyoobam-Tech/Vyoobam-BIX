@@ -4,32 +4,24 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchcustomers } from "../redux/customerSlice";
 import { fetchpayments } from "../redux/customerpaymentSlice";
 import { fetchsales } from "../redux/saleSlice";
-import { setAuthToken } from "../services/userService";
-import ReusableTable, {
-  createRoleBasedActions,
-} from "../components/ReusableTable";
+import ReusableTable from "../components/ReusableTable";
 const Customer_Payment = () => {
   const dispatch = useDispatch();
   const { items: cus_payments, status } = useSelector(
-    (state) => state.cus_payments
+    (state) => state.cus_payments,
   );
   const { items: customers } = useSelector((state) => state.customers);
   const { items: sales } = useSelector((state) => state.sales);
   const { items: products } = useSelector((state) => state.products);
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role || "user";
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [customerSales, setCustomerSales] = useState([]);
   const [form, setForm] = useState();
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.token) console.error("No user found Please Login");
-    const token = user?.token;
-    setAuthToken(token);
     dispatch(fetchcustomers());
     dispatch(fetchpayments());
     dispatch(fetchsales());
   }, [dispatch]);
+
   useEffect(() => {
     if (selectedCustomer) {
       const filtered = sales.filter((sale) => {
@@ -86,7 +78,7 @@ const Customer_Payment = () => {
             productName = item.product_id?.name || "Unknown Product";
           } else {
             const matchedProduct = products.find(
-              (prod) => prod._id === item.product_id
+              (prod) => prod._id === item.product_id,
             );
             productName = matchedProduct?.name || "Unknown Product";
           }

@@ -3,8 +3,6 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { protect, authorize } = require("../middleware/auth");
-
 const generateToken = (user) => {
   return jwt.sign(
     { id: user._id, email: user.email, role: user.role },
@@ -31,7 +29,8 @@ exports.register = async (req, res) => {
         .json({ error: "Name, email and password required" });
     const emailNormalized = email.trim().toLowerCase();
     const exists = await User.findOne({ email: emailNormalized });
-    if (exists) return res.status(400).json({ error: "Email already in use" });
+    if (exists) 
+      return res.status(400).json({ error: "Email already in use" });
     if (role === "super_admin") {
       const superAdminExists = await User.findOne({ role: "super_admin" });
       if (superAdminExists) {
@@ -64,20 +63,22 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: "Email and password required" });
     const emailNormalized = email.trim().toLowerCase();
     const user = await User.findOne({ email: emailNormalized });
-    if (!user) return res.status(400).json({ error: "Invalid credentials" });
+    if (!user) 
+      return res.status(400).json({ error: "Invalid credentials" });
     const ok = await bcrypt.compare(password, user.password);
-    if (!ok) return res.status(400).json({ error: "Invalid credentials" });
+    if (!ok) 
+      return res.status(400).json({ error: "Invalid credentials" });
     const userObj = user.toObject();
     delete userObj.password;
     const token = generateToken(user);
     res.cookie("token", token, {
-      httpOnly: true,
-      maxAge: 300000,
-      samesite: "lax",
-      secure: false,
-    });
+  httpOnly: true,
+  sameSite: "lax",
+  secure: false, 
+  maxAge: 60 * 60 * 1000 
+});
 
-    res.json({ user: userObj, token });
+res.json({ user: userObj });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -87,7 +88,8 @@ exports.getUserById = async (req, res) => {
   try {
     const id = req.params.id;
     const u = await User.findById(id).select("-password");
-    if (!u) return res.status(404).json({ error: "User not found" });
+    if (!u) 
+      return res.status(404).json({ error: "User not found" });
     res.json(u);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -96,9 +98,11 @@ exports.getUserById = async (req, res) => {
 
 exports.getMe = async (req, res) => {
   try {
-    if (!req.user) return res.status(401).json({ error: "Not authorized" });
+    if (!req.user) 
+      return res.status(401).json({ error: "Not authorized" });
     const u = await User.findById(req.user._id).select("-password");
-    if (!u) return res.status(404).json({ error: "User not found" });
+    if (!u) 
+      return res.status(404).json({ error: "User not found" });
     res.json(u);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -219,4 +223,13 @@ exports.resetPassword = async (req, res) => {
     console.error("Reset password error:", err);
     res.status(500).json({ error: "Server error" });
   }
+};
+
+exports.logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false, 
+  });
+  res.json({ message: "Logged out" });
 };

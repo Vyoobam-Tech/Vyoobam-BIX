@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {fetchCategories,addCategory,deleteCategory,} from "../redux/categorySlice";
-import { setAuthToken } from "../services/userService";
+import {
+  fetchCategories,
+  addCategory,
+  deleteCategory,
+} from "../redux/categorySlice";
 import { updateCategory } from "../redux/categorySlice";
 import HistoryModal from "../components/HistoryModal";
-import ReusableTable, { createCustomRoleActions,} from "../components/ReusableTable"; 
+import ReusableTable, {
+  createCustomRoleActions,
+} from "../components/ReusableTable";
 import API from "../api/axiosInstance";
 const Category = () => {
   const dispatch = useDispatch();
   const { items: categories, status } = useSelector(
-    (state) => state.categories
+    (state) => state.categories,
   );
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role || "user";
+  const [role, setRole] = useState("user");
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [form, setForm] = useState({
     parental_id: "",
@@ -61,24 +65,36 @@ const Category = () => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyInfo, setHistoryInfo] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
+
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.token) {
-      console.error("No user found Please Login");
-    }
-    const token = user.token;
-    setAuthToken(token);
+    API.get("/users/me")
+      .then((res) => {
+        setRole(res.data.role);
+      })
+      .catch(() => {
+        window.location.href = "/login";
+      });
+  }, []);
+
+  useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (name === "name") {
       const existingCategory = categories.find(
-      (cat) => cat.name?.toLowerCase() === value.toLowerCase()
-    );
+        (cat) => cat.name?.toLowerCase() === value.toLowerCase(),
+      );
       setSubcategories(Object.keys(categoryData[value] || {}));
       setBrands([]);
-      setForm({ ...form, name: value, subcategory: "", brand: "" ,status:existingCategory ? true : false,});
+      setForm({
+        ...form,
+        name: value,
+        subcategory: "",
+        brand: "",
+        status: existingCategory ? true : false,
+      });
     } else if (name === "subcategory") {
       setBrands(categoryData[form.name][value] || []);
       setForm({ ...form, subcategory: value, brand: "" });
@@ -93,7 +109,7 @@ const Category = () => {
     try {
       if (editingCategory) {
         await dispatch(
-          updateCategory({ id: editingCategory, updatedData: payload })
+          updateCategory({ id: editingCategory, updatedData: payload }),
         ).unwrap();
         setEditingCategory(null);
         console.log("Category Updated Successfully");
@@ -127,7 +143,7 @@ const Category = () => {
     return matchName && matchCode;
   });
   const uniqueCategories = filteredCategories.filter(
-    (c, index, self) => index === self.findIndex((obj) => obj._id === c._id)
+    (c, index, self) => index === self.findIndex((obj) => obj._id === c._id),
   );
 
   const handleDelete = async (id) => {
@@ -239,9 +255,7 @@ const Category = () => {
       return;
     }
     try {
-      const res = await API.get(`/categories/${category._id}`, {
-        headers: { Authorization: `Bearer ${user?.token}` },
-      });
+      const res = await API.get(`/categories/${category._id}`);
 
       const c = res.data;
       const createdByUser =
@@ -415,7 +429,6 @@ const Category = () => {
                       className="form-check-input"
                       name="status"
                       checked={form.status}
-                      
                       onChange={handleChange}
                     />
                     <label className="form-check-label">Status</label>

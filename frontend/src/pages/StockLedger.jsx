@@ -4,21 +4,23 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../redux/productSlice";
 import { fetchwarehouses } from "../redux/warehouseSlice";
 import { addstock, deletestock, fetchstocks } from "../redux/stockledgerSlice";
-import { setAuthToken } from "../services/userService";
+import { getMe } from "../services/userService";
 import ReusableTable, {createCustomRoleActions,} from "../components/ReusableTable";
 import API from "../api/axiosInstance";
 import HistoryModal from "../components/HistoryModal";
-import { fetchSalesReturns } from "../redux/salesReturnSlice";
+import { useNavigate } from "react-router-dom";
+
+
 const StockLedger = () => {
   const dispatch = useDispatch();
   const { items: stocks, status } = useSelector((state) => state.stockss);
   const { items: products } = useSelector((state) => state.products);
   const { items: warehouses } = useSelector((state) => state.warehouses);
   const {items: salesReturn}=useSelector((state)=>state.salesReturn)
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role || "user";
-  const token = user?.token;
+const [user, setUser] = useState(null);
+const role = user?.role || "user";
 
+const navigate = useNavigate();
   const [form, setForm] = useState({
     productId: "",
     warehouseId: "",
@@ -32,16 +34,18 @@ const StockLedger = () => {
   const [showModal, setShowModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyInfo, setHistoryInfo] = useState(null);
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.token) console.error("No user found. Please login.");
-    setAuthToken(token);
-    dispatch(fetchProducts());
-    dispatch(fetchwarehouses());
-    dispatch(fetchstocks());
-  }, [dispatch, token]);
+useEffect(() => {
+  getMe()
+    .then((u) => setUser(u))
+    .catch(() => {
+      navigate("/login", { replace: true });
+    });
+  dispatch(fetchProducts());
+  dispatch(fetchwarehouses());
+  dispatch(fetchstocks());
+}, [dispatch, navigate]);
 
-  const handleChange = (e) => {
+const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => {
       const updated = { ...prev, [name]: value };
@@ -294,9 +298,8 @@ useEffect(() => {
       });
     }
     try {
-      const res = await API.get(`/stockledger/${stockledger._id}`, {
-        headers: { Authorization: `Bearer ${user?.token}` },
-      });
+      const res = await API.get(`/stockledger/${stockledger._id}`);
+
       const s = res.data;
       const createdByUser =
         s?.created_by?.name ||

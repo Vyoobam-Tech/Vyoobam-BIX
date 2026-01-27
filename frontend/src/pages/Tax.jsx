@@ -1,23 +1,20 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addtax, deletetax, fetchtaxes, updatetax } from "../redux/taxSlice";
-import { setAuthToken } from "../services/userService";
 import HistoryModal from "../components/HistoryModal";
-import ReusableTable, {
-  createCustomRoleActions,
-} from "../components/ReusableTable"; 
+import ReusableTable, { createCustomRoleActions,} from "../components/ReusableTable"; 
+import { useNavigate } from "react-router-dom";
 import API from "../api/axiosInstance";
 const Tax = () => {
   const dispatch = useDispatch();
   const { items: taxes, status } = useSelector((state) => state.taxes);
   const [searchTaxname, setSearchTaxname] = useState("");
   const [searchcgst, setSearchcgst] = useState("");
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role || "user";
-
   const [showTaxForm, setShowTaxForm] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyInfo, setHistoryInfo] = useState(null);
+  const [role, setRole] = useState("user");
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     cgst_percent: "",
@@ -28,12 +25,15 @@ const Tax = () => {
   });
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.token) console.error("No user found Please Login");
-    const token = user.token;
-    setAuthToken(token);
-    dispatch(fetchtaxes());
-  }, [dispatch]);
+  API.get("/users/me")
+    .then((res) => {
+      setRole(res.data.role);
+      dispatch(fetchtaxes()); 
+    })
+    .catch(() => {
+      navigate("/login", { replace: true });
+    });
+}, [dispatch, navigate]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -209,9 +209,8 @@ const Tax = () => {
       return;
     }
     try {
-      const res = await API.get(`/taxes/${tax._id}`, {
-        headers: { Authorization: `Bearer ${user?.token}` },
-      });
+     const res = await API.get(`/taxes/${tax._id}`);
+
       const t = res.data;
       const createdByUser =
         t?.created_by?.name ||

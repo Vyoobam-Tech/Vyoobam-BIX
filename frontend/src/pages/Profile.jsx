@@ -1,29 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { getMe, setUserHeader } from "../services/userService";
-import axios from "axios";
+import { getMe } from "../services/userService";
+import API from "../api/axiosInstance";
 import { FaUser } from "react-icons/fa";
 
 export default function Profile({ show, onClose }) {
   const [user, setUser] = useState(null);
   const [saving, setSaving] = useState(false);
-
   useEffect(() => {
     if (!show) return;
-    const stored = localStorage.getItem("user");
-    if (stored) {
-      setUser(JSON.parse(stored));
-    } else {
-      const id = localStorage.getItem("userId");
-      if (id) {
-        (async () => {
-          const u = await getMe(id);
-          setUser(u);
-          localStorage.setItem("user", JSON.stringify(u));
-          setUserHeader(id);
-        })();
-      }
-    }
-  }, [show]);
+    getMe()
+      .then((data) => setUser(data))
+      .catch(() => onClose());
+  }, [show, onClose]);
 
   const handleChange = (e) =>
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -31,13 +19,9 @@ export default function Profile({ show, onClose }) {
   const save = async () => {
     try {
       setSaving(true);
-      const res = await axios.put(
-        `http://localhost:5000/api/users/${user._id}`,
-        user
-      );
-      localStorage.setItem("user", JSON.stringify(res.data));
+      const res = await API.put(`/users/${user._id}`, user);
       setUser(res.data);
-      alert("Saved");
+      alert("Profile updated");
       onClose();
     } catch (err) {
       alert(err.response?.data?.error || err.message);
@@ -46,10 +30,12 @@ export default function Profile({ show, onClose }) {
     }
   };
 
-  if (!show) return null;
+  if (!show) 
+    return null;
+
   if (!user)
     return (
-      <div className="modal d-block" tabIndex="-1">
+      <div className="modal d-block">
         <div className="modal-dialog modal-sm modal-dialog-centered">
           <div className="modal-content p-3">Loading...</div>
         </div>
@@ -57,60 +43,49 @@ export default function Profile({ show, onClose }) {
     );
 
   return (
-    <div className="modal d-block" tabIndex="-1">
-      <div className="modal-dialog modal-sm modal-dialog-centered ">
-        <div
-          className="modal-content p-3"
-          style={{ }}
-        >
-          <div className="modal-header" style={{backgroundColor:"#182235"}}>
-            <h5 className="modal-title text-white mb-4 d-flex align-items-center fs-5">
-              <span className="me-2 d-flex align-items-center">
-                <FaUser size={24} />
-              </span>{" "}
-              User Profile
+    <div className="modal d-block">
+      <div className="modal-dialog modal-sm modal-dialog-centered">
+        <div className="modal-content">
+          <div className="modal-header" style={{ backgroundColor: "#182235" }}>
+            <h5 className="modal-title text-white d-flex align-items-center gap-2">
+              <FaUser /> User Profile
             </h5>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={onClose}
-            ></button>
+            <button className="btn-close" onClick={onClose}></button>
           </div>
+
           <div className="modal-body">
-            <div className="mb-2">
-              <label className="form-label">Name</label>
-              <input
-                className="form-control"
-                name="name"
-                value={user.name}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="mb-2">
-              <label className="form-label">Email</label>
-              <input
-                className="form-control"
-                name="email"
-                value={user.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="mb-2">
-              <label className="form-label">Phone</label>
-              <input
-                className="form-control"
-                name="phone"
-                value={user.phone || ""}
-                onChange={handleChange}
-              />
-            </div>
+            <label className="form-label">Name</label>
+            <input
+              className="form-control mb-2"
+              name="name"
+              value={user.name}
+              onChange={handleChange}
+            />
+
+            <label className="form-label">Email</label>
+            <input
+              className="form-control mb-2"
+              name="email"
+              value={user.email}
+              onChange={handleChange}
+            />
+
+            <label className="form-label">Phone</label>
+            <input
+              className="form-control"
+              name="phone"
+              value={user.phone || ""}
+              onChange={handleChange}
+            />
           </div>
+
           <div className="modal-footer">
             <button className="btn btn-secondary" onClick={onClose}>
               Close
             </button>
             <button
-              className="btn text-white" style={{backgroundColor:"#182235"}}
+              className="btn text-white"
+              style={{ backgroundColor: "#182235" }}
               onClick={save}
               disabled={saving}
             >
@@ -122,3 +97,4 @@ export default function Profile({ show, onClose }) {
     </div>
   );
 }
+

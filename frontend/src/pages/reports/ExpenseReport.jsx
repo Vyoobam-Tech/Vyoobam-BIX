@@ -1,23 +1,17 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchexpenses } from "../../redux/expenseSlice";
-import { setAuthToken } from "../../services/userService";
 import ReusableTable from "../../components/ReusableTable";
 import ExportButtons from "../../components/ExportButtons";
 const ExpenseReport = () => {
   const dispatch = useDispatch();
   const { items: expenses, status } = useSelector((state) => state.expenses);
-  const user = JSON.parse(localStorage.getItem("user"));
-  const token = user?.token;
   const [form, setForm] = useState({
     month: "",
   });
-
   useEffect(() => {
-    setAuthToken(token);
     dispatch(fetchexpenses());
-  }, [dispatch, token]);
-
+  }, [dispatch]);
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -30,8 +24,7 @@ const ExpenseReport = () => {
     }
   };
   const filteredExpenses = expenses.filter((e) => {
-    if (!form.month) 
-      return true;
+    if (!form.month) return true;
     const expenseMonth = new Date(e.expenseDate).toISOString().slice(0, 7);
     return expenseMonth === form.month;
   });

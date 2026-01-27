@@ -1,13 +1,24 @@
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
+import API from "../api/axiosInstance";
 
 const Reports = () => {
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role;
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    API.get("/users/me")
+      .then((res) => setRole(res.data.role))
+      .catch(() => setRole(null));
+  }, []);
+
+  if (!role) 
+    return null;
+
   const reports = [
     { path: "sales", label: "Sales Report", roles: ["super_admin", "admin", "user"] },
     { path: "purchase", label: "Purchase Report", roles: ["super_admin"] },
-    { path: "stock", label: "SalesReturn Report", roles: ["super_admin", "admin"] },
+    { path: "stock", label: "Sales Return Report", roles: ["super_admin", "admin"] },
     { path: "gst", label: "Expense Report", roles: ["super_admin"] },
     { path: "profitloss", label: "Profit/Loss Report", roles: ["super_admin"] },
   ];

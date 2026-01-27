@@ -1,47 +1,35 @@
 import { useEffect, useState } from "react";
-import { MdReceipt } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchcustomers } from "../redux/customerSlice";
 import { fetchpayments } from "../redux/customerpaymentSlice";
 import { fetchsales } from "../redux/saleSlice";
 import { createSalesReturn } from "../redux/salesReturnSlice";
-
-import ReusableTable, {
-  createRoleBasedActions,
-} from "../components/ReusableTable";
+import ReusableTable from "../components/ReusableTable";
 import API from "../api/axiosInstance";
 
 const SalesReturn = () => {
   const dispatch = useDispatch();
   const { items: cus_payments, status } = useSelector(
-    (state) => state.cus_payments
+    (state) => state.cus_payments,
   );
   const { items: customers } = useSelector((state) => state.customers);
   const { items: sales } = useSelector((state) => state.sales);
   const { items: products } = useSelector((state) => state.products);
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role || "user";
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [customerSales, setCustomerSales] = useState([]);
   const [stockSummary, setStockSummary] = useState([]);
 
-const [form, setForm] = useState({
-  invoice_no: "",
-  invoice_date_time:new Date().toISOString().slice(0, 10),
-  product_id: "",
-  quantity: "",
-  reason: "",
+  const [form, setForm] = useState({
+    invoice_no: "",
+    invoice_date_time: new Date().toISOString().slice(0, 10),
+    product_id: "",
+    quantity: "",
+    reason: "",
     return_amount: 0,
-});
+  });
 
-const [qtyError, setQtyError] = useState("");
-
-
+  const [qtyError, setQtyError] = useState("");
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.token) console.error("No user found Please Login");
-    const token = user?.token;
-  
     dispatch(fetchcustomers());
     dispatch(fetchpayments());
     dispatch(fetchsales());
@@ -65,92 +53,63 @@ const [qtyError, setQtyError] = useState("");
   }, 0);
 
   useEffect(() => {
-  const fetchStockSummary = async () => {
-    try {
-      const res = await API.get("/stock/summary");
-      setStockSummary(res.data || []);
-    } catch (err) {
-      console.error("Failed to load stock summary", err);
+    const fetchStockSummary = async () => {
+      try {
+        const res = await API.get("/stock/summary");
+        setStockSummary(res.data || []);
+      } catch (err) {
+        console.error("Failed to load stock summary", err);
+      }
+    };
+    fetchStockSummary();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (name === "quantity") {
+      const qty = Number(value);
+      const soldQty = Number(selectedSaleItem?.qty || 0);
+      if (qty > soldQty) {
+        setQtyError(
+          `Customer bought only ${soldQty} item(s), but you are trying to return ${qty}.`,
+        );
+      } else {
+        setQtyError("");
+      }
     }
+    setForm({
+      ...form,
+      [name]: type === "checkbox" ? checked : value,
+    });
   };
 
-  fetchStockSummary();
-}, []);
+  const selectedSale = customerSales.find((s) => s._id === form.invoice_no);
 
-
-const handleChange = (e) => {
-  const { name, value, type, checked } = e.target;
-
-  if (name === "quantity") {
-    const qty = Number(value);
-    const soldQty = Number(selectedSaleItem?.qty || 0);
-
-    if (qty > soldQty) {
-      setQtyError(
-        `Customer bought only ${soldQty} item(s), but you are trying to return ${qty}.`
-      );
-    } else {
-      setQtyError("");
-    }
-  }
-
-  setForm({
-    ...form,
-    [name]: type === "checkbox" ? checked : value,
-  });
-};
-
-  const selectedSale = customerSales.find(
-  (s) => s._id === form.invoice_no
-);
-
-
-const saleProducts = selectedSale?.items || [];
-
-const selectedSaleItem = saleProducts.find(
-  (i) => i.product_id?._id === form.product_id
-);
-
-useEffect(() => {
-  if (!selectedSale || !selectedSaleItem || !form.quantity) {
-    setForm((prev) => ({ ...prev, return_amount: 0 }));
-    return;
-  }
-
-  const totalInvoiceAmount = Number(selectedSale.grand_total || 0);
-
-  const totalProductQty = Number(
-    selectedSaleItem.qty ||
-    selectedSaleItem.quantity ||
-    0
+  const saleProducts = selectedSale?.items || [];
+  const selectedSaleItem = saleProducts.find(
+    (i) => i.product_id?._id === form.product_id,
   );
-
-  const returnQty = Number(form.quantity);
-
-  if (totalInvoiceAmount <= 0 || totalProductQty <= 0 || returnQty <= 0) {
-    setForm((prev) => ({ ...prev, return_amount: 0 }));
-    return;
-  }
-
-  const perUnitAmount = totalInvoiceAmount / totalProductQty;
-
-  const returnAmount = perUnitAmount * returnQty;
-
-  setForm((prev) => ({
-    ...prev,
-    return_amount: returnAmount.toFixed(2),
-  }));
-}, [form.quantity, form.product_id, selectedSale]);
-
-
-
-
-
-  const totalDueAmount = customerSales.reduce((total, sale) => {
-    return total + (sale.due_amount || 0);
-  }, 0);
-
-  const totalPaidAmount = totalGrandTotal - totalDueAmount;
+  useEffect(() => {
+    if (!selectedSale || !selectedSaleItem || !form.quantity) {
+      setForm((prev) => ({ ...prev, return_amount: 0 }));
+      return;
+    }
+    const totalInvoiceAmount = Number(selectedSale.grand_total || 0);
+    const totalProductQty = Number(
+      selectedSaleItem.qty || selectedSaleItem.quantity || 0,
+    );
+    const returnQty = Number(form.quantity);
+    if (totalInvoiceAmount <= 0 || totalProductQty <= 0 || returnQty <= 0) {
+      setForm((prev) => ({ ...prev, return_amount: 0 }));
+      return;
+    }
+    const perUnitAmount = totalInvoiceAmount / totalProductQty;
+    const returnAmount = perUnitAmount * returnQty;
+    setForm((prev) => ({
+      ...prev,
+      return_amount: returnAmount.toFixed(2),
+    }));
+  }, [form.quantity, form.product_id, selectedSale]);
 
   const handleCustomerChange = (e) => {
     const customerId = e.target.value;
@@ -158,91 +117,61 @@ useEffect(() => {
     setForm({ ...form, customer_id: customerId });
   };
 
-
-  const getAvailableStock = (productId) => {
-  if (!productId) return 0;
-
-  const record = stockSummary.find(
-    (s) => s.productId === productId
-  );
-
-  return record?.availableQty || 0;
-};
-
-  const getCustomerName = (payment) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (
-      typeof payment.customer_id === "object" &&
-      payment.customer_id !== null
+      !form.invoice_no ||
+      !form.product_id ||
+      !form.quantity ||
+      !form.reason
     ) {
-      return payment.customer_id?.name || "Unknown Customer";
+      alert("Please fill all required fields");
+      return;
     }
-    return (
-      customers.find((c) => c._id === payment.customer_id)?.name ||
-      "Unknown Customer"
-    );
+    if (!selectedSaleItem) {
+      alert("Invalid product selection");
+      return;
+    }
+    if (Number(form.quantity) > Number(selectedSaleItem.qty)) {
+      alert("Return quantity cannot exceed sold quantity");
+      return;
+    }
+    try {
+      await dispatch(
+        createSalesReturn({
+          invoice_no: form.invoice_no,
+          customer_id:
+            selectedSale.customer_id?._id || selectedSale.customer_id,
+          items: [
+            {
+              product_id: form.product_id,
+              quantity: Number(form.quantity),
+              return_amount: Number(form.return_amount),
+            },
+          ],
+          reason: form.reason,
+        }),
+      ).unwrap();
+      setForm({
+        invoice_no: "",
+        invoice_date_time: new Date().toISOString().slice(0, 10),
+        product_id: "",
+        quantity: "",
+        reason: "",
+        return_amount: 0,
+      });
+
+      dispatch(fetchsales());
+    } catch (err) {
+      console.error("Sales return error:", err);
+      alert(err);
+    }
   };
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  if (!form.invoice_no || !form.product_id || !form.quantity || !form.reason) {
-    alert("Please fill all required fields");
-    return;
-  }
-
-  if (!selectedSaleItem) {
-    alert("Invalid product selection");
-    return;
-  }
-
-  if (Number(form.quantity) > Number(selectedSaleItem.qty)) {
-    alert("Return quantity cannot exceed sold quantity");
-    return;
-  }
-
-  try {
-    await dispatch(
-      createSalesReturn({
-        invoice_no: form.invoice_no,
-        customer_id:
-          selectedSale.customer_id?._id || selectedSale.customer_id,
-        items: [
-          {
-            product_id: form.product_id,
-            quantity: Number(form.quantity),
-            return_amount: Number(form.return_amount),
-          },
-        ],
-        reason: form.reason,
-      })
-    ).unwrap();
-
-    alert("Sales Return Created Successfully");
-
-    setForm({
-      invoice_no: "",
-      invoice_date_time: new Date().toISOString().slice(0, 10),
-      product_id: "",
-      quantity: "",
-      reason: "",
-      return_amount: 0,
-    });
-
-    dispatch(fetchsales());
-  } catch (err) {
-    console.error("Sales return error:", err);
-    alert(err);
-  }
-};
-
-
-
 
   const getProductNames = (sale) => {
     if (!Array.isArray(sale.items) || sale.items.length === 0) {
       return "No Items";
     }
-
     return sale.items
       .map((item, idx) => {
         let productName = "Unknown Product";
@@ -251,7 +180,7 @@ const handleSubmit = async (e) => {
             productName = item.product_id?.name || "Unknown Product";
           } else {
             const matchedProduct = products.find(
-              (prod) => prod._id === item.product_id
+              (prod) => prod._id === item.product_id,
             );
             productName = matchedProduct?.name || "Unknown Product";
           }
@@ -260,7 +189,6 @@ const handleSubmit = async (e) => {
       })
       .join(", ");
   };
-
   const salesTableColumns = [
     {
       key: "invoice_no",
@@ -356,142 +284,144 @@ const handleSubmit = async (e) => {
         </div>
       </div>
 
-     
       {selectedCustomer && (
-  <>
-  
-    <div className="row mb-4">
-      <div className="col-12">
-        <div className="card">
-          <div className="card-header add text-white">
-            <h5 className="mb-0">Customer Sales History</h5>
+        <>
+          <div className="row mb-4">
+            <div className="col-12">
+              <div className="card">
+                <div className="card-header add text-white">
+                  <h5 className="mb-0">Customer Sales History</h5>
+                </div>
+                <div className="card-body">
+                  <ReusableTable
+                    data={customerSales}
+                    columns={salesTableColumns}
+                    loading={status === "loading"}
+                    searchable={false}
+                    emptyMessage="No sales found for this customer."
+                    className="mt-0"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="card-body">
-            <ReusableTable
-              data={customerSales}
-              columns={salesTableColumns}
-              loading={status === "loading"}
-              searchable={false}
-              emptyMessage="No sales found for this customer."
-              className="mt-0"
-            />
-          </div>
-        </div>
-      </div>
+
+          <form onSubmit={handleSubmit}>
+            <div className="row">
+              <div className="col-md-6">
+                <label className="form-label">
+                  Invoice No <span className="text-danger">*</span>
+                </label>
+                <select
+                  className="form-select bg-light"
+                  name="invoice_no"
+                  value={form.invoice_no}
+                  onChange={handleChange}
+                >
+                  <option value="">-- Select Invoice --</option>
+                  {customerSales.map((sale) => (
+                    <option key={sale._id} value={sale._id}>
+                      {sale.invoice_no}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-md-6">
+                <label>
+                  Invoice Date <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="date"
+                  name="invoice_date_time"
+                  value={form.invoice_date_time}
+                  onChange={handleChange}
+                  className="form-control bg-light"
+                  required
+                />
+              </div>
+
+              <div className="col-md-6">
+                <label className="form-label">
+                  Product <span className="text-danger">*</span>
+                </label>
+                <select
+                  className="form-select bg-light"
+                  name="product_id"
+                  value={form.product_id}
+                  onChange={handleChange}
+                  disabled={!form.invoice_no}
+                >
+                  <option value="">-- Select Product --</option>
+                  {saleProducts.map((item) => (
+                    <option
+                      key={item.product_id?._id}
+                      value={item.product_id?._id}
+                    >
+                      {item.product_id?.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-md-6">
+                <label className="form-label">
+                  Quantity <span className="text-danger">*</span>
+                </label>
+
+                <input
+                  type="number"
+                  className={`form-control bg-light ${qtyError ? "is-invalid" : ""}`}
+                  name="quantity"
+                  value={form.quantity}
+                  min="1"
+                  max={selectedSaleItem?.qty || 0}
+                  onChange={handleChange}
+                />
+
+                <small className="text-muted">
+                  Sold Qty: {selectedSaleItem?.qty || 0}
+                </small>
+
+                {qtyError && (
+                  <div className="invalid-feedback d-block">{qtyError}</div>
+                )}
+              </div>
+
+              <div className="col-md-6">
+                <label className="form-label">
+                  Return Amount <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="form-control bg-light"
+                  value={`₹ ${form.return_amount}`}
+                  readOnly
+                />
+              </div>
+
+              <div className="col-md-6">
+                <label className="form-label">
+                  Reason <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="form-control bg-light"
+                  name="reason"
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div className="col-12 d-flex gap-2 mt-3">
+                <button type="submit" className="btn add text-white">
+                  Submit
+                </button>
+              </div>
+            </div>
+          </form>
+        </>
+      )}
     </div>
-
-    <form onSubmit={handleSubmit}>
-      <div className="row">
-        <div className="col-md-6">
-          <label className="form-label">Invoice No <span className="text-danger">*</span></label>
-          <select
-            className="form-select bg-light"
-            name="invoice_no"
-            value={form.invoice_no}
-            onChange={handleChange}
-          >
-            <option value="">-- Select Invoice --</option>
-            {customerSales.map((sale) => (
-              <option key={sale._id} value={sale._id}>
-                {sale.invoice_no}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="col-md-6">
-                      <label>Invoice Date <span className="text-danger">*</span></label>
-                      <input
-                        type="date"
-                        name="invoice_date_time"
-                        value={form.invoice_date_time}
-                        onChange={handleChange}
-                        className="form-control bg-light"
-                        required
-                      /></div>
-
-        <div className="col-md-6">
-          <label className="form-label">Product <span className="text-danger">*</span></label>
-          <select
-            className="form-select bg-light"
-            name="product_id"
-            value={form.product_id}
-            onChange={handleChange}
-            disabled={!form.invoice_no}
-          >
-            <option value="">-- Select Product --</option>
-            {saleProducts.map((item) => (
-              <option
-                key={item.product_id?._id}
-                value={item.product_id?._id}
-              >
-                {item.product_id?.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-
-     <div className="col-md-6">
-  <label className="form-label">
-    Quantity <span className="text-danger">*</span>
-  </label>
-
-  <input
-    type="number"
-    className={`form-control bg-light ${qtyError ? "is-invalid" : ""}`}
-    name="quantity"
-    value={form.quantity}
-    min="1"
-    max={selectedSaleItem?.qty || 0}
-    onChange={handleChange}
-  />
-
-  <small className="text-muted">
-    Sold Qty: {selectedSaleItem?.qty || 0}
-  </small>
-
-  {qtyError && (
-    <div className="invalid-feedback d-block">
-      {qtyError}
-    </div>
-  )}
-</div>
-
-
-
-        <div className="col-md-6">
-          <label className="form-label">Return Amount <span className="text-danger">*</span></label>
-          <input
-            type="text"
-            className="form-control bg-light"
-            value={`₹ ${form.return_amount}`}
-            readOnly
-          />
-        </div>
-
-        <div className="col-md-6">
-          <label className="form-label">Reason <span className="text-danger">*</span></label>
-          <input
-            type="text"
-            className="form-control bg-light"
-            name="reason"
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="col-12 d-flex gap-2 mt-3">
-          <button type="submit" className="btn add text-white">
-            Submit
-          </button>
-        </div>
-      </div>
-    </form>
-  </>
-)}
-
-    </div>
-    
   );
 };
 

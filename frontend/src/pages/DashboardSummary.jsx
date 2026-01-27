@@ -6,9 +6,7 @@ import { fetchsuppliers } from "../redux/supplierSlice";
 import { fetchpurchases } from "../redux/purchaseSlice";
 import { fetchsales } from "../redux/saleSlice";
 import { useNavigate } from "react-router-dom";
-
 import "bootstrap/dist/css/bootstrap.min.css";
-
 import { FaCartShopping, FaUserGroup } from "react-icons/fa6";
 import { GiBoxUnpacking, GiProfit } from "react-icons/gi";
 import { MdWarehouse } from "react-icons/md";

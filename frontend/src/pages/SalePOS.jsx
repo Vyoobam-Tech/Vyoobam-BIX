@@ -1,12 +1,7 @@
 import { useState, useEffect } from "react";
 import { MdDeleteForever } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addSale,
-  deleteSale,
-  fetchsales,
-  updateSale,
-} from "../redux/saleSlice";
+import {addSale,deleteSale,fetchsales,updateSale,} from "../redux/saleSlice";
 import { fetchtaxes } from "../redux/taxSlice";
 import { fetchProducts } from "../redux/productSlice";
 import { fetchcustomers } from "../redux/customerSlice";
@@ -15,9 +10,7 @@ import { fetchwarehouses } from "../redux/warehouseSlice";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logo from "../assets/img/image_360.png";
-import ReusableTable, {
-  createRoleBasedActions,
-} from "../components/ReusableTable";
+import ReusableTable, { createRoleBasedActions,} from "../components/ReusableTable";
 import API from "../api/axiosInstance";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
@@ -32,8 +25,7 @@ const SalePOS = () => {
   const { items: taxes } = useSelector((state) => state.taxes);
   const { items: stockss } = useSelector((state) => state.stockss);
   const { items: warehouses } = useSelector((state) => state.warehouses);
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role;
+
   const [form, setForm] = useState({
     invoice_no: "",
     invoice_date_time: new Date().toISOString().slice(0, 10),
@@ -60,19 +52,24 @@ const SalePOS = () => {
   const [historyInfo, setHistoryInfo] = useState(null);
   const [qtyErrors, setQtyErrors] = useState({});
 
-  useEffect(() => {
-    dispatch(fetchcustomers());
-    dispatch(fetchProducts());
-    dispatch(fetchtaxes());
-    dispatch(fetchsales());
-    dispatch(fetchstocks());
-    dispatch(fetchwarehouses());
-    // fetchStockSummary();
-    setForm((prev) => ({
-      ...prev,
-      invoice_no: "INV" + Math.floor(1000 + Math.random() * 9000),
-    }));
-  }, [dispatch]);
+  const [role, setRole] = useState(null);
+useEffect(() => {
+
+  API.get("/users/me")
+    .then((res) => setRole(res.data.role))
+    .catch(() => setRole("user"));
+  dispatch(fetchcustomers());
+  dispatch(fetchProducts());
+  dispatch(fetchtaxes());
+  dispatch(fetchsales());
+  dispatch(fetchstocks());
+  dispatch(fetchwarehouses());
+  setForm((prev) => ({
+    ...prev,
+    invoice_no: "INV" + Math.floor(1000 + Math.random() * 9000),
+  }));
+}, [dispatch]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;

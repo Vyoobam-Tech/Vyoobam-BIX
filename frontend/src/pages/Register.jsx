@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {register,setAuthToken,checkSuperAdminExists,} from "../services/userService";
+import {register,checkSuperAdminExists,} from "../services/userService";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 const Register = () => {
   const [form, setForm] = useState({
@@ -22,8 +22,7 @@ const Register = () => {
     const checkSuperAdmin = async () => {
       try {
         console.log("Starting super admin check...");
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+      
         const result = await checkSuperAdminExists();
         console.log("Super admin check completed:", result);
         setSuperAdminExists(result.superAdminExists);
@@ -55,10 +54,7 @@ const Register = () => {
       return;
     }
     try {
-      const { user, token } = await register(form);
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      setAuthToken(token);
+      const { user } = await register(form);
       navigate("/");
     } catch (err) {
       console.error("Registration error:", err);

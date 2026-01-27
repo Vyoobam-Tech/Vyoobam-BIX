@@ -3,7 +3,7 @@ const User = require("../models/User");
 
 const protect = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = req.cookies.token;
     if (!token) {
       return res.status(401).json({ error: "Not authorized, token missing" });
     }
@@ -15,7 +15,7 @@ const protect = async (req, res, next) => {
     req.user = user;
     next();
   } catch (err) {
-    console.error(err);
+    console.error("Auth error:", err.message);
     return res.status(401).json({ error: "Not authorized" });
   }
 };
@@ -28,7 +28,7 @@ const authorize = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ error: "Forbidden: Insufficient role" });
     }
-    next();
+ next();
   };
 };
 

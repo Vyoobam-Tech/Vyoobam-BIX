@@ -20,10 +20,16 @@ const expenseRoutes = require("./routes/expenseRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const userRoutes = require("./routes/userRoutes");
 const app = express();
-app.use(cors());
+const cookieParser = require("cookie-parser");
+
+app.use(cookieParser());
+app.use(cors({
+  origin:process.env.CLIENT_URL,
+  credentials: true
+}));
 app.use(express.json());
-// mongoose.connect("mongodb://127.0.0.1:27017/inventory")
-mongoose.connect(process.env.MONGO_URI) 
+mongoose.connect("mongodb://127.0.0.1:27017/inventory")
+// mongoose.connect(process.env.MONGO_URI) 
 .then(() => console.log("MongoDB connected"))
 .catch(err => console.log(err));
 app.use("/api/products", productRoutes);
@@ -51,5 +57,5 @@ app.get(/.*/, (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 

@@ -4,31 +4,23 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchsuppliers } from "../redux/supplierSlice";
 import {fetchpayments,} from "../redux/supplierpaymentSlice";
 import { fetchpurchases } from "../redux/purchaseSlice";
-import { setAuthToken } from "../services/userService";
 import ReusableTable from "../components/ReusableTable";
-
 const Supplier_Payment = () => {
   const dispatch = useDispatch();
   const { items: sup_payments, status } = useSelector((state) => state.sup_payments);
   const { items: suppliers } = useSelector((state) => state.suppliers);
   const { items: purchases } = useSelector((state) => state.purchases);
   const { items: products } = useSelector((state) => state.products);
-
-  const user = JSON.parse(localStorage.getItem("user"));
-
   const [selectedSupplier, setSelectedSupplier] = useState("");
   const [supplierPurchases, setSupplierPurchases] = useState([]);
-
   const [form, setForm] = useState();
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.token) console.error("No user found. Please login.");
-    setAuthToken(user?.token);
-    dispatch(fetchsuppliers());
-    dispatch(fetchpayments());
-    dispatch(fetchpurchases());
-  }, [dispatch]);
+useEffect(() => {
+  dispatch(fetchsuppliers());
+  dispatch(fetchpayments());
+  dispatch(fetchpurchases());
+}, [dispatch]);
+
 
 
   useEffect(() => {

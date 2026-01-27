@@ -2,16 +2,18 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchwarehouses } from '../redux/warehouseSlice';
 import { addexpense, deleteexpense, fetchexpenses, updateexpense } from '../redux/expenseSlice';
-import { setAuthToken } from '../services/userService';
+import { getMe } from "../services/userService";
 import ReusableTable, {createCustomRoleActions} from '../components/ReusableTable'; 
 import API from '../api/axiosInstance';
 import HistoryModal from '../components/HistoryModal';
+import { useNavigate } from "react-router-dom";
 const Expenses = () => {
   const dispatch = useDispatch();
   const { items: expenses, status } = useSelector((state) => state.expenses);
   const { items: warehouses } = useSelector((state) => state.warehouses);
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role;
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+const role = user?.role || "user";
 const [form, setForm] = useState({
     expenseDate: "",
     warehouseId: "",
@@ -19,29 +21,31 @@ const [form, setForm] = useState({
     amount: "",
     notes: "",
   });
-
   const [editingExpense, setEditingExpense] = useState(null);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [searchDate,setSearchDate]=useState("")
   const [searchWarehouse,setSearchWarehouse]=useState("")
   const [searchExpense,setSearchExpense]=useState("")
-
   const [showHistoryModal,setShowHistoryModal]=useState(false)
   const [historyInfo,setHistoryInfo]=useState(null)
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.token) console.error("No user found. Please login.");
-    setAuthToken(user?.token);
-    dispatch(fetchwarehouses());
-    dispatch(fetchexpenses());
-  }, [dispatch]);
+useEffect(() => {
+  getMe()
+    .then((u) => setUser(u))
+    .catch(() => {
+      navigate("/login", { replace: true });
+    });
 
-  const handleChange = (e) => {
+  dispatch(fetchwarehouses());
+  dispatch(fetchexpenses());
+}, [dispatch, navigate]);
+
+
+const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingExpense) {
@@ -65,7 +69,6 @@ const [form, setForm] = useState({
       console.error(err.response?.data || err.message);
     }
   };
-
   const handleEdit = (expense) => {
     setEditingExpense(expense._id);
     setForm({
@@ -186,9 +189,8 @@ const [form, setForm] = useState({
       })
     }
     try{
-      const res=await API.get(`/expenses/${expense._id}`,{
-        headers:{Authorization:`Bearer ${user?.token}`}
-      })
+      const res = await API.get(`/expenses/${expense._id}`);
+
       const e=res.data
       const createdByUser=e?.created_by?.username || e?.created_by?.name || e?.created_by?.email || "Unknown"
       const updatedByUser=e?.updated_by?.username || e?.updated_by?.name || e?.updated_by?.email ||  "-"

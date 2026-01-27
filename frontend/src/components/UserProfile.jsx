@@ -1,55 +1,42 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaUserCircle } from "react-icons/fa";
-import { getMe, setUserHeader } from "../services/userService";
+import { getMe, logout } from "../services/userService";
 import { useNavigate } from "react-router-dom";
 import Profile from "../pages/Profile";
-import { useRef } from "react";
+
 const UserProfile = () => {
   const [user, setUser] = useState(null);
   const [open, setOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const navigate = useNavigate();
   const ref = useRef();
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    const userId = localStorage.getItem("userId");
-    const token = localStorage.getItem("token");
-    if (stored && token) {
-      setUser(JSON.parse(stored));
-      setUserHeader(token);
-    } else if (token) {
-      (async () => {
-        try {
-          const fetched = await getMe();
-          setUser(fetched);
-          setUserHeader(token);
-          localStorage.setItem("user", JSON.stringify(fetched));
-        } catch (err) {
-          console.error("Could not fetch user:", err);
-        }
-      })();
-    }
-
+    getMe()
+      .then((data) => setUser(data))
+      .catch(() => navigate("/login"));
     const onDoc = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
     };
+
     document.addEventListener("click", onDoc);
     return () => document.removeEventListener("click", onDoc);
-  }, []);
+  }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("userId");
-    setUserHeader(null);
-    setUser(null);
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch {
+      navigate("/login");
+    }
   };
-
-  const [showProfile, setShowProfile] = useState(false);
 
   return (
     <div ref={ref} className="position-relative">
       <button
-        className="btn d-flex align-items-center gap-2 text-black"
+        className="btn d-flex align-items-center gap-2"
         onClick={() => setOpen((o) => !o)}
         style={{
           background: "transparent",
@@ -72,7 +59,7 @@ const UserProfile = () => {
         ) : (
           <FaUserCircle size={28} />
         )}
-        <span className="d-none d-md-inline text-black">
+        <span className="d-none d-md-inline">
           {user?.name || "User"}
         </span>
       </button>
@@ -85,12 +72,11 @@ const UserProfile = () => {
             right: 0,
             top: "calc(100% + 8px)",
             zIndex: 999,
-            width: "230px",
-            borderRadius: "12px",
-            overflow: "hidden",
+            width: 230,
+            borderRadius: 12,
           }}
         >
-          <div className="card-body p-3" style={{ backgroundColor: "#ffffff" }}>
+          <div className="card-body p-3">
             <div className="d-flex gap-2 align-items-center mb-2">
               {user?.avatar ? (
                 <img
@@ -113,18 +99,18 @@ const UserProfile = () => {
                 </div>
               </div>
             </div>
+
             <hr />
-            <div
-              className="d-flex flex-column gap-2"
-              style={{ width: "200px" }}
-            >
+
+            <div className="d-flex flex-column gap-2">
               <button
-                className="btn  w-100 text-white "
+                className="btn w-100 text-white"
                 style={{ backgroundColor: "#182235" }}
                 onClick={() => setShowProfile(true)}
               >
                 View Profile
               </button>
+
               <button
                 className="btn btn-sm btn-outline-danger w-100"
                 onClick={handleLogout}

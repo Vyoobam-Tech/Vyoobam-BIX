@@ -5,18 +5,17 @@ import API from "../api/axiosInstance";
 import { fetchCategories } from "../redux/categorySlice";
 import { fetchwarehouses } from "../redux/warehouseSlice";
 import { variants } from "../data/variants";
-import { setAuthToken } from "../services/userService";
 import HistoryModal from "../components/HistoryModal";
 import ReusableTable , {createCustomRoleActions} from "../components/ReusableTable"; 
+import { useNavigate } from "react-router-dom";
 const Product = () => {
   const dispatch = useDispatch();
   const { items: products, status } = useSelector((state) => state.products);
   const { items: categories } = useSelector((state) => state.categories);
   const {items:warehouses}=useSelector((state)=>state.warehouses)
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role || "user";
-  const token = user?.token;
+  const [role, setRole] = useState("user");
   const [showProductForm, setShowProductForm] = useState(false);
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     sku: "",
@@ -42,6 +41,14 @@ const [subcategories, setSubcategories] = useState([]);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 const [historyInfo, setHistoryInfo] = useState(null);
 
+useEffect(() => {
+  API.get("/users/me")
+    .then((res) => {setRole(res.data.role);})
+    .catch(() => {
+      navigate("/login");
+    });
+}, [navigate]);
+
   useEffect(() => {
     if (categories.length > 0) {
       const unique = categories.reduce((acc, category) => {
@@ -60,17 +67,11 @@ const [historyInfo, setHistoryInfo] = useState(null);
   }, [categories]);
 
   useEffect(() => {
-    if (!user || !user.token) {
-      console.error("No token found in user object. Please login again.");
-      return;
-    }
-    setAuthToken(token);
-    dispatch(fetchCategories());
-    dispatch(fetchProducts());
-    dispatch(fetchwarehouses())
-  }, [dispatch]);
+  dispatch(fetchCategories());
+  dispatch(fetchProducts());
+  dispatch(fetchwarehouses());
+}, [dispatch]);
 
- 
   useEffect(() => {
     const checkProduct = async () => {
       const name = form.name.trim();
@@ -99,18 +100,14 @@ const [historyInfo, setHistoryInfo] = useState(null);
         .filter(cat => cat.name === selectedCategory.name)
         .map(cat => cat.subcategory)
         .filter(sub => sub && sub.trim() !== "");
-
       const categoryBrands = categories
         .filter(cat => cat.name === selectedCategory.name)
         .flatMap(cat => cat.brands || [])
         .filter(brand => brand && brand.trim() !== "");
-
       const uniqueSubcategories = [...new Set(categorySubcategories)];
       const uniqueBrands = [...new Set(categoryBrands)];
-
       setSubcategories(uniqueSubcategories);
       setBrands(uniqueBrands);
-
       setForm({
         ...form,
         category_id: selectedCategoryId,
@@ -141,7 +138,6 @@ const [historyInfo, setHistoryInfo] = useState(null);
 
   const handleSubmit = async (e) => {
   e.preventDefault();
-
   if (
     !form.name.trim() ||
     !form.sku.trim() ||
@@ -182,8 +178,7 @@ const [historyInfo, setHistoryInfo] = useState(null);
      
       status: true,
     });
-
-    setSubcategories([]);
+   setSubcategories([]);
     setBrands([]);
     setShowProductForm(false);
     dispatch(fetchProducts());
@@ -220,8 +215,7 @@ const [historyInfo, setHistoryInfo] = useState(null);
       brand_name: product.brand_name || "",
       unit_id: product.unit_id || "Kg",
     warehouse: product.warehouse?._id || product.warehouse || "",
-
-      hsn_code: product.hsn_code || "",
+hsn_code: product.hsn_code || "",
       tax_rate_id: product.tax_rate_id || "18%",
       mrp: product.mrp || "",
       purchase_price: product.purchase_price || "",
@@ -315,9 +309,8 @@ const handleHistory = async (product) => {
     return;
   }
 try {
-    const res = await API.get(`/products/${product._id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await API.get(`/products/${product._id}`);
+
 const p = res.data;
 const createdByUser = p?.created_by?.name || p?.created_by?.username || p?.created_by?.email || "Unknown";
 const updatedByUser = p?.updated_by?.name || p?.updated_by?.username || p?.updated_by?.email || "-";
@@ -614,8 +607,6 @@ return (
         onActionClick={handleTableAction}
         emptyMessage="No products found."
         onResetSearch={handlereset}
-        // className="mt-4"
-      
       />
 <HistoryModal
   open={showHistoryModal}

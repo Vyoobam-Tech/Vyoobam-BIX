@@ -3,7 +3,6 @@ import PhoneInput from 'react-phone-input-2';
 import { State, Country } from 'country-state-city';
 import { useDispatch, useSelector } from 'react-redux';
 import { addSupplier, deleteSupplier, fetchsuppliers, updateSupplier } from '../redux/supplierSlice';
-import { setAuthToken } from '../services/userService';
 import ReusableTable, {createCustomRoleActions, } from '../components/ReusableTable'; 
 import { useState,useEffect } from "react";
 import API from "../api/axiosInstance";
@@ -12,11 +11,6 @@ import HistoryModal from "../components/HistoryModal";
 const Supplier = () => {
   const dispatch = useDispatch();
   const { items: suppliers, status } = useSelector((state) => state.suppliers);
-
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role || "user";
- 
-
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -32,18 +26,26 @@ const Supplier = () => {
   const [searchName, setSearchName] = useState("");
   const [searchMobile,setSearchMobile]=useState("")
   const [searchEmail,setSearchEmail]=useState("")
- 
   const [editingSupplier, setEditingSupplier] = useState(null);
   const [showSupplierForm, setShowSupplierForm] = useState(false);
   const [showHistoryModal,setShowHistoryModal]=useState(false)
   const [historyInfo,setHistoryInfo]=useState(null)
+  const [role, setRole] = useState("user");
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.token) console.error("Token missing");
-    setAuthToken(user?.token);
-    dispatch(fetchsuppliers());
-  }, [dispatch]);
+  API.get("/users/me")
+    .then((res) => {
+      setRole(res.data.role);
+    })
+    .catch(() => {
+      window.location.href = "/login";
+    });
+}, []);
+
+useEffect(() => {
+  dispatch(fetchsuppliers());
+}, [dispatch]);
+
 
   const updateStates = (countryCode) => {
     if (countryCode) {
@@ -254,9 +256,8 @@ const Supplier = () => {
       })
     }
     try{
-      const res=await API.get(`/suppliers/${supplier._id}`,{
-        headers:{Authorization:`Bearer ${user?.token}`}
-      })
+     const res = await API.get(`/suppliers/${supplier._id}`);
+
       const s=res.data
       const createdByUser=s?.created_by?.name || s?.created_by?.username || s?.created_by?.email || "Unknown"
       const updatedByUser=s?.updated_by?.name || s?.updated_by?.username || s?.updated_by?.email || "-"

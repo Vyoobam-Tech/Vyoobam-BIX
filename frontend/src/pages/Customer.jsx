@@ -3,23 +3,14 @@ import "react-phone-input-2/lib/style.css";
 import PhoneInput from "react-phone-input-2";
 import { State, Country } from "country-state-city";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addcustomer,
-  deletecustomer,
-  fetchcustomers,
-  updatecustomer,
-} from "../redux/customerSlice";
-import ReusableTable, {
-  createCustomRoleActions,
-} from "../components/ReusableTable";
+import { addcustomer,deletecustomer,fetchcustomers,updatecustomer,} from "../redux/customerSlice";
+import ReusableTable, { createCustomRoleActions,} from "../components/ReusableTable";
 import API from "../api/axiosInstance";
 import HistoryModal from "../components/HistoryModal";
+import { getMe } from "../services/userService";
 const Customer = () => {
   const dispatch = useDispatch();
   const { items: customers, status } = useSelector((state) => state.customers);
-  const user = JSON.parse(localStorage.getItem("user"));
-  const token = localStorage.getItem("token");
-  const role = user?.role || "user";
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -30,7 +21,6 @@ const Customer = () => {
     shipping_address: "",
     state_code: "",
   });
-
   const [states, setStates] = useState([]);
   const [searchName, setSearchName] = useState("");
   const [searchMobile, setSearchMobile] = useState("");
@@ -39,11 +29,22 @@ const Customer = () => {
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyInfo, setHistoryInfo] = useState(null);
+  const [user, setUser] = useState(null);
+const role = user?.role || "user";
+useEffect(() => {
+  getMe()
+    .then((u) => setUser(u))
+    .catch(() => {
+      // optional: redirect if not logged in
+      window.location.href = "/login";
+    });
+
+  dispatch(fetchcustomers());
+}, [dispatch]);
 
   useEffect(() => {
     dispatch(fetchcustomers());
   }, [dispatch]);
-
   const updateStates = (countryCode) => {
     if (countryCode) {
       try {
@@ -59,7 +60,6 @@ const Customer = () => {
       setForm((prev) => ({ ...prev, state_code: "" }));
     }
   };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -112,7 +112,7 @@ const Customer = () => {
     try {
       if (editingCustomer) {
         await dispatch(
-          updatecustomer({ id: editingCustomer, updatedData: form, token })
+          updatecustomer({ id: editingCustomer, updatedData: form, token }),
         ).unwrap();
         setEditingCustomer(null);
       } else {

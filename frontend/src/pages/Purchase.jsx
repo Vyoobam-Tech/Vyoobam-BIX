@@ -1,25 +1,17 @@
 import { useState, useEffect } from "react";
 import { MdDeleteForever } from "react-icons/md";
-import { useDispatch, useSelector, useStore } from "react-redux";
-import {
-  addpurchase,
-  deletepurchase,
-  fetchpurchases,
-  updatePurchase,
-} from "../redux/purchaseSlice";
+import { useDispatch, useSelector,  } from "react-redux";
+import { addpurchase,deletepurchase,fetchpurchases, updatePurchase,} from "../redux/purchaseSlice";
 import { fetchProducts } from "../redux/productSlice";
 import { fetchwarehouses } from "../redux/warehouseSlice";
 import { fetchsuppliers } from "../redux/supplierSlice";
-import { setAuthToken } from "../services/userService";
-import ReusableTable, {
-  createCustomRoleActions,
-} from "../components/ReusableTable";
+import ReusableTable, {createCustomRoleActions,} from "../components/ReusableTable";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import API from "../api/axiosInstance";
 import HistoryModal from "../components/HistoryModal";
-
+import { useNavigate } from "react-router-dom";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const Purchase = () => {
@@ -28,10 +20,9 @@ const Purchase = () => {
   const { items: suppliers } = useSelector((state) => state.suppliers);
   const { items: warehouses } = useSelector((state) => state.warehouses);
   const { items: products } = useSelector((state) => state.products);
+  const [role, setRole] = useState("user");
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role || "user";
-
+const navigate = useNavigate();
   const [purchase, setPurchase] = useState({
     supplier_id: "",
     invoice_no: "",
@@ -68,17 +59,24 @@ const Purchase = () => {
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyInfo, setHistoryInfo] = useState(null);
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.token) console.error("No user found Please Login");
-    const token = user?.token;
-    setAuthToken(token);
 
-    dispatch(fetchsuppliers());
-    dispatch(fetchwarehouses());
-    dispatch(fetchProducts());
-    dispatch(fetchpurchases());
-  }, [dispatch]);
+useEffect(() => {
+  API.get("/users/me")
+    .then((res) => {
+      setRole(res.data.role);
+    })
+    .catch(() => {
+      navigate("/login");
+    });
+}, [navigate]);
+
+useEffect(() => {
+  dispatch(fetchsuppliers());
+  dispatch(fetchwarehouses());
+  dispatch(fetchProducts());
+  dispatch(fetchpurchases());
+}, [dispatch]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -220,7 +218,7 @@ const Purchase = () => {
       dispatch(fetchpurchases());
     } catch (err) {
       console.error(
-        "❌ Error saving purchase:",
+        "Error saving purchase:",
         err.response?.data || err.message
       );
     }
@@ -590,9 +588,8 @@ const Purchase = () => {
       });
     }
     try {
-      const res = await API.get(`/purchases/${purchase._id}`, {
-        headers: { Authorization: `Bearer ${user?.token}` },
-      });
+      const res = await API.get(`/purchases/${purchase._id}`);
+
       const p = res.data;
       const createdByUser =
         p?.created_by?.name ||

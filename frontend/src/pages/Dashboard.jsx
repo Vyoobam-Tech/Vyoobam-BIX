@@ -1,31 +1,35 @@
 import { useEffect, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/Logo.png";
 import { AiOutlineDashboard } from "react-icons/ai";
-import { MdProductionQuantityLimits, MdOutlineCategory, MdOutlineAttachMoney, MdOutlineWarehouse, MdAttachMoney, MdOutlineInventory2 } from "react-icons/md";
+import {MdProductionQuantityLimits,MdOutlineCategory,MdOutlineAttachMoney,MdOutlineWarehouse,MdAttachMoney,MdOutlineInventory2,} from "react-icons/md";
 import { IoIosContact } from "react-icons/io";
 import { BiPurchaseTag } from "react-icons/bi";
 import { TbFileInvoice, TbReportSearch } from "react-icons/tb";
 import { GiTakeMyMoney, GiMoneyStack } from "react-icons/gi";
-import { PiShippingContainer } from "react-icons/pi";
 import { FaArrowLeft } from "react-icons/fa";
 import UserProfile from "../components/UserProfile";
-
 import DashboardSummary from "./DashboardSummary";
-
+import API from "../api/axiosInstance";
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false); 
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const currentYear = new Date().getFullYear();
-
-const [dateTime, setDateTime] = useState(() => {
+  const [dateTime, setDateTime] = useState(() => {
     const now = new Date();
     return now.toLocaleString("en-IN", {
       dateStyle: "medium",
       timeStyle: "medium",
-      hour12: false
+      hour12: false,
     });
   });
+useEffect(() => {
+  API.get("/users/me")
+    .then((res) => setUser(res.data))
+    .catch(() => navigate("/login"));
+}, [navigate]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -34,134 +38,96 @@ const [dateTime, setDateTime] = useState(() => {
         now.toLocaleString("en-IN", {
           dateStyle: "medium",
           timeStyle: "medium",
-          hour12: false
+          hour12: false,
         })
       );
     }, 1000);
 
     return () => clearInterval(id);
   }, []);
-
-  
   const modules = [
     { name: "Dashboard", path: "/", icon: <AiOutlineDashboard />, roles: ["super_admin", "admin", "user"] },
-    // { name: "Manage Users", path: "/users", icon: <AiOutlineDashboard />, roles: ["super_admin"] },
     { name: "Products", path: "/products", icon: <MdProductionQuantityLimits />, roles: ["super_admin", "admin", "user"] },
     { name: "Categories", path: "/categories", icon: <MdOutlineCategory />, roles: ["super_admin", "admin", "user"] },
-    // { name: "Units", path: "/units", icon: <LiaWeightSolid />, roles: ["super_admin", "admin"] },
     { name: "Tax Rates", path: "/taxes", icon: <MdOutlineAttachMoney />, roles: ["super_admin", "admin", "user"] },
     { name: "Customers", path: "/customers", icon: <IoIosContact />, roles: ["super_admin", "admin", "user"] },
     { name: "Suppliers", path: "/suppliers", icon: <IoIosContact />, roles: ["super_admin", "admin", "user"] },
     { name: "Warehouses", path: "/warehouses", icon: <MdOutlineWarehouse />, roles: ["super_admin", "admin", "user"] },
     { name: "Purchases", path: "/purchases", icon: <BiPurchaseTag />, roles: ["super_admin", "admin", "user"] },
     { name: "Sales", path: "/sales", icon: <TbFileInvoice />, roles: ["super_admin", "admin", "user"] },
-    { name:"Sales Return", path:"/sales-returns", icon:<TbFileInvoice/>, roles:["super_admin","admin","user"]},
-    { name: "Customer Receipts", path: "/cus_receipts", icon: <MdAttachMoney />, roles: ["super_admin", "admin",] },
-    { name: "Supplier Receipts", path: "/sub_receipts", icon: <GiTakeMyMoney />, roles: ["super_admin", "admin",] },
-    // { name: "Stock Adjustments", path: "/stocks", icon: <PiShippingContainer />, roles: ["super_admin", "admin", "user"] },
+    { name: "Sales Return", path: "/sales-returns", icon: <TbFileInvoice />, roles: ["super_admin", "admin", "user"] },
+    { name: "Customer Receipts", path: "/cus_receipts", icon: <MdAttachMoney />, roles: ["super_admin", "admin"] },
+    { name: "Supplier Receipts", path: "/sub_receipts", icon: <GiTakeMyMoney />, roles: ["super_admin", "admin"] },
     { name: "Stock Ledger", path: "/stockledger", icon: <MdOutlineInventory2 />, roles: ["super_admin", "admin", "user"] },
     { name: "Expense", path: "/expenses", icon: <GiMoneyStack />, roles: ["super_admin", "admin", "user"] },
     { name: "Reports", path: "/reports", icon: <TbReportSearch />, roles: ["super_admin", "admin", "user"] },
   ];
+ const userRole = user?.role;
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const handleMenuClick = (path) => {
-    navigate(path);
-  };
-
-  const userRole = JSON.parse(localStorage.getItem("user"))?.role;
-
+  const toggleSidebar = () => setSidebarOpen((o) => !o);
+  const handleMenuClick = (path) => navigate(path);
   return (
     <div className="d-flex flex-column vh-100">
-      <nav className="navbar navbar-expand-lg navbar-dark bg-white shadow" >
+      <nav className="navbar navbar-expand-lg bg-white shadow-sm">
         <div className="container-fluid">
-          <button className="btn btn-outline-light me-3 text-success" onClick={toggleSidebar}>
-            {sidebarOpen ? <FaArrowLeft className="text-dark" /> : "☰"}
+          <button className="btn me-3" onClick={toggleSidebar}>
+            {sidebarOpen ? <FaArrowLeft /> : "☰"}
           </button>
 
-          <a className="navbar-brand d-flex align-items-center gap-3" href="#">
-            <img src={logo} alt="Logo" className="me-2" style={{ height: "50px" }} />
-            <span className="fw-bold fs-4 text-black" >SALESSAGE</span>
-          </a>
+          <div className="d-flex align-items-center gap-3">
+            <img src={logo} alt="Logo" style={{ height: 50 }} />
+            <span className="fw-bold fs-4">SALESSAGE</span>
+          </div>
 
-          <div className="ms-auto d-flex align-items-center gap-2">
-
-              <div className="d-flex align-items-center me-2">
-  <span
-    className="text-muted small"
-    style={{ whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}
-  >
-    {dateTime}
-  </span>
-</div>
+          <div className="ms-auto d-flex align-items-center gap-3">
+            <span className="text-muted small">{dateTime}</span>
             <UserProfile />
-
           </div>
         </div>
       </nav>
-
       <div className="d-flex flex-grow-1">
-        {sidebarOpen && (
-          <div className="p-3"
+        {sidebarOpen && userRole && (
+          <aside
             style={{
-  width: "18rem",
-  minWidth: "16rem",
-  maxWidth: "20rem",
-  background: "linear-gradient(180deg, #1e293b, #0f172a)",
-  color: "white",
-  flexShrink: 0
-}}
-
+              width: "18rem",
+              background: "linear-gradient(180deg, #1e293b, #0f172a)",
+              color: "white",
+            }}
+            className="p-3"
           >
-            <div className="list-group list-group-flush text-center">
-              {modules.filter((m) => m.roles.includes(userRole)).map((m) => (
-                <div
-                  key={m.path}
-                  onClick={() => handleMenuClick(m.path)}
-                  className="list-group-item border-0 list-group-item-action bg-transparent text-light hover-bg-light d-flex align-items-center gap-2"
-                  style={{ cursor: "pointer", padding: "0.75rem 1rem" }}
-                >
-                  <div className="d-flex align-items-center gap-2">
-                    <span style={{ width: "24px" }}>{m.icon}</span>
-                    <span >{m.name}</span>
+            <div className="list-group list-group-flush">
+              {modules
+                .filter((m) => m.roles.includes(userRole))
+                .map((m) => (
+                  <div
+                    key={m.path}
+                    onClick={() => handleMenuClick(m.path)}
+                    className="list-group-item list-group-item-action bg-transparent text-light border-0 d-flex align-items-center gap-2"
+                    style={{ cursor: "pointer" }}
+                  >
+                    <span style={{ width: 24 }}>{m.icon}</span>
+                    {m.name}
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
-
-          </div>
-
+          </aside>
         )}
-
-        <div className="flex-grow-1 p-4 overflow-auto" style={{ backgroundColor: "#3d4e6eff" }}>
-
-          <div className={`${window.location.pathname === "/" ? "p-0 border-0 shadow-none bg-transparent" : "bg-white border rounded shadow-sm p-4 h-100"}`}>
-            {window.location.pathname === "/" && <DashboardSummary />}
+        <main className="flex-grow-1 p-4 overflow-auto" style={{ background: "#3d4e6e" }}>
+          <div
+            className={
+              location.pathname === "/"
+                ? "p-0 bg-transparent"
+                : "bg-white rounded shadow-sm p-4 h-100"
+            }
+          >
+            {location.pathname === "/" && <DashboardSummary />}
             <Outlet />
           </div>
-        </div>
+        </main>
       </div>
-
-      <footer className="footer bg-light py-2 shadow-sm mt-auto" style={{ borderTop: "1px solid #dee2e6" }}>
-        <div className="container-fluid text-center">
-          <p className="mb-0 text-muted small">
-            &copy; {currentYear} Vyoobam Tech. All rights reserved. | Empowering Digital Solutions
-          </p>
-        </div>
+      <footer className="bg-light py-2 text-center small border-top">
+        &copy; {currentYear} Vyoobam Tech. All rights reserved.
       </footer>
-
-      <style>{`
-        .hover-bg-light:hover {
-          background-color: rgba(255, 255, 255, 0.1) !important;
-          color: #f8fafc !important;
-          border-radius: 0.5rem;
-          transition: background-color 0.2s ease, color 0.2s ease;
-        }
-      `}</style>
-
     </div>
   );
 }
