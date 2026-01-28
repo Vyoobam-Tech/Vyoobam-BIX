@@ -21,6 +21,7 @@ const reportRoutes = require("./routes/reportRoutes");
 const userRoutes = require("./routes/userRoutes");
 const app = express();
 const cookieParser = require("cookie-parser");
+const importGoogleTaxonomyIfEmpty = require("./utils/importGoogleTaxonomy");
 
 app.use(cookieParser());
 app.use(cors({
@@ -28,9 +29,13 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-mongoose.connect("mongodb://127.0.0.1:27017/inventory")
-// mongoose.connect(process.env.MONGO_URI) 
-.then(() => console.log("MongoDB connected"))
+// mongoose.connect("mongodb://127.0.0.1:27017/inventory")
+mongoose.connect(process.env.MONGO_URI) 
+.then(async () => {
+    console.log("MongoDB connected");
+
+    await importGoogleTaxonomyIfEmpty(); 
+  })
 .catch(err => console.log(err));
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
@@ -48,6 +53,8 @@ app.use("/api/stockledger", stockledgerRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/google-categories", require("./routes/googleCategory"));
+
 
 const __dirname1 = path.resolve();
 app.use(express.static(path.join(__dirname1, "/frontend/dist"))); 
