@@ -18,12 +18,17 @@
     "country-state-city": "^3.2.1",
     "fonts": "^0.0.2",
     "google": "^2.1.0",
+    "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-icons": "^5.5.0",
     "react-phone-input-2": "^2.15.1",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.11.0"
+    "react-router": "^7.11.0",
+    "react-router-dom": "^7.11.0",
+    "recharts": "^3.7.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
