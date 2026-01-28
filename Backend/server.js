@@ -34,8 +34,7 @@ mongoose.connect(process.env.MONGO_URI)
 .then(async () => {
     console.log("MongoDB connected");
 
-    await importGoogleTaxonomyIfEmpty(); 
-  })
+    await importGoogleTaxonomyIfEmpty(); })
 .catch(err => console.log(err));
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
