@@ -3,10 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchwarehouses } from '../redux/warehouseSlice';
 import { addexpense, deleteexpense, fetchexpenses, updateexpense } from '../redux/expenseSlice';
 import { getMe } from "../services/userService";
-import ReusableTable, {createCustomRoleActions} from '../components/ReusableTable'; 
+import ReusableTable from '../components/ReusableTable'; 
 import API from '../api/axiosInstance';
 import HistoryModal from '../components/HistoryModal';
 import { useNavigate } from "react-router-dom";
+import useTableActions from '../components/useTableActions';
 const Expenses = () => {
   const dispatch = useDispatch();
   const { items: expenses, status } = useSelector((state) => state.expenses);
@@ -39,7 +40,7 @@ useEffect(() => {
   dispatch(fetchexpenses());
 }, [dispatch, navigate]);
 
-
+const tableActions = useTableActions(role);
 const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
@@ -110,18 +111,13 @@ const handleSubmit = async (e) => {
     const matchname = searchWarehouse.trim() === " " || warehouseName.includes(searchWarehouse.toLowerCase())
     const matchexpense = searchExpense.trim() === " " || expense.includes(searchExpense.toLowerCase())
     return matchdate && matchname && matchexpense
-   
   });
-
- 
   const getWarehouseName = (expense) => {
     if (typeof expense.warehouseId === "object" && expense.warehouseId !== null) {
       return expense.warehouseId?.store_name || "Unknown Warehouse";
     }
     return warehouses.find((w) => w._id === expense.warehouseId)?.store_name || "Unknown Warehouse";
   };
-
-
   const tableColumns = [
     {
       key: "expenseDate",
@@ -155,17 +151,6 @@ const handleSubmit = async (e) => {
     }
   ];
 
-  const tableActions = createCustomRoleActions({
-     edit: { 
-       show: () => ["super_admin", "admin",].includes(role) 
-     },
-     delete: { 
-       show: () => ["super_admin", "admin"].includes(role)
-     },
-    history :{
-      show:()=>["super_admin","admin","user"].includes(role)
-    }
-    })
       const handleTableAction = (actionType, expense) => {
         if (actionType === "edit") {
           handleEdit(expense);
@@ -176,8 +161,6 @@ const handleSubmit = async (e) => {
            handleHistory(expense)
         }
       };
-
-
   const handleHistory=async (expense) => {
     if(!expense){
       console.error("Expense not found",expense)
@@ -190,7 +173,6 @@ const handleSubmit = async (e) => {
     }
     try{
       const res = await API.get(`/expenses/${expense._id}`);
-
       const e=res.data
       const createdByUser=e?.created_by?.username || e?.created_by?.name || e?.created_by?.email || "Unknown"
       const updatedByUser=e?.updated_by?.username || e?.updated_by?.name || e?.updated_by?.email ||  "-"

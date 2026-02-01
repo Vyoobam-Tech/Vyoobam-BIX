@@ -1,5 +1,4 @@
 const Tax = require("../models/Tax");
-
 exports.getTaxes = async (req, res) => {
   try{
     let taxes

@@ -2,18 +2,12 @@ import { useEffect, useState } from "react";
 import PhoneInput from "react-phone-input-2";
 import { State, Country } from "country-state-city";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addwarehouse,
-  deletewarehouse,
-  fetchwarehouses,
-  updateWarehouse,
-} from "../redux/warehouseSlice";
-import ReusableTable, {
-  createCustomRoleActions,
-} from "../components/ReusableTable";
+import {addwarehouse,deletewarehouse,fetchwarehouses,updateWarehouse,} from "../redux/warehouseSlice";
+import ReusableTable from "../components/ReusableTable";
 import API from "../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import HistoryModal from "../components/HistoryModal";
+import useTableActions from "../components/useTableActions";
 const Warehouse = () => {
   const dispatch = useDispatch();
   const { items: warehouses, status } = useSelector(
@@ -30,7 +24,6 @@ const Warehouse = () => {
     email: "",
     status: false,
   });
-
   const [states, setStates] = useState([]);
   const [editingWarehouse, setEditingWarehouse] = useState(null);
   const [showWarehouseForm, setShowWarehouseForm] = useState(false);
@@ -40,7 +33,6 @@ const Warehouse = () => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyInfo, setHistoryInfo] = useState(null);
   const [role, setRole] = useState("user");
-
   const navigate = useNavigate();
   useEffect(() => {
     API.get("/users/me")
@@ -52,7 +44,7 @@ const Warehouse = () => {
         navigate("/login", { replace: true });
       });
   }, [dispatch, navigate]);
-
+  const tableActions = useTableActions(role);
   const updateStates = (countryCode) => {
     if (countryCode) {
       try {
@@ -81,27 +73,20 @@ const Warehouse = () => {
       }));
       return;
     }
-
     setForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-
     if (name === "country") {
       updateStates(value);
     }
   };
-
   const handlePhoneChange = (phone, countryData) => {
-    const countryCode =
-      countryData?.countryCode ||
-      countryData?.iso2 ||
-      (countryData?.dialCode === "91" ? "IN" : "");
+    const countryCode = countryData?.countryCode || countryData?.iso2 || (countryData?.dialCode === "91" ? "IN" : "");
     let localNumber = phone;
     if (countryData?.dialCode) {
       localNumber = phone.slice(countryData.dialCode.length);
     }
-
     if (localNumber === "") {
       setForm((prev) => ({
         ...prev,
@@ -114,13 +99,11 @@ const Warehouse = () => {
     if (countryData?.dialCode === "91" && !/^[6-9]\d*$/.test(localNumber)) {
       return;
     }
-
     setForm((prev) => ({
       ...prev,
       phone: phone,
       country: countryCode,
     }));
-
     updateStates(countryCode);
   };
 
@@ -140,12 +123,9 @@ const Warehouse = () => {
           updateWarehouse({ id: editingWarehouse, updatedData: form }),
         ).unwrap();
         setEditingWarehouse(null);
-        console.log("Warehouse updated Successfully");
       } else {
         await dispatch(addwarehouse(form)).unwrap();
-        console.log("Warehouse added Successfully");
       }
-
       setForm({
         store_name: "",
         code: "",
@@ -184,7 +164,6 @@ const Warehouse = () => {
     });
     setShowWarehouseForm(true);
   };
-
   const handleCloseForm = () => {
     setShowWarehouseForm(false);
     setEditingWarehouse(null);
@@ -200,20 +179,15 @@ const Warehouse = () => {
       status: false,
     });
   };
-
   const filteredwarehouse = warehouses.filter((w) => {
     const name = w.store_name?.toLowerCase() || "";
     const person = w.contact?.toLowerCase() || "";
     const phone = String(w.phone || "").toLowerCase();
-    const matchname =
-      searchName.trim() === "" || name.includes(searchName.toLowerCase());
-    const matchperson =
-      searchPerson.trim() === "" || person.includes(searchPerson.toLowerCase());
-    const matchphone =
-      searchPhone.trim() === "" || phone.includes(searchPhone.toLowerCase());
+    const matchname =searchName.trim() === "" || name.includes(searchName.toLowerCase());
+    const matchperson =searchPerson.trim() === "" || person.includes(searchPerson.toLowerCase());
+    const matchphone = searchPhone.trim() === "" || phone.includes(searchPhone.toLowerCase());
     return matchname && matchperson && matchphone;
   });
-
   const tableColumns = [
     {
       key: "store_name",
@@ -266,18 +240,6 @@ const Warehouse = () => {
       ),
     },
   ];
-
-  const tableActions = createCustomRoleActions({
-    edit: {
-      show: () => ["super_admin", "admin"].includes(role),
-    },
-    delete: {
-      show: () => ["super_admin", "admin"].includes(role),
-    },
-    history: {
-      show: () => ["super_admin", "admin", "user"].includes(role),
-    },
-  });
 
   const handleTableAction = (actionType, warehouse) => {
     if (actionType === "edit") {
@@ -347,26 +309,18 @@ const Warehouse = () => {
       setShowHistoryModal(true);
     }
   };
-
   return (
     <div className="container mt-4">
-      <h2 className="mb-4 d-flex align-items-center fs-3">
-        <b>Warehouses</b>
-      </h2>
-
+      <h2 className="mb-4 d-flex align-items-center fs-3"><b>Warehouses</b></h2>
       <div className="row mb-4">
         <div className="col-12">
           {["super_admin", "admin"].includes(role) && (
             <button
               className="btn add text-white d-flex align-items-center"
-              onClick={() => setShowWarehouseForm(true)}
-            >
-              Add Warehouse
-            </button>
+              onClick={() => setShowWarehouseForm(true)}> Add Warehouse</button>
           )}
         </div>
       </div>
-
       {showWarehouseForm && (
         <div
           className="modal show d-block"
@@ -598,5 +552,4 @@ const Warehouse = () => {
     </div>
   );
 };
-
 export default Warehouse;

@@ -13,7 +13,6 @@ const SaleItemSchema = new mongoose.Schema({
   line_total: { type: Number, required: true }
 }, { timestamps: true });
 
-
 const SaleSchema = new mongoose.Schema({
   invoice_no:{type:String,required:true},
   invoice_date_time:{type:Date,required:true },
@@ -30,12 +29,10 @@ const SaleSchema = new mongoose.Schema({
   due_amount:{type:Number,default:0},
   notes:{type:String},
   created_by:{ type:mongoose.Schema.Types.ObjectId,ref:"User",required:false,},
-      updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
-      updated_by_role:String,
-      updatedAt:Date,
-       history: {
-      oldValue: String,
-      newValue: String
+  updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
+  updated_by_role:String,
+  updatedAt:Date,
+  history: {oldValue: String,newValue: String
     },
   items:[SaleItemSchema]
 }, { timestamps: true });

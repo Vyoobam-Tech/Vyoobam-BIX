@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addtax, deletetax, fetchtaxes, updatetax } from "../redux/taxSlice";
 import HistoryModal from "../components/HistoryModal";
-import ReusableTable, { createCustomRoleActions,} from "../components/ReusableTable"; 
+import ReusableTable from "../components/ReusableTable"; 
 import { useNavigate } from "react-router-dom";
 import API from "../api/axiosInstance";
+import useTableActions from "../components/useTableActions";
 const Tax = () => {
   const dispatch = useDispatch();
   const { items: taxes, status } = useSelector((state) => state.taxes);
@@ -15,6 +16,7 @@ const Tax = () => {
   const [historyInfo, setHistoryInfo] = useState(null);
   const [role, setRole] = useState("user");
   const navigate = useNavigate();
+  const tableActions = useTableActions(role);
   const [form, setForm] = useState({
     name: "",
     cgst_percent: "",
@@ -23,7 +25,6 @@ const Tax = () => {
     cess_percent: "",
     is_inclusive: false,
   });
-
   useEffect(() => {
   API.get("/users/me")
     .then((res) => {
@@ -48,10 +49,8 @@ const Tax = () => {
           updatetax({ id: editingTax, updatedData: form })
         ).unwrap();
         setEditingTax(null);
-        console.log("Tax Updated Successfully");
       } else {
         await dispatch(addtax(form)).unwrap();
-        console.log("Tax added Successfully");
       }
 
       setForm({
@@ -79,13 +78,10 @@ const Tax = () => {
       cgst_percent.includes(searchcgst.toLowerCase());
     return matchName && matchcgst;
   });
-
   const handleDelete = async (id) => {
     dispatch(deletetax(id));
   };
-
   const [editingTax, setEditingTax] = useState(null);
-
   const handleEdit = (tax) => {
     setEditingTax(tax._id);
     setForm({
@@ -98,7 +94,6 @@ const Tax = () => {
     });
     setShowTaxForm(true);
   };
-
   const handleCloseForm = () => {
     setShowTaxForm(false);
     setEditingTax(null);
@@ -111,11 +106,9 @@ const Tax = () => {
       is_inclusive: false,
     });
   };
-
   useEffect(() => {
   const cgst = parseFloat(form.cgst_percent) || 0;
   const sgst = parseFloat(form.sgst_percent) || 0;
-
   const calculatedIgst = cgst + sgst;
   if (calculatedIgst !== Number(form.igst_percent)) {
     setForm((prev) => ({
@@ -124,8 +117,6 @@ const Tax = () => {
     }));
   }
 }, [form.cgst_percent, form.sgst_percent]);
-
-
   const tableColumns = [
     {
       key: "name",
@@ -170,18 +161,6 @@ const Tax = () => {
     },
   ];
 
-  const tableActions = createCustomRoleActions({
-    edit: {
-      show: () => ["super_admin", "admin"].includes(role),
-    },
-    delete: {
-      show: () => ["super_admin", "admin"].includes(role),
-    },
-    history: {
-      show: () => ["super_admin", "admin", "user"].includes(role),
-    },
-  });
-
   const handleTableAction = (actionType, tax) => {
     if (actionType === "edit") {
       handleEdit(tax);
@@ -210,18 +189,9 @@ const Tax = () => {
     }
     try {
      const res = await API.get(`/taxes/${tax._id}`);
-
       const t = res.data;
-      const createdByUser =
-        t?.created_by?.name ||
-        t?.created_by?.username ||
-        t?.created_by?.email ||
-        "Unknown";
-      const updatedByUser =
-        t?.updated_by?.name ||
-        t?.updated_by?.username ||
-        t?.updated_by?.email ||
-        "-";
+      const createdByUser =t?.created_by?.name ||t?.created_by?.username ||t?.created_by?.email || "Unknown";
+      const updatedByUser =t?.updated_by?.name || t?.updated_by?.username || t?.updated_by?.email || "-";
       setHistoryInfo({
         createdBy: createdByUser,
         createdAt: t?.createdAt || tax?.createdAt || null,
@@ -233,17 +203,9 @@ const Tax = () => {
     } catch (err) {
       console.warn(`Failed to fetch tax history ${tax._id}`);
       setHistoryInfo({
-        createdBy:
-          tax?.created_by?.name ||
-          tax?.created_by?.username ||
-          tax?.created_by?.email ||
-          "Unknown",
+        createdBy: tax?.created_by?.name || tax?.created_by?.username || tax?.created_by?.email || "Unknown",
         createdAt: tax?.createdAt || null,
-        updatedBy:
-          tax?.updated_by?.name ||
-          tax?.updated_by?.username ||
-          tax?.updated_by?.email ||
-          "-",
+        updatedBy: tax?.updated_by?.name || tax?.updated_by?.username || tax?.updated_by?.email || "-",
         updatedAt: tax?.updatedAt || null,
         oldValues: null,
         newValues: tax,
@@ -265,14 +227,11 @@ const Tax = () => {
               <button
                 className="btn add text-white d-flex align-items-center"
                 onClick={() => setShowTaxForm(true)}
-              >
-                Add Tax
-              </button>
+              > Add Tax</button>
             )}
           </div>
         </div>
       </div>
-
       {showTaxForm && (
         <div
           className="modal show d-block"
@@ -283,8 +242,7 @@ const Tax = () => {
             <div className="modal-content">
               <div
                 className="modal-header  text-white"
-                style={{ backgroundColor: "#182235" }}
-              >
+                style={{ backgroundColor: "#182235" }}>
                 <h5 className="modal-title">
                   {editingTax ? "Edit Tax" : "Add New Tax"}
                 </h5>

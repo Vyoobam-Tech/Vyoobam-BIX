@@ -24,11 +24,6 @@ const ProfitLossReport = () => {
     const toDate = new Date(year, month, 0).toISOString().split("T")[0];
     dispatch(fetchProfitLoss({ fromDate, toDate }));
   };
-
-  const filteredDetails = (report?.details || []).filter((d) =>
-    d.category.toLowerCase().includes(search.toLowerCase()),
-  );
-
   const profitLossColumns = [
     {
       key: "category",

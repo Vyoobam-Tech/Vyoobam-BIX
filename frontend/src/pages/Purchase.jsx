@@ -5,15 +5,15 @@ import { addpurchase,deletepurchase,fetchpurchases, updatePurchase,} from "../re
 import { fetchProducts } from "../redux/productSlice";
 import { fetchwarehouses } from "../redux/warehouseSlice";
 import { fetchsuppliers } from "../redux/supplierSlice";
-import ReusableTable, {createCustomRoleActions,} from "../components/ReusableTable";
+import ReusableTable from "../components/ReusableTable";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import API from "../api/axiosInstance";
 import HistoryModal from "../components/HistoryModal";
 import { useNavigate } from "react-router-dom";
+import useTableActions from "../components/useTableActions";
 ModuleRegistry.registerModules([AllCommunityModule]);
-
 const Purchase = () => {
   const dispatch = useDispatch();
   const { items: purchases, status } = useSelector((state) => state.purchases);
@@ -69,6 +69,7 @@ useEffect(() => {
       navigate("/login");
     });
 }, [navigate]);
+const tableActions = useTableActions(role);
 
 useEffect(() => {
   dispatch(fetchsuppliers());
@@ -129,15 +130,12 @@ useEffect(() => {
         (Number(item.tax) || 0);
       subtotal += lineTotal;
     });
-
     const discount_amount = Number(purchase.discount_amount || 0);
     const other_charges = Number(purchase.other_charges || 0);
     const round_off = Number(purchase.round_off || 0);
     const grand_total = subtotal - discount_amount + other_charges + round_off;
-
     const paid_amount = Number(purchase.paid_amount || 0);
     const due_amount = grand_total - paid_amount;
-
     setPurchase({
       ...purchase,
       subtotal,
@@ -157,34 +155,25 @@ useEffect(() => {
           (Number(item.tax) || 0);
         subtotal += lineTotal;
       });
-
       const discount_amount = Number(purchase.discount_amount || 0);
       const other_charges = Number(purchase.other_charges || 0);
       const round_off = Number(purchase.round_off || 0);
-
-      const grand_total =
-        subtotal - discount_amount + other_charges + round_off;
+      const grand_total =subtotal - discount_amount + other_charges + round_off;
       const paid_amount = Number(purchase.paid_amount || 0);
       const due_amount = grand_total - paid_amount;
-
       const purchaseData = {
         ...purchase,
         subtotal,
         grand_total,
         due_amount,
       };
-
       if (editingPurchase) {
         await dispatch(
           updatePurchase({ id: editingPurchase, updatedData: purchaseData })
         ).unwrap();
-        console.log("Purchase updated successfully!");
       } else {
         await dispatch(addpurchase(purchaseData)).unwrap();
-        console.log("Purchase added successfully!");
       }
-
-      // Reset form
       setPurchase({
         supplier_id: "",
         invoice_no: "",
@@ -213,7 +202,6 @@ useEffect(() => {
         payment_mode: "",
         notes: "",
       });
-
       setShowPurchaseForm(false);
       dispatch(fetchpurchases());
     } catch (err) {
@@ -229,21 +217,11 @@ useEffect(() => {
       typeof p.supplier_id === "object"
         ? p.supplier_id?.name?.toLowerCase() || ""
         : String(p.supplier_id || "").toLowerCase();
-
     const invno = String(p.invoice_no || "").toLowerCase();
     const date = String(p.invoice_date || "").toLowerCase();
-
-    const matchname =
-      searchname.trim() === "" ||
-      supplierName.includes(searchname.toLowerCase());
-
-    const matchinvno =
-      searchinvoice.trim() === "" ||
-      invno.includes(searchinvoice.toLowerCase());
-
-    const matchdate =
-      searchdate.trim() === "" || date.includes(searchdate.toLowerCase());
-
+    const matchname =searchname.trim() === "" || supplierName.includes(searchname.toLowerCase());
+    const matchinvno = searchinvoice.trim() === "" || invno.includes(searchinvoice.toLowerCase());
+    const matchdate = searchdate.trim() === "" || date.includes(searchdate.toLowerCase());
     return matchname && matchinvno && matchdate;
   });
 
@@ -379,37 +357,6 @@ useEffect(() => {
       .join(", ");
   };
 
-
-  const calculateTotalsFromItems = (items) => {
-    let subtotal = 0;
-
-    items.forEach((item) => {
-      const lineTotal =
-        (Number(item.qty) || 0) * (Number(item.unit_price) || 0) -
-        (Number(item.discount) || 0) +
-        (Number(item.tax) || 0);
-
-      item.line_total = lineTotal;
-      subtotal += lineTotal;
-    });
-
-    const grand_total =
-      subtotal -
-      (Number(purchase.discount_amount) || 0) +
-      (Number(purchase.other_charges) || 0) +
-      (Number(purchase.round_off) || 0);
-
-    const due_amount = grand_total - (Number(purchase.paid_amount) || 0);
-
-    setPurchase((prev) => ({
-      ...prev,
-      items,
-      subtotal,
-      grand_total,
-      due_amount,
-    }));
-  };
-
   const tableColumns = [
     {
       key: "supplier",
@@ -482,18 +429,6 @@ useEffect(() => {
     },
   ];
 
-  const tableActions = createCustomRoleActions({
-    edit: {
-      show: () => ["super_admin", "admin"].includes(role),
-    },
-    delete: {
-      show: () => ["super_admin", "admin"].includes(role),
-    },
-    history: {
-      show: () => ["super_admin", "admin", "user"].includes(role),
-    },
-  });
-
   const handleTableAction = (actionType, purchase) => {
     if (actionType === "edit") {
       handleEdit(purchase);
@@ -503,76 +438,6 @@ useEffect(() => {
       handleHistory(purchase);
     }
   };
-
-  const purchaseItemColumns = [
-    {
-      headerName: "Product",
-      field: "product_id",
-      editable: true,
-      cellEditor: "agSelectCellEditor",
-      cellEditorParams: {
-        values: products.map((p) => p._id), // values stored internally
-        formatValue: (id) => {
-          const product = products.find((p) => p._id === id);
-          return product ? product.name : "";
-        },
-      },
-      valueFormatter: (params) => {
-        const product = products.find((p) => p._id === params.value);
-        return product ? product.name : "Select Product";
-      },
-    },
-    { headerName: "Batch No", field: "batch_no", editable: true },
-    { headerName: "MFG Date", field: "mfg_date", editable: true },
-    { headerName: "EXP Date", field: "exp_date", editable: true },
-    {
-      headerName: "Qty",
-      field: "qty",
-      editable: true,
-      valueParser: (v) => Number(v) || 0,
-    },
-    {
-      headerName: "Unit Price",
-      field: "unit_price",
-      editable: true,
-      valueParser: (v) => Number(v) || 0,
-    },
-    {
-      headerName: "Discount",
-      field: "discount",
-      editable: true,
-      valueParser: (v) => Number(v) || 0,
-    },
-    {
-      headerName: "Tax",
-      field: "tax",
-      editable: true,
-      valueParser: (v) => Number(v) || 0,
-    },
-    {
-      headerName: "Line Total",
-      field: "line_total",
-      valueGetter: (params) => {
-        const { qty, unit_price, discount, tax } = params.data;
-        const total =
-          (qty || 0) * (unit_price || 0) - (discount || 0) + (tax || 0);
-        return Number.isFinite(total) ? total.toFixed(2) : "0.00";
-      },
-    },
-    {
-      headerName: "Action",
-      field: "action",
-      cellRenderer: (params) => (
-        <button
-          className="btn btn-sm"
-          onClick={() => removeItem(params.node.rowIndex)}
-        >
-          <MdDeleteForever className="text-danger" />
-        </button>
-      ),
-      width: 110,
-    },
-  ];
 
   const handleHistory = async (purchase) => {
     if (!purchase._id) {
@@ -590,7 +455,6 @@ useEffect(() => {
     }
     try {
       const res = await API.get(`/purchases/${purchase._id}`);
-
       const p = res.data;
       const createdByUser =
         p?.created_by?.name ||
@@ -632,32 +496,26 @@ useEffect(() => {
       setShowHistoryModal(true);
     }
   };
-
   return (
     <div className="container mt-4">
       <h2 className="mb-4 d-flex align-items-center fs-3">
         <b>Purchases</b>
       </h2>
-
       <div className="row mb-4">
         <div className="col-12">
           {["super_admin", "admin"].includes(role) && (
             <button
               className="btn add text-white d-flex align-items-center"
               onClick={() => setShowPurchaseForm(true)}
-            >
-              Add Purchase
-            </button>
+            >Add Purchase</button>
           )}
         </div>
       </div>
-
       {showPurchaseForm && (
         <div
           className="modal show d-block"
           tabIndex="-1"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="modal-dialog modal-xl modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header text-white">
@@ -667,18 +525,12 @@ useEffect(() => {
                 <button
                   type="button"
                   className="btn-close btn-close-white"
-                  onClick={handleCloseForm}
-                ></button>
+                  onClick={handleCloseForm}></button>
               </div>
-              <div
-                className="modal-body"
-                style={{ maxHeight: "80vh", overflowY: "auto" }}
-              >
+              <div className="modal-body" style={{ maxHeight: "80vh", overflowY: "auto" }}>
                 <form className="row g-3" onSubmit={handleSubmit}>
                   <div className="col-md-6">
-                    <label className="form-label">
-                      Supplier <span className="text-danger">*</span>
-                    </label>
+                    <label className="form-label">Supplier <span className="text-danger">*</span> </label>
                     <select
                       name="supplier_id"
                       className="form-select bg-light"
@@ -695,20 +547,6 @@ useEffect(() => {
                     </select>
                   </div>
 
-                  {/* <div className="col-md-6">
-                    <label className="form-label">
-                      Invoice No <span className="text-danger">*</span>
-                    </label>
-                <input
-  type="text"
-  name="invoice_no"
-  className="form-control bg-light"
-  value={purchase.invoice_no}
-  disabled
-/>
-
-
-                  </div> */}
                   <div className="col-md-6">
                     <label className="form-label">
                       Invoice Date <span className="text-danger">*</span>
@@ -760,7 +598,6 @@ useEffect(() => {
                             <th style={{ width: "80px" }}>Action</th>
                           </tr>
                         </thead>
-
                         <tbody>
                           {purchase.items.map((item, index) => (
                             <tr key={index}>
@@ -779,7 +616,6 @@ useEffect(() => {
                                   ))}
                                 </select>
                               </td>
-
                               <td>
                                 <input
                                   type="text"
@@ -789,7 +625,6 @@ useEffect(() => {
                                   onChange={(e) => handleItemChange(index, e)}
                                 />
                               </td>
-
                               <td>
                                 <input
                                   type="date"
@@ -799,7 +634,6 @@ useEffect(() => {
                                   onChange={(e) => handleItemChange(index, e)}
                                 />
                               </td>
-
                               <td>
                                 <input
                                   type="date"
@@ -809,7 +643,6 @@ useEffect(() => {
                                   onChange={(e) => handleItemChange(index, e)}
                                 />
                               </td>
-
                               <td>
                                 <input
                                   type="number"
@@ -823,7 +656,6 @@ useEffect(() => {
                                   }}
                                 />
                               </td>
-
                               <td>
                                 <input
                                   type="number"
@@ -837,7 +669,6 @@ useEffect(() => {
                                   }}
                                 />
                               </td>
-
                               <td>
                                 <input
                                   type="number"
@@ -851,7 +682,6 @@ useEffect(() => {
                                   }}
                                 />
                               </td>
-
                               <td>
                                 <input
                                   type="number"
@@ -865,7 +695,6 @@ useEffect(() => {
                                   }}
                                 />
                               </td>
-
                               <td className="text-end fw-bold">
                                 ₹
                                 {(
@@ -875,33 +704,24 @@ useEffect(() => {
                                   (Number(item.tax) || 0)
                                 ).toFixed(2)}
                               </td>
-
                               <td className="text-center">
                                 <button
                                   type="button"
                                   className="btn btn-sm text-danger"
                                   onClick={() => removeItem(index)}
-                                >
-                                  <MdDeleteForever />
-                                </button>
+                                ><MdDeleteForever /> </button>
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
-
                     <button
                       type="button"
                       className="btn add btn-sm text-white"
                       onClick={addItem}
-                    >
-                      + Add Item
-                    </button>
-
-                    
+                    >Add Item</button>
                   </div>
-
                   <div className="col-md-6">
                     <label className="form-label">Subtotal</label>
                     <input
@@ -995,19 +815,12 @@ useEffect(() => {
                     ></textarea>
                   </div>
                   <div className="col-12 d-flex gap-2">
-                    <button
-                      type="submit"
+                    <button type="submit"
                       className="btn add text-white px-4 d-flex align-items-center justify-content-center"
-                    >
-                      {editingPurchase ? "Update Purchase" : "Save Purchase"}
-                    </button>
-                    <button
-                      type="button"
+                    >{editingPurchase ? "Update Purchase" : "Save Purchase"}</button>
+                    <button type="button"
                       className="btn btn-secondary px-4 d-flex align-items-center justify-content-center"
-                      onClick={handleCloseForm}
-                    >
-                      Cancel
-                    </button>
+                      onClick={handleCloseForm}>Cancel</button>
                   </div>
                 </form>
               </div>
@@ -1015,7 +828,6 @@ useEffect(() => {
           </div>
         </div>
       )}
-
       <ReusableTable
         data={filteredpurchase}
         columns={tableColumns}
@@ -1041,11 +853,7 @@ useEffect(() => {
           setSearchDate("");
         }}
       />
-      <HistoryModal
-        open={showHistoryModal}
-        onClose={() => setShowHistoryModal(false)}
-        data={historyInfo}
-      />
+      <HistoryModal open={showHistoryModal} onClose={() => setShowHistoryModal(false)} data={historyInfo}/>
     </div>
   );
 };

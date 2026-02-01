@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/userService";
 import logo from "../assets/Logo.png";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-
 const Login = () => {
   const [form, setForm] = useState({
     email: "",
@@ -15,7 +14,6 @@ const Login = () => {
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -26,7 +24,6 @@ const Login = () => {
       setError(err.response?.data?.error || err.message);
     }
   };
-
   return (
     <div className="d-flex justify-content-center align-items-center vh-100"
       style={{ backgroundColor: "#c2cdd8ff" }}

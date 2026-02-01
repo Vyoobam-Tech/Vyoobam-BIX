@@ -13,10 +13,7 @@ const warehouseSchema = new mongoose.Schema({
     updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
     updated_by_role:String,
     updatedAt:Date,
-    history:{
-        oldValue:String,
-        newValue:String
-    }
+    history:{oldValue:String,newValue:String}
 },
 {timestamps:true})
 

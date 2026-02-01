@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/Logo.png";
 import { AiOutlineDashboard } from "react-icons/ai";
-import {MdProductionQuantityLimits,MdOutlineCategory,MdOutlineAttachMoney,MdOutlineWarehouse,MdAttachMoney,MdOutlineInventory2,} from "react-icons/md";
+import {MdProductionQuantityLimits,MdOutlineAttachMoney,MdOutlineWarehouse,MdAttachMoney,MdOutlineInventory2,} from "react-icons/md";
 import { IoIosContact } from "react-icons/io";
 import { BiPurchaseTag } from "react-icons/bi";
 import { TbFileInvoice, TbReportSearch } from "react-icons/tb";

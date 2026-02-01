@@ -21,8 +21,6 @@ useEffect(() => {
   dispatch(fetchpurchases());
 }, [dispatch]);
 
-
-
   useEffect(() => {
     if (selectedSupplier) {
       const filtered = purchases.filter(purchase => {
@@ -37,42 +35,25 @@ useEffect(() => {
       setSupplierPurchases([]);
     }
   }, [selectedSupplier, purchases]);
-
-
   const totalGrandTotal = supplierPurchases.reduce((total, purchase) => {
     return total + (purchase.grand_total || 0);
   }, 0);
-
   const totalDueAmount = supplierPurchases.reduce((total, purchase) => {
     return total + (purchase.due_amount || 0);
   }, 0);
-
   const totalPaidAmount = supplierPurchases.reduce((total, purchase) => {
     return total + (purchase.paid_amount || 0);
   }, 0);
-
   const totalPurchases = supplierPurchases.length;
-
   const handleSupplierChange = (e) => {
     const supplierId = e.target.value;
     setSelectedSupplier(supplierId);
     setForm({ ...form, supplier_id: supplierId });
   }
-
-
-  const getSupplierName = (payment) => {
-    if (typeof payment.supplier_id === "object" && payment.supplier_id !== null) {
-      return payment.supplier_id?.name || "Unknown Supplier";
-    }
-    return suppliers.find((s) => s._id === payment.supplier_id)?.name || "Unknown Supplier";
-  };
-
-
   const getPurchaseProductNames = (purchase) => {
     if (!Array.isArray(purchase.items) || purchase.items.length === 0) {
       return "No Items";
     }
-
     return purchase.items.map((item, idx) => {
       let productName = "Unknown Product";
       if (item?.product_id) {
@@ -143,23 +124,18 @@ useEffect(() => {
       render: (purchase) => purchase.payment_mode || "N/A"
     }
   ];
-
-
   return (
     <div className="container mt-4">
       <h2 className="mb-4 d-flex align-items-center fs-3">
         <b>Supplier Receipts</b>
       </h2>
-
-    
       <div className="row mb-4">
         <div className="col-md-6">
           <label className="form-label">Select Supplier <span className="text-danger">*</span></label>
           <select 
             className="form-select bg-light" 
             value={selectedSupplier} 
-            onChange={handleSupplierChange}
-          >
+            onChange={handleSupplierChange}>
             <option value="">-- Select Supplier --</option>
             {suppliers.map(s => (
               <option key={s._id} value={s._id}>
@@ -173,8 +149,7 @@ useEffect(() => {
           <select 
             className="form-select bg-light" 
             value={selectedSupplier} 
-            onChange={handleSupplierChange}
-          >
+            onChange={handleSupplierChange}>
             <option value="">-- Select Phone --</option>
             {suppliers.map(s => (
               <option key={s._id} value={s._id}>
@@ -184,8 +159,6 @@ useEffect(() => {
           </select>
         </div>
       </div>
-
-     
       {selectedSupplier && supplierPurchases.length > 0 && (
         <div className="row mb-4">
           <div className="col-12">
@@ -198,7 +171,6 @@ useEffect(() => {
               </div>
               <div className="card-body">
                 <div className="row">
-               
                   <div className="col-md-3 mb-3">
                     <div className="card border-primary">
                       <div className="card-body text-center py-3">
@@ -218,8 +190,6 @@ useEffect(() => {
                       </div>
                     </div>
                   </div>
-
-               
                   <div className="col-md-3 mb-3">
                     <div className="card border-primary">
                       <div className="card-body text-center py-3">
@@ -229,8 +199,6 @@ useEffect(() => {
                       </div>
                     </div>
                   </div>
-
-               
                   <div className="col-md-3 mb-3">
                     <div className="card border-primary">
                       <div className="card-body text-center py-3">
@@ -246,7 +214,6 @@ useEffect(() => {
           </div>
         </div>
       )}
-
       {selectedSupplier && (
         <div className="row mb-4">
           <div className="col-12">

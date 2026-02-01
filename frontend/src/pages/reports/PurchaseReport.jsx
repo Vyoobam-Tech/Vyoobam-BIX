@@ -9,7 +9,6 @@ const PurchaseReport = () => {
   const { items: purchasereports, status } = useSelector(
     (state) => state.purchasereports,
   );
-
   const [form, setForm] = useState({
     from_date: "",
     to_date: "",
@@ -39,28 +38,22 @@ const PurchaseReport = () => {
       )
       .filter(Boolean),
   ).size;
-
   const productQtyMap = {};
-
   purchasereports.forEach((purchase) => {
     purchase.items?.forEach((item) => {
       const productName = item.product_id?.name || "Unknown Product";
       const qty = item.qty || 0;
-
       productQtyMap[productName] = (productQtyMap[productName] || 0) + qty;
     });
   });
-
   let topProduct = "N/A";
   let topProductQty = 0;
-
   Object.entries(productQtyMap).forEach(([product, qty]) => {
     if (qty > topProductQty) {
       topProduct = product;
       topProductQty = qty;
     }
   });
-
   const filteredPurchaseReports = purchasereports.filter((purchase) => {
     if (!supplierSearch) return true;
     const supplierName = purchase.supplier_id?.name?.toLowerCase() || "";

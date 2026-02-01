@@ -39,30 +39,14 @@ const Customer_Payment = () => {
   const totalGrandTotal = customerSales.reduce((total, sale) => {
     return total + (sale.grand_total || 0);
   }, 0);
-
   const totalDueAmount = customerSales.reduce((total, sale) => {
     return total + (sale.due_amount || 0);
   }, 0);
-
   const totalPaidAmount = totalGrandTotal - totalDueAmount;
-
   const handleCustomerChange = (e) => {
     const customerId = e.target.value;
     setSelectedCustomer(customerId);
     setForm({ ...form, customer_id: customerId });
-  };
-
-  const getCustomerName = (payment) => {
-    if (
-      typeof payment.customer_id === "object" &&
-      payment.customer_id !== null
-    ) {
-      return payment.customer_id?.name || "Unknown Customer";
-    }
-    return (
-      customers.find((c) => c._id === payment.customer_id)?.name ||
-      "Unknown Customer"
-    );
   };
 
   const getProductNames = (sale) => {

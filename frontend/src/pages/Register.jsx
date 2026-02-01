@@ -17,14 +17,10 @@ const Register = () => {
   const [superAdminExists, setSuperAdminExists] = useState(true);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
   useEffect(() => {
     const checkSuperAdmin = async () => {
       try {
-        console.log("Starting super admin check...");
-      
         const result = await checkSuperAdminExists();
-        console.log("Super admin check completed:", result);
         setSuperAdminExists(result.superAdminExists);
         setError("");
       } catch (err) {
@@ -63,7 +59,6 @@ const Register = () => {
       );
     }
   };
-
   if (loading) {
     return (
       <div
@@ -80,28 +75,14 @@ const Register = () => {
     );
   }
 return (
-    <div
-      className="d-flex justify-content-center align-items-center vh-100"
-      style={{ backgroundColor: "#c2cdd8ff" }}
-    >
-      <form
-        className="card p-4"
-        style={{ minWidth: 400 }}
-        onSubmit={handleSubmit}
-      >
+    <div className="d-flex justify-content-center align-items-center vh-100" style={{ backgroundColor: "#c2cdd8ff" }}>
+      <form className="card p-4" style={{ minWidth: 400 }} onSubmit={handleSubmit}>
         <h4 className="mb-3 text-center">REGISTER</h4>
         {error && (
-          <div
-            className={`alert ${
-              error.includes("System check completed")
-                ? "alert-info"
-                : "alert-danger"
-            }`}
-          >
+          <div className={`alert ${ error.includes("System check completed") ? "alert-info" : "alert-danger"}`}>
             {error}
           </div>
         )}
-
         <div className="d-flex justify-content-between mb-3 flex-wrap">
           {!superAdminExists && (
             <div className="form-check mb-2">
@@ -119,7 +100,6 @@ return (
               </label>
             </div>
           )}
-
           <div className="form-check mb-2">
             <input
               className="form-check-input"
@@ -134,7 +114,6 @@ return (
               Admin
             </label>
           </div>
-
           <div className="form-check mb-2">
             <input
               className="form-check-input"
@@ -150,7 +129,6 @@ return (
             </label>
           </div>
         </div>
-
         <div className="mb-2">
           <label className="form-label">
             Name <span className="text-danger">*</span>
@@ -163,7 +141,6 @@ return (
             required
           />
         </div>
-
         <div className="mb-2">
           <label className="form-label">
             Email <span className="text-danger">*</span>
@@ -177,7 +154,6 @@ return (
             required
           />
         </div>
-
         <div className="mb-2 text-start position-relative">
           <label className="form-label">
             Password <span className="text-danger">*</span>
@@ -199,12 +175,10 @@ return (
               cursor: "pointer",
               fontSize: "20px",
               color: "#888",
-            }}
-          >
+            }}>
             {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
           </span>
         </div>
-
         <div className="mb-2">
           <label className="form-label">Phone</label>
           <input
@@ -214,7 +188,6 @@ return (
             onChange={handleChange}
           />
         </div>
-
         <div className="mb-2">
           <label className="form-label">Address</label>
           <input
@@ -224,16 +197,10 @@ return (
             onChange={handleChange}
           />
         </div>
-
-        <button type="submit" className="btn btn-primary w-100 mt-3">
-          Register
-        </button>
-
+        <button type="submit" className="btn btn-primary w-100 mt-3">Register</button>
         <p className="mt-3 mb-0 text-center">
           Already have an account?{" "}
-          <Link to="/login" className="text-decoration-none text-primary">
-            Sign in
-          </Link>
+          <Link to="/login" className="text-decoration-none text-primary">Sign in</Link>
         </p>
       </form>
     </div>

@@ -1,20 +1,16 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import API from "../api/axiosInstance";
-
 const Reports = () => {
   const location = useLocation();
   const [role, setRole] = useState(null);
-
   useEffect(() => {
     API.get("/users/me")
       .then((res) => setRole(res.data.role))
       .catch(() => setRole(null));
   }, []);
-
   if (!role) 
     return null;
-
   const reports = [
     { path: "sales", label: "Sales Report", roles: ["super_admin", "admin", "user"] },
     { path: "purchase", label: "Purchase Report", roles: ["super_admin"] },
@@ -22,20 +18,16 @@ const Reports = () => {
     { path: "gst", label: "Expense Report", roles: ["super_admin"] },
     { path: "profitloss", label: "Profit/Loss Report", roles: ["super_admin"] },
   ];
-
   return (
     <div className="container mt-4">
       <h2 className="mb-4 fs-3">
         <b>Reports</b>
       </h2>
-
       <ul className="nav nav-tabs mb-3">
         {reports
           .filter((r) => r.roles.includes(role))
           .map((r, index) => {
-            const isDefaultActive =
-              location.pathname === "/reports" && index === 0;
-
+            const isDefaultActive =location.pathname === "/reports" && index === 0;
             return (
               <li className="nav-item" key={r.path}>
                 <NavLink
@@ -55,7 +47,6 @@ const Reports = () => {
             );
           })}
       </ul>
-
       <Outlet />
     </div>
   );

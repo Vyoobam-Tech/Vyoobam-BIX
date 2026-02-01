@@ -6,7 +6,6 @@ import { fetchsales } from "../redux/saleSlice";
 import { createSalesReturn } from "../redux/salesReturnSlice";
 import ReusableTable from "../components/ReusableTable";
 import API from "../api/axiosInstance";
-
 const SalesReturn = () => {
   const dispatch = useDispatch();
   const { items: cus_payments, status } = useSelector(
@@ -18,7 +17,6 @@ const SalesReturn = () => {
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [customerSales, setCustomerSales] = useState([]);
   const [stockSummary, setStockSummary] = useState([]);
-
   const [form, setForm] = useState({
     invoice_no: "",
     invoice_date_time: new Date().toISOString().slice(0, 10),
@@ -27,7 +25,6 @@ const SalesReturn = () => {
     reason: "",
     return_amount: 0,
   });
-
   const [qtyError, setQtyError] = useState("");
   useEffect(() => {
     dispatch(fetchcustomers());
@@ -48,10 +45,6 @@ const SalesReturn = () => {
       setCustomerSales([]);
     }
   }, [selectedCustomer, sales]);
-  const totalGrandTotal = customerSales.reduce((total, sale) => {
-    return total + (sale.grand_total || 0);
-  }, 0);
-
   useEffect(() => {
     const fetchStockSummary = async () => {
       try {
@@ -82,22 +75,16 @@ const SalesReturn = () => {
       [name]: type === "checkbox" ? checked : value,
     });
   };
-
   const selectedSale = customerSales.find((s) => s._id === form.invoice_no);
-
   const saleProducts = selectedSale?.items || [];
-  const selectedSaleItem = saleProducts.find(
-    (i) => i.product_id?._id === form.product_id,
-  );
+  const selectedSaleItem = saleProducts.find((i) => i.product_id?._id === form.product_id,);
   useEffect(() => {
     if (!selectedSale || !selectedSaleItem || !form.quantity) {
       setForm((prev) => ({ ...prev, return_amount: 0 }));
       return;
     }
     const totalInvoiceAmount = Number(selectedSale.grand_total || 0);
-    const totalProductQty = Number(
-      selectedSaleItem.qty || selectedSaleItem.quantity || 0,
-    );
+    const totalProductQty = Number(selectedSaleItem.qty || selectedSaleItem.quantity || 0, );
     const returnQty = Number(form.quantity);
     if (totalInvoiceAmount <= 0 || totalProductQty <= 0 || returnQty <= 0) {
       setForm((prev) => ({ ...prev, return_amount: 0 }));
@@ -160,14 +147,12 @@ const SalesReturn = () => {
         reason: "",
         return_amount: 0,
       });
-
       dispatch(fetchsales());
     } catch (err) {
       console.error("Sales return error:", err);
       alert(err);
     }
   };
-
   const getProductNames = (sale) => {
     if (!Array.isArray(sale.items) || sale.items.length === 0) {
       return "No Items";
@@ -283,7 +268,6 @@ const SalesReturn = () => {
           </select>
         </div>
       </div>
-
       {selectedCustomer && (
         <>
           <div className="row mb-4">

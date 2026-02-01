@@ -1,5 +1,4 @@
 const mongoose=require("mongoose")
-
 const ExpenseSchema = new mongoose.Schema({
     expenseDate:{type:Date, required:true},
     created_by_role:{type:String,required:true},
@@ -11,10 +10,7 @@ const ExpenseSchema = new mongoose.Schema({
     updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
     updated_by_role:String,
     updated_At:Date,
-    history:{
-        oldValue:String,
-        newValue:String,
-    }
+    history:{ oldValue:String,newValue:String,}
 },
 {timestamps:true})
 

@@ -11,30 +11,15 @@ import { FaCartShopping, FaUserGroup } from "react-icons/fa6";
 import { GiBoxUnpacking, GiProfit } from "react-icons/gi";
 import { MdWarehouse } from "react-icons/md";
 import { BiSolidPurchaseTag } from "react-icons/bi";
-
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ResponsiveContainer,
-  Legend,
-  LineChart,
-  Line,
-} from "recharts";
-
+import {BarChart,Bar,XAxis,YAxis,Tooltip,CartesianGrid,ResponsiveContainer,Legend,LineChart,Line,} from "recharts";
 const DashboardSummary = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const { report } = useSelector((state) => state.profitloss);
   const { items: customers = [] } = useSelector((state) => state.customers);
   const { items: suppliers = [] } = useSelector((state) => state.suppliers);
   const { items: purchases = [] } = useSelector((state) => state.purchases);
   const { items: sales = [] } = useSelector((state) => state.sales);
-
   useEffect(() => {
     dispatch(fetchProfitLoss());
     dispatch(fetchcustomers());
@@ -42,50 +27,29 @@ const DashboardSummary = () => {
     dispatch(fetchpurchases());
     dispatch(fetchsales());
   }, [dispatch]);
-
   const totalPurchases = purchases.reduce(
     (acc, p) => acc + (Number(p.grand_total) || 0),
     0
   );
-
   const totalSales = sales.reduce(
     (acc, s) =>
       acc + ((Number(s.grand_total) || 0) - (Number(s.discount_amount) || 0)),
     0
   );
-
   const topSellingProducts = useMemo(() => {
     const productCount = {};
-
     sales.forEach((sale) => {
       sale.items?.forEach((item) => {
         const name = item.product_id?.name || "Unknown Product";
         productCount[name] =
           (productCount[name] || 0) + (Number(item.qty) || 0);
       });
-    });
-
+    }); 
     return Object.entries(productCount)
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
   }, [sales]);
-
-  const recentSales = useMemo(() => {
-    return [...sales]
-      .sort(
-        (a, b) => new Date(b.invoice_date_time) - new Date(a.invoice_date_time)
-      )
-      .slice(0, 5);
-  }, [sales]);
-
-  const recentPurchases = useMemo(() => {
-    return [...purchases]
-      .sort(
-        (a, b) => new Date(b.invoice_date_time) - new Date(a.invoice_date_time)
-      )
-      .slice(0, 5);
-  }, [purchases]);
 
   const salesPurchaseData = useMemo(() => {
     const formatDate = (date) =>
@@ -93,23 +57,19 @@ const DashboardSummary = () => {
         day: "2-digit",
         month: "short",
       });
-
     const salesByDate = {};
     const purchasesByDate = {};
-
     sales.forEach((s) => {
       const date = formatDate(s.invoice_date_time);
       const total =
         (Number(s.grand_total) || 0) - (Number(s.discount_amount) || 0);
       salesByDate[date] = (salesByDate[date] || 0) + total;
     });
-
     purchases.forEach((p) => {
       const date = formatDate(p.invoice_date);
       purchasesByDate[date] =
         (purchasesByDate[date] || 0) + (Number(p.grand_total) || 0);
     });
-
     return Array.from(
       new Set([...Object.keys(salesByDate), ...Object.keys(purchasesByDate)])
     ).map((date) => ({

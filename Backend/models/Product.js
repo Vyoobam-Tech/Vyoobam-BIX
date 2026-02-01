@@ -3,17 +3,10 @@ const productSchema = new mongoose.Schema(
   {
     sku: { type: String, required: true, unique: true },
     name: { type: String, required: true },
-    category_id: {
-      type: mongoose.Schema.Types.ObjectId,
-     ref: "GoogleCategory",
-     required: true,
-    },
+    category_id: {type: mongoose.Schema.Types.ObjectId,ref: "GoogleCategory",required: true,},
+    subcategory_id: {type: mongoose.Schema.Types.ObjectId,ref: "GoogleCategory",default: null,},
     created_by_role: { type: String, required: true },
-    created_by: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: false,
-    },
+    created_by: {type: mongoose.Schema.Types.ObjectId,ref: "User",required: false,},
     brand_name: { type: String },
     variant: { type: String },
     unit_id: { type: String, default: "Kg" },
@@ -23,7 +16,6 @@ const productSchema = new mongoose.Schema(
     mrp: { type: Number, required: true },
     purchase_price: { type: Number, required: true },
     sale_price: { type: Number, required: true },
-  
     updated_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     updated_by_role: String,
     updatedAt: Date,

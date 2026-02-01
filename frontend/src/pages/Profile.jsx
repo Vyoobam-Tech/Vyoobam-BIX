@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { getMe } from "../services/userService";
 import API from "../api/axiosInstance";
 import { FaUser } from "react-icons/fa";
-
 export default function Profile({ show, onClose }) {
   const [user, setUser] = useState(null);
   const [saving, setSaving] = useState(false);

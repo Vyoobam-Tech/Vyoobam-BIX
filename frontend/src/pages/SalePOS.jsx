@@ -10,12 +10,13 @@ import { fetchwarehouses } from "../redux/warehouseSlice";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import logo from "../assets/img/image_360.png";
-import ReusableTable, { createRoleBasedActions,} from "../components/ReusableTable";
+import ReusableTable from "../components/ReusableTable";
 import API from "../api/axiosInstance";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import HistoryModal from "../components/HistoryModal";
+import useTableActions from "../components/useTableActions";
 ModuleRegistry.registerModules([AllCommunityModule]);
 const SalePOS = () => {
   const dispatch = useDispatch();
@@ -25,7 +26,6 @@ const SalePOS = () => {
   const { items: taxes } = useSelector((state) => state.taxes);
   const { items: stockss } = useSelector((state) => state.stockss);
   const { items: warehouses } = useSelector((state) => state.warehouses);
-
   const [form, setForm] = useState({
     invoice_no: "",
     invoice_date_time: new Date().toISOString().slice(0, 10),
@@ -51,26 +51,22 @@ const SalePOS = () => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyInfo, setHistoryInfo] = useState(null);
   const [qtyErrors, setQtyErrors] = useState({});
-
   const [role, setRole] = useState(null);
-useEffect(() => {
-
-  API.get("/users/me")
-    .then((res) => setRole(res.data.role))
-    .catch(() => setRole("user"));
-  dispatch(fetchcustomers());
-  dispatch(fetchProducts());
-  dispatch(fetchtaxes());
-  dispatch(fetchsales());
-  dispatch(fetchstocks());
-  dispatch(fetchwarehouses());
-  setForm((prev) => ({
-    ...prev,
-    invoice_no: "INV" + Math.floor(1000 + Math.random() * 9000),
-  }));
-}, [dispatch]);
-
-
+  useEffect(() => {
+    API.get("/users/me")
+      .then((res) => setRole(res.data.role))
+      .catch(() => setRole("user"));
+    dispatch(fetchcustomers());
+    dispatch(fetchProducts());
+    dispatch(fetchtaxes());
+    dispatch(fetchsales());
+    dispatch(fetchstocks());
+    dispatch(fetchwarehouses());
+    setForm((prev) => ({
+      ...prev,
+      invoice_no: "INV" + Math.floor(1000 + Math.random() * 9000),
+    }));
+  }, [dispatch]);
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "customer_id") {
@@ -84,45 +80,40 @@ useEffect(() => {
       setForm((prev) => ({ ...prev, [name]: value }));
     }
   };
-
-const handleItemChange = (index, e) => {
-  const { name, value } = e.target;
-  const items = [...form.items];
-
-  let updatedItem = {
-    ...items[index],
-    [name]: value,
-  };
-
-  if (name === "product_id") {
-    const product = products.find((p) => p._id === value);
-    updatedItem.unit_price = product ? product.sale_price : 0;
-  }
-
-  if (name === "qty") {
-    const available = getAvailableStock(updatedItem.product_id, form.warehouseId);
-    const entered = Number(value);
-
-    if (entered > available) {
-      setQtyErrors((prev) => ({
-        ...prev,
-        [index]: `Only ${available} item(s) available in stock.`,
-      }));
-    } else {
-      setQtyErrors((prev) => {
-        const copy = { ...prev };
-        delete copy[index];
-        return copy;
-      });
+  const handleItemChange = (index, e) => {
+    const { name, value } = e.target;
+    const items = [...form.items];
+    let updatedItem = {
+      ...items[index],
+      [name]: value,
+    };
+    if (name === "product_id") {
+      const product = products.find((p) => p._id === value);
+      updatedItem.unit_price = product ? product.sale_price : 0;
     }
-  }
-
-  updatedItem = calculateLineTotal(updatedItem);
-  items[index] = updatedItem;
-
-  setForm((prev) => ({ ...prev, items }));
-};
-
+    if (name === "qty") {
+      const available = getAvailableStock(
+        updatedItem.product_id,
+        form.warehouseId,
+      );
+      const entered = Number(value);
+      if (entered > available) {
+        setQtyErrors((prev) => ({
+          ...prev,
+          [index]: `Only ${available} item(s) available in stock.`,
+        }));
+      } else {
+        setQtyErrors((prev) => {
+          const copy = { ...prev };
+          delete copy[index];
+          return copy;
+        });
+      }
+    }
+    updatedItem = calculateLineTotal(updatedItem);
+    items[index] = updatedItem;
+    setForm((prev) => ({ ...prev, items }));
+  };
   const addItem = () => {
     setForm((prev) => ({
       ...prev,
@@ -143,20 +134,16 @@ const handleItemChange = (index, e) => {
       ],
     }));
   };
-
   const calculateLineTotal = (item) => {
     const price = Number(item.unit_price) || 0;
     const qty = Number(item.qty) || 0;
     const discount = Number(item.discount_percent) || 0;
-
     const subtotal = price * qty;
     const discountAmount = subtotal * (discount / 100);
     const taxableAmount = subtotal - discountAmount;
-
     let cgst = 0,
       sgst = 0,
       igst = 0;
-
     if (item.tax_rate_id) {
       const tax = taxes.find((t) => t._id === item.tax_rate_id);
       if (tax) {
@@ -165,7 +152,6 @@ const handleItemChange = (index, e) => {
         igst = taxableAmount * (tax.igst_percent / 100);
       }
     }
-
     return {
       ...item,
       cgst_amount: cgst,
@@ -174,19 +160,18 @@ const handleItemChange = (index, e) => {
       line_total: taxableAmount + cgst + sgst + igst,
     };
   };
-
   const calculateTotals = () => {
     const subtotal = form.items.reduce((sum, item) => {
-      if (!item) return sum;
+      if (!item) 
+        return sum;
       return sum + (Number(item.qty) || 0) * (Number(item.unit_price) || 0);
     }, 0);
-
     const discount_amount = form.items.reduce((sum, item) => {
-      if (!item) return sum;
+      if (!item) 
+        return sum;
       const sub = (Number(item.qty) || 0) * (Number(item.unit_price) || 0);
       return sum + sub * ((Number(item.discount_percent) || 0) / 100);
     }, 0);
-
     const tax_amount = form.items.reduce((sum, item) => {
       if (!item) return sum;
       return (
@@ -196,10 +181,8 @@ const handleItemChange = (index, e) => {
         (Number(item.igst_amount) || 0)
       );
     }, 0);
-
     const grand_total = subtotal - discount_amount + tax_amount;
     const due_amount = grand_total - (Number(form.paid_amount) || 0);
-
     setForm((prev) => ({
       ...prev,
       subtotal,
@@ -209,32 +192,24 @@ const handleItemChange = (index, e) => {
       due_amount,
     }));
   };
-
   useEffect(() => {
     calculateTotals();
   }, [form.items, form.paid_amount]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting form data:", form);
-
     try {
       let savedSale;
       if (editingSale) {
         savedSale = await dispatch(
-          updateSale({ id: editingSale, updatedData: form })
+          updateSale({ id: editingSale, updatedData: form }),
         ).unwrap();
         setEditingSale(null);
-        console.log("Sale Updated Successfully");
       } else {
         savedSale = await dispatch(addSale(form)).unwrap();
-        console.log("Sale Added Successfully");
       }
-
       generateInvoicePDF(savedSale || form);
       await dispatch(fetchsales());
       await dispatch(fetchstocks());
-
       setForm({
         invoice_no: "INV" + Math.floor(1000 + Math.random() * 9000),
         invoice_date_time: new Date().toISOString().slice(0, 10),
@@ -252,7 +227,6 @@ const handleItemChange = (index, e) => {
         notes: "",
         items: [],
       });
-
       setShowSaleForm(false);
     } catch (err) {
       console.error("Error saving sale:", err);
@@ -260,26 +234,13 @@ const handleItemChange = (index, e) => {
       alert(`Error saving sale: ${err.response?.data?.message || err.message}`);
     }
   };
-
   const filteredsales = sales.filter((s) => {
-    const Name =
-      typeof s.customer_id === "object"
-        ? s.customer_id?.name?.toLowerCase() || ""
-        : String(s.customer_id || "").toLowerCase();
-
+    const Name =typeof s.customer_id === "object" ? s.customer_id?.name?.toLowerCase() || "" : String(s.customer_id || "").toLowerCase();
     const invno = String(s.invoice_no || "").toLowerCase();
     const date = String(s.invoice_date_time || "").toLowerCase();
-
-    const matchname =
-      searchName.trim() === "" || Name.includes(searchName.toLowerCase());
-
-    const matchinvno =
-      searchinvoice.trim() === "" ||
-      invno.includes(searchinvoice.toLowerCase());
-
-    const matchdate =
-      searchdate.trim() === "" || date.includes(searchdate.toLowerCase());
-
+    const matchname = searchName.trim() === "" || Name.includes(searchName.toLowerCase());
+    const matchinvno =searchinvoice.trim() === "" || invno.includes(searchinvoice.toLowerCase());
+    const matchdate =searchdate.trim() === "" || date.includes(searchdate.toLowerCase());
     return matchname && matchinvno && matchdate;
   });
 
@@ -310,7 +271,6 @@ const handleItemChange = (index, e) => {
     });
     setShowSaleForm(true);
   };
-
   const handleCloseForm = () => {
     setShowSaleForm(false);
     setEditingSale(null);
@@ -340,16 +300,13 @@ const handleItemChange = (index, e) => {
       "Unknown Customer"
     );
   };
-
   const getCustomerPhone = (sale) => {
     return sale.customer_phone || sale.customer_id?.phone || "N/A";
   };
-
   const getProductNames = (sale) => {
     if (!Array.isArray(sale.items) || sale.items.length === 0) {
       return "No Items";
     }
-
     return sale.items
       .map((item, idx) => {
         let productName = "Unknown Product";
@@ -358,7 +315,7 @@ const handleItemChange = (index, e) => {
             productName = item.product_id?.name || "Unknown Product";
           } else {
             const matchedProduct = products.find(
-              (prod) => prod._id === item.product_id
+              (prod) => prod._id === item.product_id,
             );
             productName = matchedProduct?.name || "Unknown Product";
           }
@@ -367,65 +324,39 @@ const handleItemChange = (index, e) => {
       })
       .join(", ");
   };
-
   const getAvailableStock = (productId, warehouseId) => {
-    if (!productId || !warehouseId) return 0;
-
-    const latest = stockss
-      .filter(
-        (s) =>
+    if (!productId || !warehouseId) 
+      return 0;
+    const latest = stockss.filter((s) =>
           String(s.productId?._id || s.productId) === String(productId) &&
-          String(s.warehouseId?._id || s.warehouseId) === String(warehouseId)
-      )
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-
+          String(s.warehouseId?._id || s.warehouseId) === String(warehouseId),
+      ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
     return latest ? Number(latest.balanceQty || 0) : 0;
   };
-
   const generateInvoicePDF = (saleData) => {
     const doc = new jsPDF();
-
     const pharmacyName = "Vyoobam Pharmacy";
     const pharmacyAddress = "No.12, Main Road, Kumbakonam, Tamil Nadu - 641001";
     const pharmacyContact = "+91 98765 43210  |  Reg No: TN-PH-04567";
     const pharmacyEmail = "vyoobampharmacy@gmail.com";
-
     doc.addImage(logo, "PNG", 14, 10, 25, 25);
-
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
     doc.text(pharmacyName, 105, 20, { align: "center" });
-
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text(pharmacyAddress, 105, 26, { align: "center" });
     doc.text(pharmacyContact, 105, 31, { align: "center" });
     doc.text(pharmacyEmail, 105, 36, { align: "center" });
-
     doc.setFontSize(12);
     doc.text(`Invoice No: ${saleData.invoice_no}`, 14, 50);
-    doc.text(
-      `Date: ${new Date(saleData.invoice_date_time).toLocaleDateString()}`,
-      150,
-      50
-    );
-
-    const customer =
-      typeof saleData.customer_id === "object"
-        ? saleData.customer_id
-        : customers.find((c) => c._id === saleData.customer_id);
-
+    doc.text(`Date: ${new Date(saleData.invoice_date_time).toLocaleDateString()}`,150,50,);
+    const customer =typeof saleData.customer_id === "object" ? saleData.customer_id : customers.find((c) => c._id === saleData.customer_id);
     doc.text(`Customer Name: ${customer?.name || "N/A"}`, 14, 58);
-
     const customerPhone = saleData.customer_phone || customer?.phone || "N/A";
     doc.text(`Phone: ${customerPhone}`, 150, 58);
-
     const tableData = saleData.items.map((item, i) => {
-      const product =
-        typeof item.product_id === "object"
-          ? item.product_id
-          : products.find((p) => p._id === item.product_id);
-
+    const product =typeof item.product_id === "object" ? item.product_id : products.find((p) => p._id === item.product_id);
       return [
         i + 1,
         product?.name || "Unknown Product",
@@ -435,7 +366,6 @@ const handleItemChange = (index, e) => {
         item.line_total.toFixed(2),
       ];
     });
-
     autoTable(doc, {
       startY: 75,
       head: [["#", "Product", "Qty", "Price", "Discount", "Total"]],
@@ -444,39 +374,22 @@ const handleItemChange = (index, e) => {
       styles: { fontSize: 10 },
       headStyles: { fillColor: [41, 128, 185] },
     });
-
     const finalY = doc.lastAutoTable.finalY + 10;
-
     doc.setFontSize(11);
     doc.text(`Subtotal: ₹${saleData.subtotal.toFixed(2)}`, 140, finalY);
-    doc.text(
-      `Discount: ₹${saleData.discount_amount.toFixed(2)}`,
-      140,
-      finalY + 6
-    );
+    doc.text(`Discount: ₹${saleData.discount_amount.toFixed(2)}`,140,finalY + 6,);
     doc.text(`Tax: ₹${saleData.tax_amount.toFixed(2)}`, 140, finalY + 12);
     doc.setFont("helvetica", "bold");
-    doc.text(
-      `Grand Total: ₹${saleData.grand_total.toFixed(2)}`,
-      140,
-      finalY + 20
-    );
+    doc.text(`Grand Total: ₹${saleData.grand_total.toFixed(2)}`,140,finalY + 20,);
     doc.setFont("helvetica", "normal");
     doc.text(`Paid: ₹${saleData.paid_amount.toFixed(2)}`, 140, finalY + 26);
     doc.text(`Due: ₹${saleData.due_amount.toFixed(2)}`, 140, finalY + 32);
-
     const footerY = finalY + 50;
     doc.setFontSize(10);
-    doc.text("Thank you for choosing Vyoobam Pharmacy!", 105, footerY, {
-      align: "center",
-    });
-    doc.text("** Medicines once sold cannot be returned **", 105, footerY + 6, {
-      align: "center",
-    });
-
+    doc.text("Thank you for choosing Vyoobam Pharmacy!", 105, footerY, {align: "center", });
+    doc.text("** Medicines once sold cannot be returned **", 105, footerY + 6, {align: "center", });
     doc.save(`${saleData.invoice_no}.pdf`);
   };
-
   const tableColumns = [
     {
       key: "customer",
@@ -554,9 +467,7 @@ const handleItemChange = (index, e) => {
       render: (sale) => `₹${sale.due_amount?.toFixed(2) || "0.00"}`,
     },
   ];
-
-  const tableActions = Object.values(createRoleBasedActions(role));
-
+  const tableActions = useTableActions(role);
   const handleTableAction = (actionType, sale) => {
     if (actionType === "edit") {
       handleEdit(sale);
@@ -566,7 +477,6 @@ const handleItemChange = (index, e) => {
       handleHistory(sale);
     }
   };
-
   const removeItem = (index) => {
     if (form.items.length === 1) {
       alert("At least one item is required.");
@@ -576,102 +486,7 @@ const handleItemChange = (index, e) => {
     items.splice(index, 1);
     setForm((prev) => ({ ...prev, items }));
   };
-
-  const saleItemColumns = [
-    {
-      headerName: "Product",
-      field: "product_id",
-      editable: true,
-      cellEditor: "agSelectCellEditor",
-      cellEditorParams: { values: products.map((p) => p._id) },
-      valueFormatter: (params) => {
-        const prod = products.find((p) => p._id === params.value);
-        return prod ? prod.name : "Select Product";
-      },
-    },
-    {
-      headerName: "Qty",
-      field: "qty",
-      editable: true,
-      valueParser: (v) => Number(v) || 0,
-      width: 100,
-    },
-    {
-      headerName: "Unit Price",
-      field: "unit_price",
-      editable: true,
-      valueParser: (v) => Number(v) || 0,
-      width: 140,
-    },
-    {
-      headerName: "Discount %",
-      field: "discount_percent",
-      editable: true,
-      valueParser: (v) => Number(v) || 0,
-      width: 140,
-    },
-    {
-      headerName: "Tax",
-      field: "tax_rate_id",
-      editable: true,
-      cellEditor: "agSelectCellEditor",
-      cellEditorParams: { values: taxes.map((t) => t._id) },
-      valueFormatter: (params) => {
-        const tax = taxes.find((t) => t._id === params.value);
-        return tax ? tax.name : "Select Tax";
-      },
-      width: 160,
-    },
-    {
-      headerName: "Line Total",
-      field: "line_total",
-      valueGetter: (params) => {
-        const d = params.data || {};
-        const qty = Number(d.qty) || 0;
-        const price = Number(d.unit_price) || 0;
-        const discount = Number(d.discount_percent) || 0;
-        const subtotal = qty * price;
-        const discountAmount = subtotal * (discount / 100);
-        const taxableAmount = subtotal - discountAmount;
-        let cgst = 0,
-          sgst = 0,
-          igst = 0;
-        if (d.tax_rate_id) {
-          const tax = taxes.find((t) => t._id === d.tax_rate_id);
-          if (tax) {
-            cgst = taxableAmount * (tax.cgst_percent / 100);
-            sgst = taxableAmount * (tax.sgst_percent / 100);
-            igst = taxableAmount * (tax.igst_percent / 100);
-          }
-        }
-        const total = taxableAmount + cgst + sgst + igst;
-        return Number.isFinite(total) ? total.toFixed(2) : "0.00";
-      },
-      width: 140,
-    },
-    {
-      headerName: "Action",
-      field: "action",
-      cellRenderer: (params) => {
-        return (
-          <button
-            type="button"
-            className="btn btn-sm"
-            onClick={() => {
-              const idx = params.node.rowIndex;
-              const items = [...form.items];
-              items.splice(idx, 1);
-              setForm((prev) => ({ ...prev, items }));
-            }}
-          >
-            <MdDeleteForever className="text-danger" />
-          </button>
-        );
-      },
-      width: 110,
-    },
-  ];
-
+ 
   const handleHistory = async (sale) => {
     if (!sale._id) {
       console.error("Sale Id missing:", sale);
@@ -733,7 +548,6 @@ const handleItemChange = (index, e) => {
       setShowHistoryModal(true);
     }
   };
-
   return (
     <div className="container mt-4">
       <h2 className="mb-4 d-flex align-items-center fs-3">
@@ -902,7 +716,7 @@ const handleItemChange = (index, e) => {
                                 {products.map((p) => {
                                   const availableQty = getAvailableStock(
                                     p._id,
-                                    form.warehouseId
+                                    form.warehouseId,
                                   );
 
                                   return (
@@ -917,22 +731,25 @@ const handleItemChange = (index, e) => {
                                 })}
                               </select>
                             </td>
-                           <td>
-  <input
-    type="number"
-    name="qty"
-    value={item.qty}
-    min="1"
-    max={getAvailableStock(item.product_id, form.warehouseId)}
-    onChange={(e) => handleItemChange(index, e)}
-    className={`form-control ${qtyErrors[index] ? "is-invalid" : ""}`}
-  />
-  {qtyErrors[index] && (
-    <div className="invalid-feedback d-block">
-      {qtyErrors[index]}
-    </div>
-  )}
-</td>
+                            <td>
+                              <input
+                                type="number"
+                                name="qty"
+                                value={item.qty}
+                                min="1"
+                                max={getAvailableStock(
+                                  item.product_id,
+                                  form.warehouseId,
+                                )}
+                                onChange={(e) => handleItemChange(index, e)}
+                                className={`form-control ${qtyErrors[index] ? "is-invalid" : ""}`}
+                              />
+                              {qtyErrors[index] && (
+                                <div className="invalid-feedback d-block">
+                                  {qtyErrors[index]}
+                                </div>
+                              )}
+                            </td>
 
                             <td>
                               <input
@@ -1022,7 +839,6 @@ const handleItemChange = (index, e) => {
                       </div>
                     </div>
                   </div>
-
                   <div className="d-flex flex-wrap gap-2 mt-4">
                     <button
                       type="submit"
@@ -1090,5 +906,4 @@ const handleItemChange = (index, e) => {
     </div>
   );
 };
-
 export default SalePOS;

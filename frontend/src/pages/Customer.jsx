@@ -4,10 +4,12 @@ import PhoneInput from "react-phone-input-2";
 import { State, Country } from "country-state-city";
 import { useDispatch, useSelector } from "react-redux";
 import { addcustomer,deletecustomer,fetchcustomers,updatecustomer,} from "../redux/customerSlice";
-import ReusableTable, { createCustomRoleActions,} from "../components/ReusableTable";
+import ReusableTable from "../components/ReusableTable";
 import API from "../api/axiosInstance";
 import HistoryModal from "../components/HistoryModal";
 import { getMe } from "../services/userService";
+import useTableActions from "../components/useTableActions";
+import { useNavigate } from "react-router-dom";
 const Customer = () => {
   const dispatch = useDispatch();
   const { items: customers, status } = useSelector((state) => state.customers);
@@ -29,18 +31,18 @@ const Customer = () => {
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyInfo, setHistoryInfo] = useState(null);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null)
+const navigate = useNavigate();
 const role = user?.role || "user";
-useEffect(() => {
-  getMe()
-    .then((u) => setUser(u))
-    .catch(() => {
-      // optional: redirect if not logged in
-      window.location.href = "/login";
-    });
-
-  dispatch(fetchcustomers());
-}, [dispatch]);
+  useEffect(() => {
+    getMe()
+      .then((u) => setUser(u))
+      .catch(() => {
+        navigate("/login");
+      });
+    dispatch(fetchcustomers());
+  }, [dispatch, navigate]);
+  const tableActions = useTableActions(role);
 
   useEffect(() => {
     dispatch(fetchcustomers());
@@ -96,7 +98,6 @@ useEffect(() => {
     }));
     updateStates(countryCode);
   };
-
   const getCountryCodeFromDialCode = (dialCode) => {
     const dialCodeMap = { 91: "IN", 1: "US", 44: "GB", 61: "AU" };
     return dialCodeMap[dialCode] || "";
@@ -217,18 +218,6 @@ useEffect(() => {
       render: (customer) => customer.billing_address || "-",
     },
   ];
-  const tableActions = createCustomRoleActions({
-    edit: {
-      show: () => ["super_admin", "admin", "user"].includes(role),
-    },
-    delete: {
-      show: () => ["super_admin", "admin"].includes(role),
-    },
-    history: {
-      show: () => ["super_admin", "admin", "user"].includes(role),
-    },
-  });
-
   const handleTableAction = (actionType, customer) => {
     if (actionType === "edit") {
       handleEdit(customer);

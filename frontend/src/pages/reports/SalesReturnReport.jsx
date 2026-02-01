@@ -3,32 +3,26 @@ import { useDispatch, useSelector } from "react-redux";
 import ExportButtons from "../../components/ExportButtons";
 import ReusableTable from "../../components/ReusableTable";
 import { fetchsalereturnreports } from "../../redux/salereturnreportSlice";
-
 const SalesReturnReport = () => {
   const dispatch = useDispatch();
   const { items: salereturnreports, status } = useSelector(
     (state) => state.salereturnreports,
   );
-
   const [form, setForm] = useState({
     from_date: "",
     to_date: "",
   });
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-
     if (!form.from_date || !form.to_date) {
       alert("Please select From & To date");
       return;
     }
     dispatch(fetchsalereturnreports(form));
   };
-
   const salesReturnColumns = [
     {
       key: "date",

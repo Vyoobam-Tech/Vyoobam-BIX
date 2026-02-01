@@ -8,5 +8,4 @@ router.post("/", protect, authorize("super_admin", "admin"), addProduct);
 router.put("/:id", protect, authorize("super_admin", "admin"), updateProduct);
 router.delete("/:id", protect, authorize("super_admin", "admin"), deleteProduct);
 router.get("/:id", protect, authorize("super_admin", "admin", "user"), getProductById);
-
 module.exports = router;

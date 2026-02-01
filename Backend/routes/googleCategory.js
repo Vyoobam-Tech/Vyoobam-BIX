@@ -2,8 +2,7 @@ const router = require("express").Router();
 const GoogleCategory = require("../models/GoogleCategory");
 router.get("/root", async (req, res) => {
   try {
-    const data = await GoogleCategory
-      .find({ parent_id: null })
+    const data = await GoogleCategory.find({ parent_id: null }).populate("parent_id", "name")
       .sort({ name: 1 });
     res.json(data);
   } catch (err) {
@@ -13,8 +12,7 @@ router.get("/root", async (req, res) => {
 
 router.get("/children/:parentId", async (req, res) => {
   try {
-    const data = await GoogleCategory
-      .find({ parent_id: req.params.parentId })
+    const data = await GoogleCategory.find({ parent_id: req.params.parentId }).populate("parent_id", "name")
       .sort({ name: 1 });
     res.json(data);
   } catch (err) {

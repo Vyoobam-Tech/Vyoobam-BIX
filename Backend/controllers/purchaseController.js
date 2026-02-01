@@ -1,12 +1,9 @@
 const Purchase = require("../models/Purchase");
 const StockLedger = require("../models/Stockledger");
-
-
 const generatePurchaseInvoiceNo = async () => {
   const count = await Purchase.countDocuments();
   return `PUR-${String(count + 1).padStart(5, "0")}`;
 };
-
 exports.getPurchases = async (req, res) => {
   try {
     let purchases;

@@ -5,12 +5,11 @@ import { fetchProducts } from "../redux/productSlice";
 import { fetchwarehouses } from "../redux/warehouseSlice";
 import { addstock, deletestock, fetchstocks } from "../redux/stockledgerSlice";
 import { getMe } from "../services/userService";
-import ReusableTable, {createCustomRoleActions,} from "../components/ReusableTable";
+import ReusableTable from "../components/ReusableTable";
 import API from "../api/axiosInstance";
 import HistoryModal from "../components/HistoryModal";
 import { useNavigate } from "react-router-dom";
-
-
+import useTableActions from "../components/useTableActions";
 const StockLedger = () => {
   const dispatch = useDispatch();
   const { items: stocks, status } = useSelector((state) => state.stockss);
@@ -19,14 +18,12 @@ const StockLedger = () => {
   const {items: salesReturn}=useSelector((state)=>state.salesReturn)
 const [user, setUser] = useState(null);
 const role = user?.role || "user";
-
 const navigate = useNavigate();
   const [form, setForm] = useState({
     productId: "",
     warehouseId: "",
     inQty: "",
   });
-
   const [editingStockLedger, setEditingStockLedger] = useState(null);
   const [searchproduct, setSearchproduct] = useState("");
   const [searchWarehouse, setSearchWarehouse] = useState("");
@@ -44,6 +41,8 @@ useEffect(() => {
   dispatch(fetchwarehouses());
   dispatch(fetchstocks());
 }, [dispatch, navigate]);
+const tableActions = useTableActions(role);
+
 
 const handleChange = (e) => {
     const { name, value } = e.target;
@@ -175,17 +174,14 @@ const handleChange = (e) => {
   };
 
 useEffect(() => {
-  if (!form.productId || !form.warehouseId) return;
-
+  if (!form.productId || !form.warehouseId)
+     return;
   const relatedLedgers = stocks.filter(
     (s) =>
       String(s.productId?._id || s.productId) === String(form.productId) &&
       String(s.warehouseId?._id || s.warehouseId) === String(form.warehouseId)
   );
-
-  const lastLedger = relatedLedgers
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-
+  const lastLedger = relatedLedgers.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
   setForm((prev) => ({
     ...prev,
     oldQty: lastLedger ? Number(lastLedger.balanceQty) : 0,
@@ -194,9 +190,6 @@ useEffect(() => {
     balanceQty: lastLedger ? Number(lastLedger.balanceQty) : 0,
   }));
 }, [form.productId, form.warehouseId, stocks]);
-
-
-
 
   const tableColumns = [
     {
@@ -261,18 +254,6 @@ useEffect(() => {
     },
   ];
 
-  const tableActions = createCustomRoleActions({
-    edit: {
-      show: () => ["super_admin", "admin"].includes(role),
-    },
-    delete: {
-      show: () => ["super_admin", "admin"].includes(role),
-    },
-    history: {
-      show: () => ["super_admin", "admin", "user"].includes(role),
-    },
-  });
-
   const handleTableAction = (actionType, stock) => {
     if (actionType === "edit") {
       handleEdit(stock);
@@ -299,7 +280,6 @@ useEffect(() => {
     }
     try {
       const res = await API.get(`/stockledger/${stockledger._id}`);
-
       const s = res.data;
       const createdByUser =
         s?.created_by?.name ||
@@ -342,14 +322,17 @@ useEffect(() => {
     }
   };
 
-  const returnSummary = filteredStocks
+const returnSummary = filteredStocks
   .filter((s) => s.txnType === "SALES_RETURN")
   .reduce((acc, curr) => {
     const productId =
-      typeof curr.productId === "object" ? curr.productId._id : curr.productId;
-
+      typeof curr.productId === "object" && curr.productId !== null
+        ? curr.productId._id
+        : curr.productId;
+    if (!productId) 
+      return acc;
     const productName =
-      typeof curr.productId === "object"
+      typeof curr.productId === "object" && curr.productId !== null
         ? curr.productId.name
         : products.find((p) => p._id === curr.productId)?.name || "Unknown";
 
@@ -360,11 +343,9 @@ useEffect(() => {
         totalQty: 0,
       };
     }
-
     acc[productId].totalQty += Number(curr.quantity || 0);
     return acc;
   }, {});
-
   return (
     <div className="container mt-4">
       <h2 className="mb-4 d-flex align-items-center fs-3">

@@ -3,11 +3,11 @@ import PhoneInput from 'react-phone-input-2';
 import { State, Country } from 'country-state-city';
 import { useDispatch, useSelector } from 'react-redux';
 import { addSupplier, deleteSupplier, fetchsuppliers, updateSupplier } from '../redux/supplierSlice';
-import ReusableTable, {createCustomRoleActions, } from '../components/ReusableTable'; 
+import ReusableTable from '../components/ReusableTable'; 
 import { useState,useEffect } from "react";
 import API from "../api/axiosInstance";
 import HistoryModal from "../components/HistoryModal";
-
+import useTableActions from '../components/useTableActions';
 const Supplier = () => {
   const dispatch = useDispatch();
   const { items: suppliers, status } = useSelector((state) => state.suppliers);
@@ -21,7 +21,6 @@ const Supplier = () => {
     state_code: "",
     
   });
-
   const [states, setStates] = useState([]);
   const [searchName, setSearchName] = useState("");
   const [searchMobile,setSearchMobile]=useState("")
@@ -31,7 +30,6 @@ const Supplier = () => {
   const [showHistoryModal,setShowHistoryModal]=useState(false)
   const [historyInfo,setHistoryInfo]=useState(null)
   const [role, setRole] = useState("user");
-
   useEffect(() => {
   API.get("/users/me")
     .then((res) => {
@@ -41,11 +39,10 @@ const Supplier = () => {
       window.location.href = "/login";
     });
 }, []);
-
+const tableActions = useTableActions(role);
 useEffect(() => {
   dispatch(fetchsuppliers());
 }, [dispatch]);
-
 
   const updateStates = (countryCode) => {
     if (countryCode) {
@@ -68,12 +65,8 @@ useEffect(() => {
     setForm(prev => ({ ...prev, [name]: value }));
     if (name === "country") updateStates(value);
   };
-
   const handlePhoneChange = (phone, countryData) => {
-  const countryCode =
-    countryData?.countryCode ||
-    countryData?.iso2 ||
-    (countryData?.dialCode === '91' ? 'IN' : '');
+  const countryCode = countryData?.countryCode ||countryData?.iso2 ||(countryData?.dialCode === '91' ? 'IN' : '');
   let localNumber = phone;
   if (countryData?.dialCode) {
     localNumber = phone.slice(countryData.dialCode.length);
@@ -88,21 +81,16 @@ useEffect(() => {
     updateStates(countryCode);
     return;
   }
-
   if (countryData?.dialCode === '91' && !/^[6-9]\d*$/.test(localNumber)) {
     return; 
   }
-
   setForm(prev => ({ 
     ...prev, 
     phone: phone, 
     country: countryCode 
   }));
-
   updateStates(countryCode);
 };
-
-
   const handleCountryChange = (countryCode) => {
     setForm(prev => ({ ...prev, country: countryCode }));
     updateStates(countryCode);
@@ -124,8 +112,7 @@ useEffect(() => {
         gstin: "",
         email: "",
         address: "",
-        state_code: "",
-        
+        state_code: "",  
       });
       setStates([]);
       setShowSupplierForm(false);
@@ -134,7 +121,6 @@ useEffect(() => {
       console.error(err.response?.data || err.message);
     }
   };
-
   const handleEdit = (supplier) => {
     setEditingSupplier(supplier._id);
     setForm({
@@ -145,15 +131,12 @@ useEffect(() => {
       email: supplier.email || "",
       address: supplier.address || "",
       state_code: supplier.state_code || "",
-    
     });
     setShowSupplierForm(true);
   };
-
   const handleDelete = (id) => {
     dispatch(deleteSupplier(id));
   };
-
   const handleCloseForm = () => {
     setShowSupplierForm(false);
     setEditingSupplier(null);
@@ -165,7 +148,6 @@ useEffect(() => {
       email: "",
       address: "",
       state_code: "",
-      
     });
   };
 
@@ -181,7 +163,6 @@ useEffect(() => {
     }
      
   );
-
   const tableColumns = [
     {
       key: "name",
@@ -218,20 +199,6 @@ useEffect(() => {
     },
     
   ];
-
-   const tableActions = createCustomRoleActions({
-      edit: { 
-        show: () => ["super_admin", "admin",].includes(role)
-      },
-      delete: { 
-        show: () => ["super_admin", "admin"].includes(role) 
-      },
-      history:{
-        show:()=>["super_admin","admin","user"].includes(role)
-      }
-    })
-    
-      
       const handleTableAction = (actionType, supplier) => {
         if (actionType === "edit") {
           handleEdit(supplier);
@@ -242,8 +209,6 @@ useEffect(() => {
           handleHistory(supplier)
         }
       };
-
-
   const handleHistory=async (supplier) => {
     if(!supplier._id){
       console.error("Supplier ID missing",supplier)
@@ -252,12 +217,10 @@ useEffect(() => {
         createdAt:supplier?.createdAt || null,
         updatedBy:"-",
         updatedAt:null,
-
       })
     }
     try{
      const res = await API.get(`/suppliers/${supplier._id}`);
-
       const s=res.data
       const createdByUser=s?.created_by?.name || s?.created_by?.username || s?.created_by?.email || "Unknown"
       const updatedByUser=s?.updated_by?.name || s?.updated_by?.username || s?.updated_by?.email || "-"
@@ -286,25 +249,16 @@ useEffect(() => {
   }
   return (
     <div className="container mt-4">
-      <h2 className="mb-4 d-flex align-items-center fs-3">
-        
-        <b>Suppliers</b>
-      </h2>
-
+      <h2 className="mb-4 d-flex align-items-center fs-3"><b>Suppliers</b></h2>
       {["super_admin", "admin"].includes(role) && (
         <div className="row mb-4">
           <div className="col-12">
             <button
               className="btn add text-white d-flex align-items-center" 
-              onClick={() => setShowSupplierForm(true)}
-            >
-              
-              Add Supplier
-            </button>
+              onClick={() => setShowSupplierForm(true)}>Add Supplier</button>
           </div>
         </div>
       )}
-
       {showSupplierForm && (
         <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-lg modal-dialog-centered">
@@ -346,22 +300,18 @@ useEffect(() => {
                     )}
                     <small className="text-muted">Selected country: {form.country || 'None'}</small>
                   </div>
-
                   <div className="col-md-6">
                     <label className="form-label">GSTIN (Optional)</label>
                     <input type="text" className="form-control bg-light" name="gstin" value={form.gstin} onChange={handleChange} placeholder="Enter GSTIN" />
                   </div>
-
                   <div className="col-md-6">
                     <label className="form-label">Email (Optional)</label>
                     <input type="email" className="form-control bg-light" name="email" value={form.email} onChange={handleChange} placeholder="example@mail.com" />
                   </div>
-
                   <div className="col-md-6">
                     <label className="form-label">Address</label>
                     <textarea className="form-control bg-light" rows="2" name="address" value={form.address} onChange={handleChange} placeholder="Enter supplier address"></textarea>
                   </div>
-
                   <div className="col-md-6">
                     <label className="form-label">State <span className="text-danger">*</span></label>
                     <select className="form-select bg-light" name="state_code" value={form.state_code} onChange={handleChange} required disabled={!form.country}>
@@ -373,18 +323,13 @@ useEffect(() => {
                       ))}
                     </select>
                   </div>
-
-                 
-
                   <div className="col-12 d-flex gap-2">
                      <button type="submit" className="btn add text-white px-4" >
-              
                       {editingSupplier ? "Update Supplier" : "Add Supplier"}
                     </button>
                     <button type="button" className="btn btn-secondary px-4" onClick={handleCloseForm}>
                        Cancel
                     </button>
-                   
                   </div>
                 </form>
               </div>
@@ -392,7 +337,6 @@ useEffect(() => {
           </div>
         </div>
       )}
-
       <ReusableTable
         data={filteredSuppliers}
         columns={tableColumns}

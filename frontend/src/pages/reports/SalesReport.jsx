@@ -28,7 +28,6 @@ const SalesReport = () => {
     (sum, sale) => sum + (sale.grand_total || 0),
     0,
   );
-
   const [customerSearch, setCustomerSearch] = useState("");
   const totalCustomers = new Set(
     salereports
@@ -39,9 +38,7 @@ const SalesReport = () => {
       )
       .filter(Boolean),
   ).size;
-
   const productQtyMap = {};
-
   salereports.forEach((sale) => {
     sale.items?.forEach((item) => {
       const productName = item.product_id?.name || "Unknown Product";
@@ -50,22 +47,18 @@ const SalesReport = () => {
       productQtyMap[productName] = (productQtyMap[productName] || 0) + qty;
     });
   });
-
   let topProduct = "N/A";
   let topProductQty = 0;
-
   Object.entries(productQtyMap).forEach(([product, qty]) => {
     if (qty > topProductQty) {
       topProduct = product;
       topProductQty = qty;
     }
   });
-
   const filteredSalesReports = salereports.filter((sale) => {
-    if (!customerSearch) return true;
-
+    if (!customerSearch) 
+      return true;
     const customerName = sale.customer_id?.name?.toLowerCase() || "walk-in";
-
     return customerName.includes(customerSearch.toLowerCase());
   });
 

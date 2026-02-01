@@ -16,10 +16,7 @@ const StockLedgerSchema = new mongoose.Schema(
     updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
     updated_by_role:String,
     updatedAt:Date,
-    history:{
-      oldValue:Number,
-      newValue:Number,
-    }
+    history:{oldValue:Number,newValue:Number,}
   },
   { timestamps: true }
 );
