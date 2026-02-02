@@ -42,8 +42,10 @@ const ProtectedRoute = ({ roles }) => {
       });
   }, []);
 
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (loading) 
+    return <div className="p-4">Loading...</div>;
+  if (!user) 
+    return <Navigate to="/login" replace />;
   if (roles && !roles.includes(user.role)) {
     return <Navigate to="/" replace />;
   }

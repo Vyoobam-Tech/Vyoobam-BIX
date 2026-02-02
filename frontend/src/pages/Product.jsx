@@ -8,6 +8,7 @@
   import ReusableTable, {createCustomRoleActions,} from "../components/ReusableTable";
   import { useNavigate } from "react-router-dom";
   import useTableActions from "../components/useTableActions";
+  import AddButton from "../components/AddButton";
   const Product = () => {
     const dispatch = useDispatch();
     const { items: products, status } = useSelector((state) => state.products);
@@ -330,12 +331,7 @@
           <div className="col-12">
             <div className="d-flex gap-2">
               {["super_admin", "admin"].includes(role) && (
-                <button
-                  className="btn add  d-flex align-items-center text-white "
-                  onClick={() => setShowProductForm(true)}
-                >
-                  Add Product
-                </button>
+                <AddButton text="Add Product" onClick={() => setShowProductForm(true)} />
               )}
             </div>
           </div>

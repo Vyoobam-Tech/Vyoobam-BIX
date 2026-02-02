@@ -29,8 +29,8 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-mongoose.connect("mongodb://127.0.0.1:27017/inventory")
-// mongoose.connect(process.env.MONGO_URI) 
+// mongoose.connect("mongodb://127.0.0.1:27017/inventory")
+mongoose.connect(process.env.MONGO_URI) 
 .then(async () => {
     console.log("MongoDB connected");
 

@@ -5,6 +5,7 @@ import HistoryModal from "../components/HistoryModal";
 import ReusableTable from "../components/ReusableTable"; 
 import { useNavigate } from "react-router-dom";
 import API from "../api/axiosInstance";
+import AddButton from "../components/AddButton";
 import useTableActions from "../components/useTableActions";
 const Tax = () => {
   const dispatch = useDispatch();
@@ -224,10 +225,7 @@ const Tax = () => {
         <div className="col-12">
           <div className="d-flex gap-2">
             {["super_admin", "admin"].includes(role) && (
-              <button
-                className="btn add text-white d-flex align-items-center"
-                onClick={() => setShowTaxForm(true)}
-              > Add Tax</button>
+             <AddButton text="Add Tax" onClick={()=>setShowTaxForm(true)}/>
             )}
           </div>
         </div>
