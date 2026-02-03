@@ -1,4 +1,6 @@
 const Product = require("../models/Product");
+const Warehouse = require("../models/Warehouse");
+const User = require("../models/User");
 
 exports.getProducts = async (req, res) => {
   try {
@@ -6,17 +8,17 @@ exports.getProducts = async (req, res) => {
       req.user.role === "user"
         ? { created_by_role: { $in: ["super_admin", "admin"] } }
         : {};
-       const products = await Product.find(query)
-      .populate("category_id", "name")
-      .populate("subcategory_id", "name")
-      .populate("warehouse", "store_name");
-
+      const products = await Product.find(query)
+  .populate("category_id", "name")
+  .populate("subcategory_id", "name")
+  .populate("warehouse", "store_name")
+  .populate("created_by", "name email")
+  .populate("updated_by", "name email");
     res.json(products);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
 
 exports.addProduct = async (req, res) => {
   try {
@@ -24,7 +26,7 @@ exports.addProduct = async (req, res) => {
       sku,
       name,
       category_id,
-        subcategory_id, 
+      subcategory_id,
       brand_name,
       variant,
       unit_id,
@@ -38,14 +40,16 @@ exports.addProduct = async (req, res) => {
       barcode,
       status,
     } = req.body;
-const product = new Product({
+    const warehouseDoc = await Warehouse.findById(warehouse).select("store_name");
+    const product = new Product({
       sku,
       name,
       category_id,
-       subcategory_id: subcategory_id || null,
+      subcategory_id: subcategory_id || null,
       brand_name,
       variant,
-      warehouse,
+      warehouse: warehouseDoc._id,
+      warehouse_name: warehouseDoc.store_name,
       unit_id,
       hsn_code,
       tax_rate_id,
@@ -54,17 +58,18 @@ const product = new Product({
       sale_price,
       min_stock,
       barcode,
-      
       status,
       created_by: req.user._id,
+      created_by_name: req.user.name,
       created_by_role: req.user.role,
     });
-await product.save();
+    await product.save();
     res.json(product);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
+
 
 exports.deleteProduct = async (req, res) => {
   try {
@@ -82,13 +87,20 @@ exports.updateProduct = async (req, res) => {
     delete allowedFields.id;
     delete allowedFields._id;
     allowedFields.updated_by = user._id;
+    allowedFields.updated_by_name = user.name;
     allowedFields.updated_by_role = user.role;
     allowedFields.updatedAt = new Date();
+    if (allowedFields.warehouse) {
+      const warehouseDoc = await Warehouse.findById(allowedFields.warehouse).select("store_name");
+      if (warehouseDoc) {
+        allowedFields.warehouse_name = warehouseDoc.store_name;
+      }
+    }
     const updated = await Product.findByIdAndUpdate(
       req.params.id,
       allowedFields,
       { new: true }
-    ).populate("created_by updated_by", "name username email");
+    );
     res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });

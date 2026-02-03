@@ -22,14 +22,10 @@ const userRoutes = require("./routes/userRoutes");
 const app = express();
 const cookieParser = require("cookie-parser");
 const importGoogleTaxonomyIfEmpty = require("./utils/importGoogleTaxonomy");
-
 app.use(cookieParser());
-
 const allowedOrigins = [
-  "http://localhost:5173",
   "https://salessage.vyoobam.com"
 ];
-
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -42,43 +38,7 @@ const corsOptions = {
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 };
-
-app.use(cors(corsOptions));   // ✅ THIS IS ENOUGH
-
-// const allowedOrigins = [
-//   "http://localhost:5173",
-//   "https://salessage.vyoobam.com"
-// ];
-
-// app.use(
-//   cors({
-//     origin: function (origin, callback) {
-//       if (!origin || allowedOrigins.includes(origin)) {
-//         callback(null, true);
-//       } else {
-//         callback(new Error("Not allowed by CORS"));
-//       }
-//     },
-//     credentials: true
-//   })
-// );
-// app.options("*", cors({
-//   origin: function (origin, callback) {
-//     const allowedOrigins = [
-//       "http://localhost:5173",
-//       "https://salessage.vyoobam.com"
-//     ];
-
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error("Not allowed by CORS"));
-//     }
-//   },
-//   credentials: true
-// }));
-
-
+app.use(cors(corsOptions)); 
 app.use(express.json());
 // mongoose.connect("mongodb://127.0.0.1:27017/inventory")
 mongoose.connect(process.env.MONGO_URI) 
