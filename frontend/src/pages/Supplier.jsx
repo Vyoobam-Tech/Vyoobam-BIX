@@ -8,6 +8,7 @@ import { useState,useEffect } from "react";
 import API from "../api/axiosInstance";
 import HistoryModal from "../components/HistoryModal";
 import useTableActions from '../components/useTableActions';
+import AddButton from '../components/AddButton';
 const Supplier = () => {
   const dispatch = useDispatch();
   const { items: suppliers, status } = useSelector((state) => state.suppliers);
@@ -253,9 +254,7 @@ useEffect(() => {
       {["super_admin", "admin"].includes(role) && (
         <div className="row mb-4">
           <div className="col-12">
-            <button
-              className="btn add text-white d-flex align-items-center" 
-              onClick={() => setShowSupplierForm(true)}>Add Supplier</button>
+            <AddButton text="Add Supplier" onClick={()=>setShowSupplierForm(true)}/>
           </div>
         </div>
       )}

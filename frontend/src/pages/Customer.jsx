@@ -10,6 +10,7 @@ import HistoryModal from "../components/HistoryModal";
 import { getMe } from "../services/userService";
 import useTableActions from "../components/useTableActions";
 import { useNavigate } from "react-router-dom";
+import AddButton from "../components/AddButton";
 const Customer = () => {
   const dispatch = useDispatch();
   const { items: customers, status } = useSelector((state) => state.customers);
@@ -296,12 +297,7 @@ const role = user?.role || "user";
       </h2>
       <div className="row mb-4">
         <div className="col-12">
-          <button
-            className="btn add text-white d-flex align-items-center"
-            onClick={() => setShowCustomerForm(true)}
-          >
-            Add Customer
-          </button>
+           <AddButton text="Add Customer" onClick={()=>setShowCustomerForm(true)}/>
         </div>
       </div>
       {showCustomerForm && (

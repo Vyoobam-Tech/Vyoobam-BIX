@@ -13,6 +13,7 @@ import API from "../api/axiosInstance";
 import HistoryModal from "../components/HistoryModal";
 import { useNavigate } from "react-router-dom";
 import useTableActions from "../components/useTableActions";
+import AddButton from "../components/AddButton";
 ModuleRegistry.registerModules([AllCommunityModule]);
 const Purchase = () => {
   const dispatch = useDispatch();
@@ -504,10 +505,7 @@ useEffect(() => {
       <div className="row mb-4">
         <div className="col-12">
           {["super_admin", "admin"].includes(role) && (
-            <button
-              className="btn add text-white d-flex align-items-center"
-              onClick={() => setShowPurchaseForm(true)}
-            >Add Purchase</button>
+          <AddButton text="Add Purchase" onClick={()=>setShowPurchaseForm(true)}/>
           )}
         </div>
       </div>

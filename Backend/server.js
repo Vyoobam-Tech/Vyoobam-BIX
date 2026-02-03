@@ -24,7 +24,8 @@ const cookieParser = require("cookie-parser");
 const importGoogleTaxonomyIfEmpty = require("./utils/importGoogleTaxonomy");
 app.use(cookieParser());
 const allowedOrigins = [
-  "https://salessage.vyoobam.com"
+  "https://salessage.vyoobam.com",
+  
 ];
 const corsOptions = {
   origin: function (origin, callback) {

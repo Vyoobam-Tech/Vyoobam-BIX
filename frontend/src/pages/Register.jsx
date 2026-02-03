@@ -51,7 +51,10 @@ const Register = () => {
     }
     try {
       const { user } = await register(form);
-      navigate("/");
+      navigate("/login", {
+  state: { message: "Registration successful. Please login." }
+});
+
     } catch (err) {
       console.error("Registration error:", err);
       setError(
@@ -179,7 +182,7 @@ return (
             {showPassword ? <AiFillEye /> : <AiFillEyeInvisible />}
           </span>
         </div>
-        <div className="mb-2">
+        {/* <div className="mb-2">
           <label className="form-label">Phone</label>
           <input
             className="form-control bg-light"
@@ -196,7 +199,7 @@ return (
             value={form.address}
             onChange={handleChange}
           />
-        </div>
+        </div> */}
         <button type="submit" className="btn btn-primary w-100 mt-3">Register</button>
         <p className="mt-3 mb-0 text-center">
           Already have an account?{" "}

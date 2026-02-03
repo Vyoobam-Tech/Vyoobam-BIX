@@ -17,6 +17,7 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import HistoryModal from "../components/HistoryModal";
 import useTableActions from "../components/useTableActions";
+import AddButton from "../components/AddButton";
 ModuleRegistry.registerModules([AllCommunityModule]);
 const SalePOS = () => {
   const dispatch = useDispatch();
@@ -555,12 +556,7 @@ const SalePOS = () => {
       </h2>
       <div className="row mb-4">
         <div className="col-12">
-          <button
-            className="btn add text-white d-flex align-items-center"
-            onClick={() => setShowSaleForm(true)}
-          >
-            New Sale
-          </button>
+          <AddButton text="Add Sale" onClick={()=>setShowSaleForm(true)}/>
         </div>
       </div>
 

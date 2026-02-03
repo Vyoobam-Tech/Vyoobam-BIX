@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { login } from "../services/userService";
 import logo from "../assets/Logo.png";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import { useLocation } from "react-router-dom";
 const Login = () => {
   const [form, setForm] = useState({
     email: "",
@@ -11,6 +12,8 @@ const Login = () => {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = location.state?.message;
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -31,9 +34,8 @@ const Login = () => {
       <form className="card p-4 text-center" style={{ minWidth: 320 }} onSubmit={handleSubmit}>
         <img src={logo} alt="Logo" style={{ width: "80px", height: "50px", margin: "0 auto 10px" }} />
         <h4 className="mb-3">SIGN IN</h4>
-
+        {successMessage && (<div className="alert alert-success">{successMessage}</div>)}
         {error && <div className="alert alert-danger">{error}</div>}
-
         <div className="mb-2 text-start">
           <label className="form-label">Email <span className="text-danger">*</span></label>
           <input

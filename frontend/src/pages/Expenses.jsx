@@ -8,6 +8,7 @@ import API from '../api/axiosInstance';
 import HistoryModal from '../components/HistoryModal';
 import { useNavigate } from "react-router-dom";
 import useTableActions from '../components/useTableActions';
+import AddButton from '../components/AddButton';
 const Expenses = () => {
   const dispatch = useDispatch();
   const { items: expenses, status } = useSelector((state) => state.expenses);
@@ -210,12 +211,7 @@ const handleSubmit = async (e) => {
       <div className="row mb-4">
         <div className="col-12">
           {["super_admin", "admin"].includes(role) && (
-            <button
-              className="btn add text-white d-flex align-items-center"
-              onClick={() => setShowExpenseForm(true)}
-            >
-              Add Expense
-            </button>
+            <AddButton text="Add Expense" onClick={()=>setShowExpenseForm(true)}/>
           )}
         </div>
       </div>
