@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const SaleItemSchema = new mongoose.Schema({
   product_id:{type:mongoose.Schema.Types.ObjectId,ref:'Product',required:true },
+  product_name:{type:String},
   stock:{type:Number,ref:'Stockledger',},
   batch_no:{type:String},
   qty:{type:Number,required:true},
@@ -17,8 +18,9 @@ const SaleSchema = new mongoose.Schema({
   invoice_no:{type:String,required:true},
   invoice_date_time:{type:Date,required:true },
   customer_id:{type:mongoose.Schema.Types.ObjectId,ref:'Customer'},
-   warehouseId: {type: mongoose.Schema.Types.ObjectId,ref: "Warehouse",required: true},
-  customer_name: { type: String },
+  customer_name:{type:String},
+  warehouseId: {type: mongoose.Schema.Types.ObjectId,ref: "Warehouse",required: true},
+  warehouse_name:{type:String},
   counter_id:{type:String,required:true},
   payment_mode:{type:String,required:true},
   subtotal:{type:Number,default:0},
@@ -29,7 +31,9 @@ const SaleSchema = new mongoose.Schema({
   due_amount:{type:Number,default:0},
   notes:{type:String},
   created_by:{ type:mongoose.Schema.Types.ObjectId,ref:"User",required:false,},
+  created_by_name:{type:String},
   updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
+  updated_by_name:{type:String},
   updated_by_role:String,
   updatedAt:Date,
   history: {oldValue: String,newValue: String

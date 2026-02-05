@@ -6,12 +6,9 @@ exports.getSuppliers = async (req, res) => {
     if (req.user.role === "user") {
       suppliers = await Supplier.find({
         created_by_role: { $in: ["super_admin", "admin"] },
-      }).populate("created_by", "name email role");
+      }).populate("created_by", "name email role").populate("updated_by","name email")
     } else {
-      suppliers = await Supplier.find().populate(
-        "created_by",
-        "name email role"
-      );
+      suppliers = await Supplier.find().populate("created_by","name email role");
     }
     res.json(suppliers);
   } catch (err) {
@@ -21,11 +18,7 @@ exports.getSuppliers = async (req, res) => {
 
 exports.addSupplier = async (req, res) => {
   try {
-    const supplier = new Supplier({
-      ...req.body,
-      created_by: req.user._id,
-      created_by_role: req.user.role,
-    });
+    const supplier = new Supplier({...req.body,created_by: req.user._id,created_by_name:req.user.name,created_by_role: req.user.role,});
     await supplier.save();
     res.status(201).json(supplier);
   } catch (err) {
@@ -56,6 +49,7 @@ exports.updateSupplier = async (req, res) => {
     delete allowedFields.id;
     delete allowedFields._id;
     allowedFields.updated_by = req.user._id;
+    allowedFields.updated_by_name=req.user.name,
     allowedFields.updated_by_role = req.user.role;
     allowedFields.updatedAt = new Date();
     allowedFields.history = {

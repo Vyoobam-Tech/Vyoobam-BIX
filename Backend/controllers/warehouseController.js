@@ -6,7 +6,7 @@ exports.getWarehouses = async (req, res) => {
     if (req.user.role) {
       warehouses = await Warehouse.find({
         created_by_role: { $in: ["super_admin", "admin"] },
-      }).populate("created_by", "name email role");
+      }).populate("created_by", "name email role").populate("updated_by", "name email")
     } else {
       warehouses = await Warehouse.find().populate(
         "created_by",
@@ -21,11 +21,7 @@ exports.getWarehouses = async (req, res) => {
 
 exports.addWarehouse = async (req, res) => {
   try {
-    const warehouse = new Warehouse({
-      ...req.body,
-      created_by: req.user._id,
-      created_by_role: req.user.role,
-    });
+    const warehouse = new Warehouse({...req.body,created_by: req.user._id,created_by_role: req.user.role,created_by_name: req.user.name,});
     await warehouse.save();
     res.json(warehouse);
   } catch (err) {
@@ -55,6 +51,7 @@ exports.updateWarehouse = async (req, res) => {
     delete allowedFields.id;
     delete allowedFields._id;
     allowedFields.updated_by = req.user._id;
+    allowedFields.updated_by_name=req.user.name
     allowedFields.updated_by_role = req.user.role;
     allowedFields.updatedAt = new Date();
     allowedFields.history = {

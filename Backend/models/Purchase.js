@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const purchaseItemSchema = new mongoose.Schema({
   product_id:{type: mongoose.Schema.Types.ObjectId,ref: "Product", required: true},
+  product_name:{type:String},
   batch_no:{type:String},
   mfg_date:{type:Date},
   exp_date:{type:Date},
@@ -14,10 +15,11 @@ const purchaseItemSchema = new mongoose.Schema({
 
 const purchaseSchema = new mongoose.Schema({
   supplier_id:{type: mongoose.Schema.Types.ObjectId,ref: "Supplier",required: true},
-  created_by_role:{type:String,required:true},
+  supplier_name:{type:String},
   invoice_no:{type:String,required:true},
   invoice_date:{type:Date,required:true},
   warehouse_id:{type:mongoose.Schema.Types.ObjectId,ref: "Warehouse",required: true},
+  warehouse_name:{type:String},
   items:[purchaseItemSchema],
   subtotal:{type:Number,default:0},
   discount_amount:{type:Number,default:0},
@@ -29,7 +31,10 @@ const purchaseSchema = new mongoose.Schema({
   payment_mode:{type:String},
   notes:{type:String},
   created_by:{type:mongoose.Schema.Types.ObjectId,ref:"User",required:false},
+  created_by_name:{type:String},
+  created_by_role:{type:String,required:true},
   updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
+  updated_by_name:{type:String},
   updated_by_role:String,
   updatedAt:Date,
   history:{

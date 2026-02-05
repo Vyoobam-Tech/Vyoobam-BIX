@@ -1,6 +1,7 @@
 const Product = require("../models/Product");
 const Warehouse = require("../models/Warehouse");
 const User = require("../models/User");
+const GoogleCategory = require("../models/GoogleCategory");
 
 exports.getProducts = async (req, res) => {
   try {
@@ -8,12 +9,10 @@ exports.getProducts = async (req, res) => {
       req.user.role === "user"
         ? { created_by_role: { $in: ["super_admin", "admin"] } }
         : {};
-      const products = await Product.find(query)
-  .populate("category_id", "name")
-  .populate("subcategory_id", "name")
-  .populate("warehouse", "store_name")
-  .populate("created_by", "name email")
-  .populate("updated_by", "name email");
+    const products = await Product.find(query)
+      .populate("warehouse", "store_name")
+      .populate("created_by", "name email")
+      .populate("updated_by", "name email");
     res.json(products);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -40,12 +39,20 @@ exports.addProduct = async (req, res) => {
       barcode,
       status,
     } = req.body;
-    const warehouseDoc = await Warehouse.findById(warehouse).select("store_name");
+    const warehouseDoc =
+      await Warehouse.findById(warehouse).select("store_name");
+    const categoryDoc =
+      await GoogleCategory.findById(category_id).select("name");
+    const subCategoryDoc = subcategory_id
+      ? await GoogleCategory.findById(subcategory_id).select("name")
+      : null;
     const product = new Product({
       sku,
       name,
       category_id,
+      category_name: categoryDoc?.name,
       subcategory_id: subcategory_id || null,
+      subcategory_name: subCategoryDoc?.name || null,
       brand_name,
       variant,
       warehouse: warehouseDoc._id,
@@ -70,7 +77,6 @@ exports.addProduct = async (req, res) => {
   }
 };
 
-
 exports.deleteProduct = async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
@@ -91,16 +97,23 @@ exports.updateProduct = async (req, res) => {
     allowedFields.updated_by_role = user.role;
     allowedFields.updatedAt = new Date();
     if (allowedFields.warehouse) {
-      const warehouseDoc = await Warehouse.findById(allowedFields.warehouse).select("store_name");
+      const warehouseDoc = await Warehouse.findById(allowedFields.warehouse,).select("store_name");
       if (warehouseDoc) {
         allowedFields.warehouse_name = warehouseDoc.store_name;
       }
     }
-    const updated = await Product.findByIdAndUpdate(
-      req.params.id,
-      allowedFields,
-      { new: true }
-    );
+    if (allowedFields.category_id) {
+      const cat = await GoogleCategory.findById(allowedFields.category_id,).select("name");
+      if (cat) 
+        allowedFields.category_name = cat.name;
+    }
+
+    if (allowedFields.subcategory_id) {
+      const sub = await GoogleCategory.findById(allowedFields.subcategory_id, ).select("name");
+      if (sub) 
+        allowedFields.subcategory_name = sub.name;
+    }
+    const updated = await Product.findByIdAndUpdate(req.params.id,allowedFields,{ new: true },);
     res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -124,7 +137,7 @@ exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).populate(
       "created_by updated_by",
-      "name email role"
+      "name email role",
     );
     if (!product) {
       return res.status(404).json({ error: "Product not found" });

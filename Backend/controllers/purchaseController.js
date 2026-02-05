@@ -1,5 +1,8 @@
 const Purchase = require("../models/Purchase");
 const StockLedger = require("../models/Stockledger");
+const Supplier = require("../models/Supplier");
+const Warehouse = require("../models/Warehouse");
+const Product = require("../models/Product");
 const generatePurchaseInvoiceNo = async () => {
   const count = await Purchase.countDocuments();
   return `PUR-${String(count + 1).padStart(5, "0")}`;
@@ -11,13 +14,15 @@ exports.getPurchases = async (req, res) => {
       purchases = await Purchase.find({
         created_by_role: { $in: ["super_admin", "admin"] },
       })
-        .populate("supplier_id warehouse_id items.product_id")
+        .populate("supplier_id", "name")
+        .populate("warehouse_id", "store_name")
+        .populate("items.product_id", "name")
         .populate("created_by", "name email role");
     } else {
       purchases = await Purchase.find()
-        .populate("items.product_id")
-        .populate("supplier_id")
-        .populate("warehouse_id")
+        .populate("supplier_id", "name email phone")
+        .populate("warehouse_id", "store_name code")
+        .populate("items.product_id", "name")
         .populate("created_by", "name email role");
     }
     res.json(purchases);
@@ -28,12 +33,26 @@ exports.getPurchases = async (req, res) => {
 
 exports.addPurchase = async (req, res) => {
   try {
+    const supplier = await Supplier.findById(req.body.supplier_id);
+    const warehouse = await Warehouse.findById(req.body.warehouse_id);
     const invoiceNo = await generatePurchaseInvoiceNo();
+    const itemsWithNames = [];
+    for (const item of req.body.items) {
+      const product = await Product.findById(item.product_id).select("name");
+      itemsWithNames.push({
+        ...item,
+        product_name: product?.name || "Unknown Product",
+      });
+    }
     const purchase = new Purchase({
       ...req.body,
-      invoice_no: invoiceNo, 
+      items: itemsWithNames,
+      invoice_no: invoiceNo,
       created_by: req.user._id,
+      created_by_name: req.user.name,
       created_by_role: req.user.role,
+      supplier_name: supplier?.name,
+      warehouse_name: warehouse?.store_name,
     });
     await purchase.save();
     for (const item of purchase.items) {
@@ -85,12 +104,14 @@ exports.updatePurchase = async (req, res) => {
     delete allowedFields.id;
     delete allowedFields._id;
     allowedFields.updated_by = req.user._id;
+    allowedFields.updated_by_name = req.user.name;
     allowedFields.updated_by_role = req.user.role;
     allowedFields.updatedAt = new Date();
     allowedFields.history = {
       oldValue: oldPurchase.name,
       newValue: req.body.name || oldPurchase.name,
     };
+
     const updated = await Purchase.findByIdAndUpdate(
       req.params.id,
       allowedFields,

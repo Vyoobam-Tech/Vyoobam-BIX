@@ -223,12 +223,12 @@
       {
         key: "category",
         header: "Category",
-        render: (p) => p.category_id?.name || p.category_id || "",
+        render: (p) => p.category_name || "-",
       },
       {
         key: "subcategory",
         header: "Subcategory",
-        render: (p) => p.subcategory_id?.name || p.subcategory_id || "-",
+        render: (p) => p.subcategory_name || "-",
       },
       { key: "brand_name", header: "Brand", render: (p) => p.brand_name || "-" },
       {
@@ -246,8 +246,6 @@
       },
       { key: "sale_price", header: "Sale", render: (p) => `₹${p.sale_price}` },
     ];
-
-   
 
     const handleTableAction = (actionType, product) => {
       if (actionType === "edit") handleEdit(product);

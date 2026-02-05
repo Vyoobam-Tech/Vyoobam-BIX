@@ -8,7 +8,9 @@ const customerSchema = new mongoose.Schema({
     shipping_address:{type:String},
     state_code:{type:String},
     created_by:{type:mongoose.Schema.Types.ObjectId,ref:"User",required:false},
+    created_by_name:{type:String},
     updated_by:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
+    updated_by_name:{type:String},
     updated_by_role:String,
     updatedAt:Date,
     history:{ oldValue:String,newValue:String, }

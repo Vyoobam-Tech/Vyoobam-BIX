@@ -18,7 +18,7 @@ exports.getTaxes = async (req, res) => {
   
 exports.addTax = async (req, res) => {
   try {
-    const tax = new Tax({...req.body,created_by:req.user._id,created_by_role:req.user.role,})
+    const tax = new Tax({...req.body,created_by:req.user._id,created_by_role:req.user.role,created_by_name: req.user.name})
     await tax.save()
     res.status(201).json(tax)
   }
@@ -50,6 +50,7 @@ exports.updatetax=async(req,res)=>{
     delete allowedFields.id
     delete allowedFields._id
     allowedFields.updated_by=req.user._id
+    allowedFields.updated_by_name=user.name
     allowedFields.updated_by_role=req.user.role
     allowedFields.updatedAt=new Date()
     allowedFields.history={
